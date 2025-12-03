@@ -1,0 +1,22 @@
+services:
+  app:
+    build: .
+    container_name: app #nome app
+    ports:
+      - "3000:3000"
+    env_file:
+      - .env
+    depends_on:
+      - postgres
+    volumes:
+      # Bind mount: monta ./secrets del PC in /app/secrets del container
+      - ./secrets:/usr/src/app/secrets
+  postgres:
+    image: postgres:latest
+    container_name: postgres
+    environment:
+      POSTGRES_USER: ${DB_USERNAME}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_NAME}
+    ports:
+      - "5432:5432"

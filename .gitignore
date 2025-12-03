@@ -1,0 +1,8 @@
+.env
+node_modules
+dist
+sync.ts
+coverage
+secrets/*.key
+secrets/*.pub
+venv
