@@ -2,6 +2,5 @@
 export interface UserPayload {
   id: string;
   name: string;
-  surname: string;
-  role: string
+  role: 'user' | 'admin';
 }

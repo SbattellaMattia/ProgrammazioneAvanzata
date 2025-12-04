@@ -1,4 +1,4 @@
-import { UserDAO } from "../dao/UserDAO";
+/*import { UserDAO } from "../dao/UserDao";
 import { User } from "../models/User";
 
 export class UserRepository {
@@ -19,4 +19,4 @@ export class UserRepository {
   removeUser(id: string): Promise<void> {
     return this.userDAO.delete(id);
   }
-}
+}*/

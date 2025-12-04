@@ -3,6 +3,6 @@ node_modules
 dist
 sync.ts
 coverage
-secrets/*.key
-secrets/*.pub
+src/secrets/*.key
+src/secrets/*.pub
 venv

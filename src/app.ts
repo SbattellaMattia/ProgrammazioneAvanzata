@@ -1,84 +1,59 @@
-import express from "express";
-import userRoutes from "./routes/userRoutes";
-import jwt from "jsonwebtoken"
-import { Request, Response, NextFunction } from "express";
-import { UserPayload } from "./@types/CustomUser";
-import {StatusCodes} from 'http-status-codes'
-
-/*interface RequestUser extends express.Request{
-  user:string | jwt.JwtPayload;
-}*/
+import express from 'express';
+import dotenv from 'dotenv';
+import authRoutes from "./routes/authRoutes";
 
 
-/*
-MODIFICARE: spostare la logica nella parte opportuna. 
-In questo file lasciare solo la parte di matching tra rotta (stringa) e le routes  
-*/
 
+/** 
+  * Carica le variabili d'ambiente dal file .env.
+  * Questo permette di utilizzare variabili senza ancorarle nel codice.
+  */
+dotenv.config();
 
-interface RequestRole extends express.Request{
-  role?:string;
-}
-const JWT_SECRET = process.env.JWT_SECRET || "ciao";
-const logError = (err:Error, req:express.Request, res:Response, next:NextFunction):void=>{
-  console.log("ahi ahi",err);
-  next(err);
-}
-
-const logRequest = (req:Request, res:Response, next:NextFunction)=>{
-  console.log(req.headers);
-  next();
-}
-
-const verifyJWt = (req: Request, res:express.Response, next:NextFunction)=>{    
-  try{
-    if(req.headers.authorization){
-      const jwtToken = req.headers.authorization?.split(" ");
-      
-      if (jwtToken.length === 2 && jwtToken[0] === "Bearer"){
-        let out = jwt.verify(jwtToken[1] || "", JWT_SECRET );
-        console.log(out, jwtToken[1]);
-        // req.user = <UserPayload>JSON.parse(<string>out)
-        req.user = <UserPayload>out;
-        console.log("ciao USER",req.user);                
-      }
-      else{
-        throw new Error("Ahi ahi...invalid header...");
-      }
-    }
-    else 
-      throw new Error("Ahi ahi...bearer not found...");
-  }catch (err){
-    next(err);
-    //res.status(StatusCodes.UNAUTHORIZED).send({})
-  }
-  next();
-}
-
-const errorHandler = (err:Error, req:express.Request, res:Response, next:NextFunction):void=>{
-  res.status(StatusCodes.INTERNAL_SERVER_ERROR).send(err);
-}
+/**
+ * Crea un'istanza dell'applicazione Express.
+ *
+ * @constant {express.Application} app
+ */
 const app = express();
-const port = 3000;
 
+/**
+ * Questo middleware è necessario per poter leggere i dati inviati
+ * in formato JSON nelle richieste POST o PUT.
+ * Utilizza `express.json()` (middleware integrato in Express) per il parsing automatico dei payload JSON nelle richieste
+ * e lo trasforma in un oggetto Javascript utilizzabile.
+ */
 app.use(express.json());
-app.use(verifyJWt);
-//app.use(logRequest);
-app.use("/api", userRoutes);
-app.use((req, res) => {  
-  res.status(StatusCodes.NOT_FOUND).json({
-    success: false,
-    error: {
-      name: "NotFoundError",
-      message: `Route ${req.originalUrl} not found`
-    }
-  });
-});
-app.use(logError);
-app.use(errorHandler);
 
-app.listen(port, () => {
-  console.log(`Server running on http://localhost:${port}`);
+/**
+ * Questa route gestisce le richieste relative all'autenticazione degli utenti.
+ * Utilizza il router definito in `authRoutes.js` per gestire le operazioni di login, registrazione e gestione degli utenti.
+ * @see authRoutes.js
+ * @module authRoutes
+ */
+app.use('', authRoutes);
+
+
+
+/**
+ * Definisce la porta su cui il server sarà in esecuzione.
+ * Utilizza il valore della variabile d'ambiente `PORT` oppure, in assenza, utilizza la porta 3000.
+ *
+ * @constant {number|string} port
+ */
+const PORT = process.env.PORT || 3000;
+
+/**
+ * Avvia il server Express e lo mette in ascolto sulla porta specificata.
+ * Stampa un messaggio di log per indicare che il server è in esecuzione.
+ * @param {number|string} PORT - La porta su cui il server ascolterà le richieste.
+ */
+app.listen(PORT, () => {
+  console.log(`🚀 Server running on port ${PORT}`);
 });
 
+/**
+ * Esporta l'istanza dell'applicazione per utilizzarla in altri moduli.
+ * @exports app
+ */
 export default app;

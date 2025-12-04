@@ -10,7 +10,7 @@ services:
       - postgres
     volumes:
       # Bind mount: monta ./secrets del PC in /app/secrets del container
-      - ./secrets:/usr/src/app/secrets
+      - ./src/secrets:/usr/src/app/secrets
   postgres:
     image: postgres:latest
     container_name: postgres

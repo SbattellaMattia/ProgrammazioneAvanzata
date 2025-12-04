@@ -1,7 +1,8 @@
+
 import jwt from 'jsonwebtoken';
-//import { privateKey, publicKey } from '../utils/jwt';
+import { privateKey, publicKey } from '../secrets/keys';
 import { UserPayload } from '../@types/CustomUser';
-//import { UserDAO } from '../dao/userDAO';
+import { UserDAO } from '../dao/UserDao';
 import { ErrorFactory } from '../factories/errorFactory';
 
 /**
@@ -17,7 +18,7 @@ import { ErrorFactory } from '../factories/errorFactory';
  * Questa classe viene utilizzata principalmente dal `AuthController` per gestire il login.
  */
 export class AuthService {
- //constructor(private userDAO: UserDAO) {}
+ constructor(private userDAO: UserDAO) {}
 
   /**Genera un token JWTfirmato digitalmente a partire da un payload utente.
    * 
@@ -32,9 +33,9 @@ export class AuthService {
    * @param payload - Oggetto contenente le informazioni utente minime da inserire nel token, ad esempio l'id e il ruolo.
    * @returns Una stringa contenente il token JWT firmato.
    */
-  //generateToken(payload: UserPayload): string {
-    //return jwt.sign(payload, privateKey, { algorithm: 'RS256', expiresIn: '1h' });
-  //}
+  generateToken(payload: UserPayload): string {
+    return jwt.sign(payload, privateKey, { algorithm: 'RS256', expiresIn: '1h' });
+  }
 
    /**
    * Verifica e decodifica un token JWT usando la chiave pubblica, assicurandosi che sia valido e non scaduto.
@@ -49,8 +50,8 @@ export class AuthService {
    * @throws {Error} Se il token non è valido o è scaduto.
    */
   verifyToken(token: string): UserPayload {
-    return jwt.verify(token, 'publicKey', { algorithms: ['RS256'] }) as UserPayload;
-  } // TODO(non è una stringaaaaaa)
+    return jwt.verify(token, publicKey, { algorithms: ['RS256'] }) as UserPayload;
+  }
 
   /**
    * Esegue la procedura di login per un utente dato email e password.
@@ -65,7 +66,7 @@ export class AuthService {
    * @returns {Promise<string>} Il token JWT generato per l'utente.
    * @throws {Error} Se l'utente non esiste o la password è errata.
    */
-  /*login = async (email: string, password: string): Promise<string> => {
+  login = async (email: string, password: string): Promise<string> => {
     const user = await this.userDAO.findByEmail(email);
     if (!user) {
       throw ErrorFactory.entityNotFound('User');
@@ -74,9 +75,10 @@ export class AuthService {
       throw ErrorFactory.unauthorized('Invalid password');
     }
     const payload: UserPayload = {
+      name: user.name,
       id: user.id,
       role: user.role
     }
     return this.generateToken(payload);
-  }*/
+  }
 }
