@@ -13,9 +13,9 @@ dotenv.config();
  * @constant PUBLIC_KEY_PATH - Il percorso della chiave pubblica per la verifica della firma JWT.
  */
 // Percorsi delle chiavi
-const PRIVATE_KEY_PATH = process.env.PRIVATE_KEY_PATH || path.join(__dirname, '/jwtRS256.key');
+const PRIVATE_KEY_PATH = process.env.PRIVATE_KEY_PATH || path.join(__dirname, 'jwtRS256.key');
 
-const PUBLIC_KEY_PATH = process.env.PUBLIC_KEY_PATH || path.join(__dirname, '/jwtRS256.key.pub');
+const PUBLIC_KEY_PATH = process.env.PUBLIC_KEY_PATH || path.join(__dirname, 'jwtRS256.key.pub');
 
 /**
  * Lettura della chiave privata e pubblica per la firma JWT.

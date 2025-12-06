@@ -16,6 +16,13 @@ Vehicle.init(
       type: DataTypes.STRING,
       primaryKey: true,
       allowNull: false,
+       set(value: string) {
+            this.setDataValue('plate', value.trim().toUpperCase().replace(/\s+/g, ''));
+            },
+          validate: {
+            notEmpty: true,
+            len: [7, 7],
+          },
     },
     type: {
       type: DataTypes.ENUM(...Object.values(VehicleType)),

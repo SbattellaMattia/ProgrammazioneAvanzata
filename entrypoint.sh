@@ -57,8 +57,33 @@ else
 fi
 
 echo ""
-echo "🚀 Avvio applicazione..."
-echo ""
+echo "⏳ Waiting for PostgreSQL..."
 
+DB_HOST=${DB_HOST:-postgres}
+DB_PORT=${DB_PORT:-5432}
+MAX_RETRIES=60
+RETRY_COUNT=0
+
+until nc -z "$DB_HOST" "$DB_PORT"; do
+  RETRY_COUNT=$((RETRY_COUNT + 1))
+  if [ $RETRY_COUNT -gt $MAX_RETRIES ]; then
+    echo "❌ Database not available after $MAX_RETRIES attempts"
+    exit 1
+  fi
+  echo "  Database is unavailable - attempt $RETRY_COUNT/$MAX_RETRIES"
+  sleep 1
+done
+
+echo ""
+echo "🔄 Running database migrations..."
+npm run migrate
+
+echo ""
+echo "🌱 Seeding database..."
+npm run seed
+
+echo ""
+echo "🚀 Starting application..."
+echo ""
 # Esegui il comando passato al container (es: npm start)
 exec "$@"

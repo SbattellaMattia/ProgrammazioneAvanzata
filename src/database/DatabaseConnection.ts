@@ -1,5 +1,6 @@
 
 import { Sequelize, Dialect} from 'sequelize';
+import { dbConfig } from '../config/config';
 import dotenv from 'dotenv';
 dotenv.config();
 
@@ -14,21 +15,21 @@ class DatabaseConnection {
     private constructor() {}
 
     /**
-     * Restituisce l'istanza di Sequelize, creando una nuova connessione se non esiste già.
-     * @returns L'istanza di Sequelize.
+     * Restituisce l'istanza singleton di Sequelize per la connessione al database.
+     * Se l'istanza non esiste, la crea utilizzando la configurazione definita in `dbConfig`.
+     *
+     * @returns {Sequelize} L'istanza di Sequelize per la connessione al database.
      */
     public static getInstance(): Sequelize {
         if (!DatabaseConnection.instance) {
-
-            const dialect = (process.env.DB_DIALECT || 'postgres') as Dialect;
             DatabaseConnection.instance = new Sequelize({
-                dialect,
-                host: process.env.DB_HOST || 'db',
-                port: process.env.DB_PORT ? parseInt(process.env.DB_PORT) : 5432,
-                username: process.env.DB_USERNAME || 'postgres',
-                password: process.env.DB_PASSWORD || 'postgres',
-                database: process.env.DB_NAME || 'parkingdb',
-                logging: false, 
+                dialect: dbConfig.dialect,
+                host: dbConfig.host,
+                port: dbConfig.port,
+                username: dbConfig.username,
+                password: dbConfig.password,
+                database: dbConfig.database,
+                logging: dbConfig.logging,
             });
         }
         return DatabaseConnection.instance;

@@ -2,7 +2,7 @@
 import jwt from 'jsonwebtoken';
 import { privateKey, publicKey } from '../secrets/keys';
 import { UserPayload } from '../@types/CustomUser';
-import { UserDAO } from '../dao/UserDao';
+import { UserDAO } from '../dao/UserDAO';
 import { ErrorFactory } from '../factories/errorFactory';
 
 /**
@@ -66,19 +66,5 @@ export class AuthService {
    * @returns {Promise<string>} Il token JWT generato per l'utente.
    * @throws {Error} Se l'utente non esiste o la password è errata.
    */
-  login = async (email: string, password: string): Promise<string> => {
-    const user = await this.userDAO.findByEmail(email);
-    if (!user) {
-      throw ErrorFactory.entityNotFound('User');
-    }
-    if (user.password !== password) {
-      throw ErrorFactory.unauthorized('Invalid password');
-    }
-    const payload: UserPayload = {
-      name: user.name,
-      id: user.id,
-      role: user.role
-    }
-    return this.generateToken(payload);
-  }
+
 }

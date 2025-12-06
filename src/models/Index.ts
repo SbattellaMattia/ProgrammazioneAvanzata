@@ -1,7 +1,7 @@
 import { User } from "./User";
 import { Vehicle } from "./Vehicle";
 import { Parking } from "./Parking";
-import { Tariffa } from "./Tariff";
+import { Rate } from "./Rate";
 import { Gate } from "./Gate";
 import { Transit } from "./Transit";
 import { Invoice } from "./Invoice";
@@ -19,8 +19,8 @@ Parking.hasMany(Gate, { foreignKey: "parkingId", as: "gates" });
 Gate.belongsTo(Parking, { foreignKey: "parkingId", as: "parking" });
 
 
-Parking.hasMany(Tariffa, { foreignKey: "parkingId", as: "tariffs" });
-Tariffa.belongsTo(Parking, { foreignKey: "parkingId", as: "parking" });
+Parking.hasMany(Rate, { foreignKey: "parkingId", as: "tariffs" });
+Rate.belongsTo(Parking, { foreignKey: "parkingId", as: "parking" });
 
 
 Parking.hasMany(Transit, { foreignKey: "parkingId", as: "transits" });
@@ -40,15 +40,13 @@ Transit.belongsTo(Vehicle, { foreignKey: "vehicleId", as: "vehicle" });
 
 
 Invoice.belongsTo(Transit, { foreignKey: "entryTransitId", as: "entryTransit" });
-
-
 Invoice.belongsTo(Transit, { foreignKey: "exitTransitId", as: "exitTransit" });
 
 export {
   User,
   Vehicle,
   Parking,
-  Tariffa,
+  Rate,
   Gate,
   Transit,
   Invoice,

@@ -1,4 +1,4 @@
-export class Role {
-  OPERATOR = "operator";
-  DRIVER = "driver";
+export enum Role {
+  OPERATOR = "operator",
+  DRIVER = "driver",
 }       

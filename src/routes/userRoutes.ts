@@ -1,5 +1,5 @@
 import { NextFunction, Router, Request, Response } from "express";
-import { UserDAO } from "../dao/UserDao";
+import { UserDAO } from "../dao/UserDAO";
 
 
 const router = Router();

@@ -5,8 +5,16 @@ FROM node:latest
 # Imposta la directory di lavoro all'interno del container
 WORKDIR /usr/src/app
 
+RUN apt-get update && apt-get install -y \
+    netcat-traditional \
+    openssl \
+    && rm -rf /var/lib/apt/lists/*
+
 # Copia i file package.json e package-lock.json per installare le dipendenze
 COPY package*.json ./
+
+# Rimuove la cartella dist se esiste
+RUN rm -rf dist/
 
 # Installa le dipendenze del progetto
 RUN npm install

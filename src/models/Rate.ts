@@ -5,7 +5,7 @@ import { DayType } from "../enum/DayType";
 
 const sequelize = DatabaseConnection.getInstance();
 
-export class Tariffa extends Model<InferAttributes<Tariffa>, InferCreationAttributes<Tariffa>> {
+export class Rate extends Model<InferAttributes<Rate>, InferCreationAttributes<Rate>> {
   declare id: string;
   declare parkingId: string;
   declare vehicleType: VehicleType;
@@ -15,7 +15,7 @@ export class Tariffa extends Model<InferAttributes<Tariffa>, InferCreationAttrib
   declare hourEnd: Date;
 }
 
-Tariffa.init(
+Rate.init(
   {
     id: {
       type: DataTypes.UUID,
@@ -55,9 +55,9 @@ Tariffa.init(
   },
   {
     sequelize,
-    modelName: "Tariffa",
+    modelName: "Rate",
     timestamps: true,
   }
 );
 
-export default Tariffa;
+export default Rate;

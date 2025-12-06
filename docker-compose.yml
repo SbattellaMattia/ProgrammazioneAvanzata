@@ -1,7 +1,7 @@
 services:
   app:
     build: .
-    container_name: app #nome app
+    container_name: app 
     ports:
       - "3000:3000"
     env_file:

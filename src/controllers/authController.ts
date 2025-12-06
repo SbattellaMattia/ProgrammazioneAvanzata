@@ -28,13 +28,5 @@ export class AuthController {
    * @returns {Promise<void>} - Non restituisce nulla, ma invia una risposta al client o passa l'errore al middleware di gestione degli errori.
    * @throws {Error} - Se le credenziali sono errate o se si verifica un errore durante il processo di login.
    */
-  login = async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      const { email, password } = req.body;
-      const token = await this.authService.login(email,password);  
-      res.status(StatusCodes.OK).json({ token, message: 'Login successful' });
-    } catch (error) {
-      next(error);
-    }
-  }
+
 }
