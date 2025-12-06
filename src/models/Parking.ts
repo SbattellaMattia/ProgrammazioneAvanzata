@@ -1,19 +1,18 @@
 import { DataTypes, Model, InferAttributes, InferCreationAttributes } from "sequelize";
 import DatabaseConnection from "../database/DatabaseConnection";
-import { Role } from "../enum/Role";
 
 const sequelize = DatabaseConnection.getInstance();
 
-export class User extends Model<InferAttributes<User>, InferCreationAttributes<User>> {
+export class Parking extends Model<InferAttributes<Parking>, InferCreationAttributes<Parking>> {
   declare id: string;
   declare name: string;
-  declare email: string;
-  declare password: string;
-  declare role: Role;
-  declare tokens: number;
+  declare address: string;
+  declare carCapacity: number;
+  declare motorcycleCapacity: number;
+  declare truckCapacity: number;
 }
 
-User.init(
+Parking.init(
   {
     id: {
       type: DataTypes.UUID,
@@ -26,32 +25,31 @@ User.init(
       allowNull: false,
     },
 
-    email: {
-      type: DataTypes.STRING,
-      allowNull: false,
-      unique: true,
-    },
-
-    password: {
+    address: {
       type: DataTypes.STRING,
       allowNull: false,
     },
 
-    role: {
-      type: DataTypes.ENUM(...Object.values(Role)),
+    carCapacity: {
+      type: DataTypes.INTEGER,
       allowNull: false,
     },
 
-    tokens: {
+    motorcycleCapacity: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+    },
+
+    truckCapacity: {
       type: DataTypes.INTEGER,
       allowNull: false,
     },
   },
   {
     sequelize,
-    modelName: "User",
+    modelName: "Parking",
     timestamps: true,
   }
 );
 
-export default User;
+export default Parking;
