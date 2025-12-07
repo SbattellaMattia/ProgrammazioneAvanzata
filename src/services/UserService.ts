@@ -8,7 +8,7 @@
  * - NON sa come funziona il database
  */
 
-import { CustomError } from '../factories/errorFactory';
+import { CustomError } from '../errors/errorFactory';
 //import { hashPassword } from '../utils/passwordUtils';
 
 export class UserService {

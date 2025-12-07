@@ -1,9 +1,9 @@
 import { Router} from 'express';
-import { AuthController } from '../controllers/authController';
+import { AuthController } from '../controllers/AuthController';
 import { UserDAO } from '../dao/UserDAO';
-import { AuthService } from '../services/authService';
+import { AuthService } from '../services/AuthService';
 
-const router = Router();
+const router = Router(); // nouva instanza di Express Router
 
 /**
  * Inizializzazione delle dipendenze per il modulo di autenticazione.
@@ -26,6 +26,6 @@ const authController = new AuthController(authService);
  * @description Questa rotta consente agli utenti di effettuare il login nel sistema 
  * e ottenere un token JWT che può essere utilizzato per autenticare le richieste successive.
  */
-//router.post('/login', authController.login);
+router.post('/login', authController.login);
 
 export default router;

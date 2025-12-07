@@ -1,6 +1,6 @@
 import express from 'express';
 import dotenv from 'dotenv';
-import authRoutes from "./routes/authRoutes";
+import authRoutes from "./routes/AuthRoutes";
 import ParkingRoutes from "./routes/ParkingRoutes";
 import GateRoutes from "./routes/GateRoutes";
 import RateRoutes from "./routes/RateRoutes";
@@ -53,6 +53,11 @@ app.use('/invoice', InvoiceRoutes);
 app.use('/vehicle', VehicleRoutes);
 
 app.use('/stats', StatsRoutes);
+
+
+
+app.use(notFoundHandler);
+app.use(errorHandler);
 
 
 

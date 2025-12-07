@@ -1,8 +1,8 @@
 
 import { Request, Response, NextFunction } from 'express';
-import { AuthService } from '../services/authService';
+import { AuthService } from '../services/AuthService';
 import jwt from 'jsonwebtoken';
-import { CustomError, ErrorFactory } from '../factories/errorFactory';
+import { CustomError, ErrorFactory } from '../errors/errorFactory';
 
 
 /**

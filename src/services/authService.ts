@@ -3,7 +3,6 @@ import jwt from 'jsonwebtoken';
 import { privateKey, publicKey } from '../secrets/keys';
 import { UserPayload } from '../@types/CustomUser';
 import { UserDAO } from '../dao/UserDAO';
-import { ErrorFactory } from '../factories/errorFactory';
 
 /**
  * La classe `AuthService` gestisce tutta la logica relativa all'autenticazione degli utenti,
