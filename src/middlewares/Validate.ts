@@ -10,7 +10,7 @@ import { ValidationError } from '../errors';
  * @param property - Parte della request da validare ('body' | 'query' | 'params')
  * 
  * @example
- * router.post('/register', validateZod(registerSchema, 'body'), authController.register);
+ * router.post('/register', validate(registerSchema, 'body'), authController.register);
  */
 export const validate = <T extends z.ZodTypeAny>(
   schema: T,
@@ -28,8 +28,8 @@ export const validate = <T extends z.ZodTypeAny>(
           acc[curr.path.join('.')] = curr.message;
           return acc;
         }, {} as Record<string, string>);
-
-        throw new ValidationError('Errore di validazione', errors);
+        
+        throw new ValidationError('Errore di validazione, parametro ' + Object.keys(errors).join(', ') + (Object.keys(errors).length==1 ? ' non valido' : ' non validi'));
       }
       throw error;
     }

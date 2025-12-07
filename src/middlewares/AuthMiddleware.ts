@@ -2,7 +2,7 @@ import { Request, Response, NextFunction } from 'express';
 import { AuthService } from '../services/AuthService';
 import jwt from 'jsonwebtoken';
 import { UnauthorizedError, ForbiddenError, InvalidTokenError } from '../errors';
-import { Role } from '../enum/Role';
+
 
 /**
  * Middleware per l'autenticazione e l'autorizzazione degli utenti.
@@ -48,25 +48,5 @@ export class AuthMiddleware {
       }
       next(error);
     }
-  };
-
-  /**
-   * Middleware per verificare se l'utente ha il ruolo di operatore.
-   * Se l'utente non è autenticato o non ha il ruolo richiesto, viene restituito un errore.
-   * @param req - La richiesta HTTP.
-   * @param res - La risposta HTTP.
-   * @param next - La funzione per passare al middleware successivo.
-   * @throws CustomError Se l'utente non è autorizzato ad accedere a questa rotta.
-   * @returns void Passa al middleware successivo se l'utente ha il ruolo corretto.
-   */
-
-  isOperator = (req: Request, res: Response, next: NextFunction) => {
-    if (!req.user) {
-      return next(new UnauthorizedError('Utente non autenticato'));
-    }
-    if (req.user.role !== Role.OPERATOR) {
-      return next(new ForbiddenError('Accesso negato: richiesto ruolo operatore'));
-    }
-    next();
   };
 } 

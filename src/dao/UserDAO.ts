@@ -1,4 +1,5 @@
 // src/dao/UserDAO.ts
+import { NotFoundError } from '../errors';
 import { User } from '../models/User';
 import { DAO } from './DAO';
 
@@ -20,6 +21,18 @@ export class UserDAO extends DAO<User> implements IUserDAO {
   async findByEmail(email: string): Promise<User | null> {
     return this.executeQuery(async () => await this.findOne({ email } as any),'findByEmail');}
 
+
+  async checkTokens(id: number): Promise<Boolean> {
+    return this.executeQuery(async () => {
+      const user = await this.findById(id);
+    
+      if (!user) throw new NotFoundError('Utente non trovato');
+      return user.tokens < 1 ?  false :  true;
+      
+    }, 'checkTokens');
+  }
+  
+
   async decrementTokens(id: number, amount: number): Promise<User | null> {
     return this.executeQuery(async () => {
       const user = await this.findById(id);
@@ -32,3 +45,4 @@ export class UserDAO extends DAO<User> implements IUserDAO {
     }, 'decrementTokens');
   }
 }
+export const userDAO = new UserDAO();

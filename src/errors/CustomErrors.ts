@@ -87,11 +87,13 @@ export class ServiceUnavailableError extends AppError {
   }
 }
 
+
+
 /**
  * Errore per token insufficienti
  */
 export class InsufficientTokensError extends AppError {
-  constructor(available: number, required: number) {
+  constructor(available: number = 0, required: number = 1) {
     super(
       `Token insufficienti. Disponibili: ${available}, richiesti: ${required}`,
       StatusCodes.PAYMENT_REQUIRED
