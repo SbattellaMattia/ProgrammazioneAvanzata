@@ -1,65 +1,45 @@
+// src/dao/UserDAO.ts
 import { User } from '../models/User';
+import { DAO } from './DAO';
 
 export interface IUserDAO {
   findByEmail(email: string): Promise<User | null>;
-  findById(id: string): Promise<User | null>;
-  create(userData: Partial<User>): Promise<User>;
-  update(id: string, userData: Partial<User>): Promise<User | null>;
-  delete(id: string): Promise<boolean>;
+  decrementTokens(id: number, amount: number): Promise<User | null>;
 }
 
-export class UserDAO implements IUserDAO {
+/**
+ * DAO per gestione utenti
+ * ✅ Estende DAO per avere CRUD automatico
+ */
+export class UserDAO extends DAO<User> implements IUserDAO {
   
+  constructor() {
+    super(User);
+  }
+
   async findByEmail(email: string): Promise<User | null> {
-    try {
-      return await User.findOne({ where: { email } });
-    } catch (error) {
-      console.error('Error in findByEmail:', error);
-      throw new Error('Errore nel recupero dell\'utente');
-    }
+    return this.executeQuery(
+      async () => await this.findOne({ email } as any),
+      'findByEmail'
+    );
   }
 
-  async findById(id: string): Promise<User | null> {
-    try {
-      return await User.findByPk(id);
-    } catch (error) {
-      console.error('Error in findById:', error);
-      throw new Error('Errore nel recupero dell\'utente');
-    }
-  }
-
-  async create(userData: Partial<User>): Promise<User> {
-    try {
-      return await User.create(userData as any);
-    } catch (error) {
-      console.error('Error in create:', error);
-      throw new Error('Errore nella creazione dell\'utente');
-    }
-  }
-
-  async update(id: string, userData: Partial<User>): Promise<User | null> {
-    try {
-      const user = await User.findByPk(id);
+  async decrementTokens(id: number, amount: number): Promise<User | null> {
+    return this.executeQuery(async () => {
+      const user = await this.findById(id);
       
       if (!user) {
         return null;
       }
 
-      await user.update(userData);
-      return user;
-    } catch (error) {
-      console.error('Error in update:', error);
-      throw new Error('Errore nell\'aggiornamento');
-    }
-  }
+      if (user.tokens < amount) {
+        throw new Error('Token insufficienti');
+      }
 
-  async delete(id: string): Promise<boolean> {
-    try {
-      const deleted = await User.destroy({ where: { id } });
-      return deleted > 0;
-    } catch (error) {
-      console.error('Error in delete:', error);
-      throw new Error('Errore nell\'eliminazione');
-    }
+      user.tokens -= amount;
+      await user.save();
+      
+      return user;
+    }, 'decrementTokens');
   }
 }
