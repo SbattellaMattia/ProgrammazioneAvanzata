@@ -2,7 +2,7 @@
 import { Vehicle } from "../models/Vehicle";
 import { DAO } from "./DAO";
 import { VehicleType } from "../enum/VehicleType";
-import { Op } from "sequelize";
+
 
 export interface IVehicleDAO {
   findByPlate(plate: string): Promise<Vehicle | null>;
