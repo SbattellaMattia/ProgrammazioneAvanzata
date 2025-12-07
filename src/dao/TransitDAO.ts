@@ -1,41 +1,62 @@
 // src/dao/TransitDAO.ts
-import { Transit } from '../models/Transit';
-import { DAO } from './DAO';
+import { Op } from "sequelize";
+import { Transit } from "../models/Transit";
+import { DAO } from "./DAO";
 
 export interface ITransitDAO {
-    findByPlate(plate: string): Promise<Transit[]>;
-    findActiveTransits(parkingId: number): Promise<Transit[]>;
+  existsById(id: string): Promise<boolean>;
+  findByGate(gateId: string): Promise<Transit[]>;
+  findByParking(parkingId: string): Promise<Transit[]>;
+  findByPlate(plate: string): Promise<Transit[]>;
+  findByPeriod(from: Date, to: Date): Promise<Transit[]>;
 }
 
 export class TransitDAO extends DAO<Transit> implements ITransitDAO {
-  
   constructor() {
     super(Transit);
   }
 
-  /**
-   * Trova transiti per targa
+  /** 
+   * Verifica l'esistenza di un transito per ID.
    */
-  async findByPlate(plate: string): Promise<Transit[]> {
-    return this.executeQuery(
-      async () => await this.findAll({ where: { targa: plate } }),
-      'findByPlate'
-    );
+  async existsById(id: string): Promise<boolean> {
+    const t = await this.findById(id);
+    return t !== null;
   }
 
-  /**
-   * Trova transiti attivi (ingresso senza uscita)
+  /** 
+   * Restituisce i transiti filtrati per varco.
    */
-  async findActiveTransits(parkingId: number): Promise<Transit[]> {
-    return this.executeQuery(
-      async () => await this.findAll({
-        where: {
-          parcheggio_id: parkingId,
-          tipo_transito: 'ingresso',
-          // Aggiungi logica per trovare transiti senza uscita corrispondente
+  async findByGate(gateId: string): Promise<Transit[]> {
+    return this.findAll({where: { gateId }, order: [["timestamp", "ASC"]],});
+  }
+
+  /** 
+   * Restituisce i transiti filtrati per parcheggio.
+   */
+  async findByParking(parkingId: string): Promise<Transit[]> {
+    return this.findAll({where: { parkingId }, order: [["timestamp", "ASC"]],
+    });
+  }
+
+  /** 
+   * Restituisce i transiti filtrati per targa.
+   */
+  async findByPlate(plate: string): Promise<Transit[]> {
+    return this.findAll({where: { detectedPlate: plate }, order: [["timestamp", "ASC"]],});
+  }
+
+  /** 
+   * Restituisce i transiti filtrati per intervallo di tempo.
+   */
+  async findByPeriod(from: Date, to: Date): Promise<Transit[]> {
+    return this.findAll({
+      where: {
+        timestamp: {
+          [Op.between]: [from, to],
         },
-      }),
-      'findActiveTransits'
-    );
+      },
+      order: [["timestamp", "ASC"]],
+    });
   }
 }

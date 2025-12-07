@@ -1,5 +1,6 @@
 import { DataTypes, Model, InferAttributes, InferCreationAttributes } from "sequelize";
 import DatabaseConnection from "../database/DatabaseConnection";
+export type ParkingCreationAttributes = InferCreationAttributes<Parking>;
 
 const sequelize = DatabaseConnection.getInstance();
 
