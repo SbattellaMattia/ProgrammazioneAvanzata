@@ -2,6 +2,9 @@ import { Router} from 'express';
 import { AuthController } from '../controllers/AuthController';
 import { UserDAO } from '../dao/UserDAO';
 import { AuthService } from '../services/AuthService';
+import { AuthMiddleware } from '../middlewares/AuthMiddleware';
+import { validate } from '../middlewares/Validate';
+import { loginSchema } from '../validation/AuthValidation';
 
 const router = Router(); // nouva instanza di Express Router
 
@@ -17,6 +20,7 @@ const router = Router(); // nouva instanza di Express Router
 const userDAO = new UserDAO();
 const authService = new AuthService(userDAO);
 const authController = new AuthController(authService);
+const authMiddleware = new AuthMiddleware(authService);
 
 
 /** Definisce la rotta per il login degli utenti
@@ -26,6 +30,6 @@ const authController = new AuthController(authService);
  * @description Questa rotta consente agli utenti di effettuare il login nel sistema 
  * e ottenere un token JWT che può essere utilizzato per autenticare le richieste successive.
  */
-router.post('/login', authController.login);
+router.post('/login', validate(loginSchema), authController.login);
 
 export default router;

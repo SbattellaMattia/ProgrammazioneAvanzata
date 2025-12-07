@@ -56,9 +56,6 @@ app.use('/stats', StatsRoutes);
 
 
 
-app.use(notFoundHandler);
-app.use(errorHandler);
-
 
 
 

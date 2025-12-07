@@ -1,69 +1,164 @@
-
+// src/services/AuthService.ts
+import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
-import { privateKey, publicKey } from '../secrets/keys';
-import { UserPayload } from '../@types/CustomUser';
 import { UserDAO } from '../dao/UserDAO';
+import { privateKey, publicKey} from '../secrets/keys';
+import { InvalidCredentialsError } from '../errors';
+import { Role } from '../enum/Role';
+
+
+interface LoginResponse {
+  token: string;
+  user: {
+    id: string;
+    email: string;
+    role: Role;
+    name: string | null;
+    surname: string | null;
+    tokens: number;
+  };
+}
 
 /**
- * La classe `AuthService` gestisce tutta la logica relativa all'autenticazione degli utenti,
- * inclusa la validazione delle credenziali e la generazione e la verifica di token JWT.
+ * Interface per il payload del token JWT
+ */
+interface JwtPayload {
+  id: string;
+  email: string;
+  role: Role;
+  iat?: number;
+  exp?: number;
+  iss?: string;
+  sub?: string;
+}
+
+/**
+ * Service per la gestione dell'autenticazione
  * 
- * Questo servizio è pensato per essere utilizzato dal controller dell'autenticazione (`AuthController`)
- * e delega la persistenza dei dati al livello `UserDAO`, in modo da separare le responsabilità.
+ * Responsabilità:
+ * - Login utenti
+ * - Generazione token JWT
+ * - Verifica token JWT
  * 
- * Il token generato include nel payload informazioni minime (id utente, ruolo) 
- * ed è firmato con algoritmo RS256 usando chiavi pubblica/privata.
- * 
- * Questa classe viene utilizzata principalmente dal `AuthController` per gestire il login.
+ * @class AuthService
  */
 export class AuthService {
- constructor(private userDAO: UserDAO) {}
+  private readonly SALT_ROUNDS = 10;
+  private readonly TOKEN_EXPIRATION = '24h';
 
-  /**Genera un token JWTfirmato digitalmente a partire da un payload utente.
-   * 
-   * Questo metodo viene solitamente invocato dopo un login riuscito, e serve per creare un token 
-   * che l'utente potrà usare per autenticarsi nelle richieste future (es. rotte protette).
-   * 
-   * Il token ha una durata di validità di 1 ora (`expiresIn: '1h'`) e viene firmato con algoritmo RS256,
-   * garantendo l'integrità e l'autenticità del contenuto.
-   * 
-   * Usato in `AuthService.login()` e ritornato al `AuthController`.
-   * 
-   * @param payload - Oggetto contenente le informazioni utente minime da inserire nel token, ad esempio l'id e il ruolo.
-   * @returns Una stringa contenente il token JWT firmato.
-   */
-  generateToken(payload: UserPayload): string {
-    return jwt.sign(payload, privateKey, { algorithm: 'RS256', expiresIn: '1h' });
-  }
-
-   /**
-   * Verifica e decodifica un token JWT usando la chiave pubblica, assicurandosi che sia valido e non scaduto.
-   * 
-   * Questo metodo viene usato tipicamente all'interno di middleware di autenticazione, per controllare
-   * che il token fornito nella richiesta sia corretto e che l'utente possa accedere a risorse protette.
-   * 
-   * In caso di token invalido, firmato con una chiave diversa o scaduto, verrà lanciata un'eccezione gestita da Express.
-   * 
-   * @param token - Il token JWT da verificare.
-   * @returns {UserPayload} Il payload decodificato del token.
-   * @throws {Error} Se il token non è valido o è scaduto.
-   */
-  verifyToken(token: string): UserPayload {
-    return jwt.verify(token, publicKey, { algorithms: ['RS256'] }) as UserPayload;
-  }
+  constructor(private userDAO: UserDAO) {}
 
   /**
-   * Esegue la procedura di login per un utente dato email e password.
+   * Effettua il login di un utente
    * 
-   * Questo metodo verifica che l'email esista nel database e che la password fornita corrisponda a quella salvata.
-   * Se le credenziali sono corrette, viene generato un token JWT che rappresenta la sessione dell'utente.
+   * @param email - Email dell'utente
+   * @param password - Password dell'utente
+   * @returns Token JWT e dati utente
+   * @throws {InvalidCredentialsError} - Se le credenziali sono errate
    * 
-   * In caso di email inesistente o password errata, viene lanciata un'eccezione specifica tramite `ErrorFactory`
-   * 
-   * @param email - L'email dell'utente
-   * @param password - La password dell'utente.
-   * @returns {Promise<string>} Il token JWT generato per l'utente.
-   * @throws {Error} Se l'utente non esiste o la password è errata.
+   * @example
+   * const result = await authService.login('mario@email.com', 'password123');
+   * console.log(result.token); // eyJhbGci...
    */
+  login = async (email: string, password: string): Promise<LoginResponse> => {
+    // Trova l'utente per email
+    const user = await this.userDAO.findByEmail(email);
+    if (!user) {
+      throw new InvalidCredentialsError();
+    }
 
+    // Verifica la password
+    const isPasswordValid = await bcrypt.compare(password, user.password);
+    if (!isPasswordValid) {
+      throw new InvalidCredentialsError();
+    }
+
+    const token = this.generateToken({
+      id: user.id,
+      email: user.email,
+      role: user.role,
+    });
+
+    return {
+      token,
+      user: {
+        id: user.id,
+        email: user.email,
+        role: user.role,
+        name: user.name,
+        surname: user.surname,
+        tokens: user.tokens,
+      },
+    };
+  };
+
+  /**
+   * Genera un token JWT per un utente
+   * 
+   * @param payload - Dati da includere nel token (id, email, role)
+   * @returns Token JWT firmato con chiave privata RS256
+   * 
+   * @example
+   * const token = authService.generateToken({
+   *   id: 1,
+   *   email: 'mario@email.com',
+   *   role: 'automobilista'
+   * });
+   */
+  generateToken = (payload: { id: string; email: string; role: Role }): string => {
+    // Genera e firma il token
+    return jwt.sign(
+      {
+        id: payload.id,
+        email: payload.email,
+        role: payload.role,
+      },
+      privateKey,
+      {
+        algorithm: 'RS256',
+        expiresIn: this.TOKEN_EXPIRATION,
+        issuer: 'parking-system',
+        subject: payload.id.toString(),
+      }
+    );
+  };
+
+
+  //RIVEDEREEEEEEEEEEEEEEEEEEEEEEEEEEE
+  refreshToken = (id: string): string => {return 'rivedere'}
+    
+  /**
+   * Verifica e decodifica un token JWT
+   * 
+   * @param token - Token JWT da verificare
+   * @returns Payload decodificato del token
+   * @throws {Error} - Se il token non è valido o è scaduto
+   * 
+   * @example
+   * try {
+   *   const payload = authService.verifyToken('eyJhbGci...');
+   *   console.log(payload.id); // 1
+   *   console.log(payload.email); // mario@email.com
+   * } catch (error) {
+   *   console.error('Token non valido');
+   * }
+   */
+  verifyToken = (token: string): JwtPayload => {
+    try {
+      const decoded = jwt.verify(token, publicKey, { 
+        algorithms: ['RS256'],
+        issuer: 'parking-system',
+      }) as JwtPayload;
+      return decoded;
+    } catch (error) {
+      
+      if (error instanceof jwt.TokenExpiredError) {
+         throw new InvalidCredentialsError('Token scaduto');
+      }
+      if (error instanceof jwt.JsonWebTokenError) {
+         throw new InvalidCredentialsError('Token non valido');
+      }
+       throw new InvalidCredentialsError('Errore nella verifica del token');
+    }
+  };
 }

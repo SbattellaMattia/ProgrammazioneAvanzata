@@ -7,6 +7,7 @@ const sequelize = DatabaseConnection.getInstance();
 export class User extends Model<InferAttributes<User>, InferCreationAttributes<User>> {
   declare id: string;
   declare name: string;
+  declare surname: string;
   declare email: string;
   declare password: string;
   declare role: Role;
@@ -25,6 +26,11 @@ User.init(
     },
 
     name: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
+
+    surname: {
       type: DataTypes.STRING,
       allowNull: false,
     },

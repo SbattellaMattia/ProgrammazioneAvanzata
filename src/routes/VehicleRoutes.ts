@@ -1,8 +1,4 @@
 import { Router } from 'express';
-import VehicleController from '../controllers/VehicleController';
-import TransitController from '../controllers/TransitController';
-import InvoiceController from '../controllers/InvoiceController';
-import { authenticateToken, authorizeOperator, authorizeOwner } from '../middlewares/auth';
 
 const router = Router();
 
@@ -19,10 +15,7 @@ const router = Router();
  * Operatore: vede tutti i transiti
  * Automobilista: solo veicoli associati
  */
-router.get('/transits/search', 
-  authenticateToken, 
-  TransitController.searchByPlates
-);
+//router.get('/transits/search', );
 
 
 // ============================================
@@ -40,21 +33,14 @@ router.get('/transits/search',
  * Automobilista: vede solo le sue fatture
  * Operatore: vede tutte le fatture (aggiungere /invoices/all)
  */
-router.get('/invoices/my-invoices', 
-  authenticateToken, 
-  InvoiceController.getMyInvoices
-);
+//router.get('/invoices/my-invoices',);
 
 /**
  * Fatture per un veicolo specifico
  * Params: vehicleId
  * Query: status, startDate, endDate
  */
-router.get('/:vehicleId/invoices', 
-  authenticateToken, 
-  authorizeOwner, 
-  InvoiceController.getByVehicle
-);
+//router.get('/:vehicleId/invoices', );
 
 
 

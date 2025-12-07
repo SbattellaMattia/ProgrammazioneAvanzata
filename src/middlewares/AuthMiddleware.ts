@@ -1,9 +1,8 @@
-
 import { Request, Response, NextFunction } from 'express';
 import { AuthService } from '../services/AuthService';
 import jwt from 'jsonwebtoken';
-import { CustomError, ErrorFactory } from '../errors/errorFactory';
-
+import { UnauthorizedError, ForbiddenError, InvalidTokenError } from '../errors';
+import { Role } from '../enum/Role';
 
 /**
  * Middleware per l'autenticazione e l'autorizzazione degli utenti.
@@ -17,7 +16,7 @@ import { CustomError, ErrorFactory } from '../errors/errorFactory';
  */
 
 export class AuthMiddleware {
-  constructor(private authService: AuthService) {}
+  constructor(private authService: AuthService) { }
 
   /**
    * Middleware per autenticare il token JWT presente nell'header Authorization.
@@ -33,55 +32,41 @@ export class AuthMiddleware {
       const authHeader = req.headers.authorization;
 
       if (!authHeader || !authHeader.startsWith('Bearer ')) {
-        throw ErrorFactory.unauthorized('Token mancante o non valido');
+        throw new UnauthorizedError('Token di autenticazione mancante');
       }
-    const token = authHeader.split(' ')[1];
-    const user = this.authService.verifyToken(token);
-    req.user = user;
+      const token = authHeader.split(' ')[1];
+      const user = this.authService.verifyToken(token);
+      req.user = user;
+      next();
 
-    next();
-
-  } catch (err) {
-    if (err instanceof jwt.TokenExpiredError) {
-      return next(ErrorFactory.unauthorized('Token scaduto'));
+    } catch (error) {
+      if (error instanceof jwt.TokenExpiredError) {
+        return next(new InvalidTokenError('Token scaduto'));
       }
-    if (err instanceof CustomError) {
-      return next(err);
+      if (error instanceof jwt.JsonWebTokenError) {
+        return next(new InvalidTokenError('Token non valido'));
+      }
+      next(error);
     }
-    return next(ErrorFactory.forbidden('Token non valido'));
-  }
-}
-
-  /**
-   * Middleware per verificare se l'utente ha il ruolo di automobilista.
-   * Se l'utente non è autenticato o non ha il ruolo richiesto, viene restituito un errore 403 (Forbidden).
-   * @param req - La richiesta HTTP.
-   * @param res - La risposta HTTP.
-   * @param next - La funzione per passare al middleware successivo.
-   * @throws CustomError Se l'utente non è autorizzato ad accedere a questa rotta.
-   * @returns void Passa al middleware successivo se l'utente ha il ruolo corretto.
-   */
-  isUser = (req: Request, res: Response, next: NextFunction) => {
-    if (!req.user) {
-      return next(ErrorFactory.forbidden('Accesso negato: utente non autorizzato'));
-    }
-    next();
-  }
+  };
 
   /**
    * Middleware per verificare se l'utente ha il ruolo di operatore.
-   * Se l'utente non è autenticato o non ha il ruolo richiesto, viene restituito un errore 403 (Forbidden).
+   * Se l'utente non è autenticato o non ha il ruolo richiesto, viene restituito un errore.
    * @param req - La richiesta HTTP.
    * @param res - La risposta HTTP.
    * @param next - La funzione per passare al middleware successivo.
    * @throws CustomError Se l'utente non è autorizzato ad accedere a questa rotta.
    * @returns void Passa al middleware successivo se l'utente ha il ruolo corretto.
    */
-  isOperator = (req: Request, res: Response, next: NextFunction) => {
-    /*if (!req.user || req.user.role !== Roles.OPERATORE) {
-      return next(ErrorFactory.forbidden('Accesso negato: utente non autorizzato'));
-    }*/
-    next();
-  } 
 
-}
+  isOperator = (req: Request, res: Response, next: NextFunction) => {
+    if (!req.user) {
+      return next(new UnauthorizedError('Utente non autenticato'));
+    }
+    if (req.user.role !== Role.OPERATOR) {
+      return next(new ForbiddenError('Accesso negato: richiesto ruolo operatore'));
+    }
+    next();
+  };
+} 

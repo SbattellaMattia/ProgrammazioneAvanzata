@@ -2,10 +2,10 @@ import { User } from '../models/User';
 
 export interface IUserDAO {
   findByEmail(email: string): Promise<User | null>;
-  findById(id: number): Promise<User | null>;
+  findById(id: string): Promise<User | null>;
   create(userData: Partial<User>): Promise<User>;
-  update(id: number, userData: Partial<User>): Promise<User | null>;
-  delete(id: number): Promise<boolean>;
+  update(id: string, userData: Partial<User>): Promise<User | null>;
+  delete(id: string): Promise<boolean>;
 }
 
 export class UserDAO implements IUserDAO {
@@ -19,7 +19,7 @@ export class UserDAO implements IUserDAO {
     }
   }
 
-  async findById(id: number): Promise<User | null> {
+  async findById(id: string): Promise<User | null> {
     try {
       return await User.findByPk(id);
     } catch (error) {
@@ -37,7 +37,7 @@ export class UserDAO implements IUserDAO {
     }
   }
 
-  async update(id: number, userData: Partial<User>): Promise<User | null> {
+  async update(id: string, userData: Partial<User>): Promise<User | null> {
     try {
       const user = await User.findByPk(id);
       
@@ -53,7 +53,7 @@ export class UserDAO implements IUserDAO {
     }
   }
 
-  async delete(id: number): Promise<boolean> {
+  async delete(id: string): Promise<boolean> {
     try {
       const deleted = await User.destroy({ where: { id } });
       return deleted > 0;

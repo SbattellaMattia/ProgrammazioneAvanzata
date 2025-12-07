@@ -1,6 +1,7 @@
-// types/User.ts
+/**
+ * Payload utente contenuto nel token JWT.
+ */
 export interface UserPayload {
   id: string;
-  name: string;
-  role: 'user' | 'admin';
+  role: string;
 }
