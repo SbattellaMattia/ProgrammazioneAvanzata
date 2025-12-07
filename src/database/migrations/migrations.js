@@ -3,12 +3,20 @@
 module.exports = {
   up: async (queryInterface, Sequelize) => {
     
-    // ===== 1. UTENTI =====
-    await queryInterface.createTable('utenti', {
+    // ===== 1. USERS =====
+    await queryInterface.createTable('Users', {
       id: {
-        type: Sequelize.INTEGER,
+        type: Sequelize.UUID,
+        defaultValue: Sequelize.UUIDV4,
         primaryKey: true,
-        autoIncrement: true,
+        allowNull: false
+      },
+      name: {
+        type: Sequelize.STRING(100),
+        allowNull: false
+      },
+      surname: {
+        type: Sequelize.STRING(100),
         allowNull: false
       },
       email: {
@@ -20,437 +28,436 @@ module.exports = {
         type: Sequelize.STRING(255),
         allowNull: false
       },
-      nome: {
-        type: Sequelize.STRING(100),
-        allowNull: true
+      role: {
+        type: Sequelize.ENUM('DRIVER', 'OPERATOR'),
+        allowNull: false
       },
-      cognome: {
-        type: Sequelize.STRING(100),
-        allowNull: true
-      },
-      token_residui: {
+      tokens: {
         type: Sequelize.INTEGER,
         allowNull: false,
         defaultValue: 100
       },
-      created_at: {
+      createdAt: {
         type: Sequelize.DATE,
         allowNull: false,
         defaultValue: Sequelize.literal('CURRENT_TIMESTAMP')
       },
-      updated_at: {
+      updatedAt: {
         type: Sequelize.DATE,
         allowNull: false,
         defaultValue: Sequelize.literal('CURRENT_TIMESTAMP')
       }
     });
 
-    // Indici per utenti
-    await queryInterface.addIndex('utenti', ['email'], {
+    // Indexes for users
+    await queryInterface.addIndex('Users', ['email'], {
       unique: true,
-      name: 'utenti_email_unique'
+      name: 'users_email_unique'
     });
 
-    // ===== 2. PARCHEGGI =====
-    await queryInterface.createTable('parcheggi', {
+    // ===== 2. PARKING LOTS =====
+    await queryInterface.createTable('Parking', {
       id: {
         type: Sequelize.INTEGER,
         primaryKey: true,
         autoIncrement: true,
         allowNull: false
       },
-      nome: {
+      name: {
         type: Sequelize.STRING(100),
         allowNull: false
       },
-      indirizzo: {
+      address: {
         type: Sequelize.STRING(255),
         allowNull: true
       },
-      posti_auto: {
+      car_spots: {
         type: Sequelize.INTEGER,
         allowNull: false
       },
-      posti_moto: {
+      motorcycle_spots: {
         type: Sequelize.INTEGER,
         allowNull: false
       },
-      posti_camion: {
+      truck_spots: {
         type: Sequelize.INTEGER,
         allowNull: false
       },
-      created_at: {
+      createdAt: {
         type: Sequelize.DATE,
         allowNull: false,
         defaultValue: Sequelize.literal('CURRENT_TIMESTAMP')
       },
-      updated_at: {
+      updatedAt: {
         type: Sequelize.DATE,
         allowNull: false,
         defaultValue: Sequelize.literal('CURRENT_TIMESTAMP')
       }
     });
 
-    // ===== 3. VARCHI =====
-    await queryInterface.createTable('varchi', {
+    // ===== 3. GATES =====
+    await queryInterface.createTable('Gates', {
       id: {
         type: Sequelize.INTEGER,
         primaryKey: true,
         autoIncrement: true,
         allowNull: false
       },
-      parcheggio_id: {
+      parking_lot_id: {
         type: Sequelize.INTEGER,
         allowNull: false,
         references: {
-          model: 'parcheggi',
+          model: 'Parking',
           key: 'id'
         },
         onUpdate: 'CASCADE',
         onDelete: 'CASCADE'
       },
-      tipo: {
+      type: {
         type: Sequelize.STRING(20),
         allowNull: false,
         comment: 'standard, smart'
       },
-      direzione: {
+      direction: {
         type: Sequelize.STRING(20),
         allowNull: false,
-        comment: 'ingresso, uscita, bidirezionale'
+        comment: 'entrance, exit, bidirectional'
       },
-      created_at: {
+      createdAt: {
         type: Sequelize.DATE,
         allowNull: false,
         defaultValue: Sequelize.literal('CURRENT_TIMESTAMP')
       },
-      updated_at: {
+      updatedAt: {
         type: Sequelize.DATE,
         allowNull: false,
         defaultValue: Sequelize.literal('CURRENT_TIMESTAMP')
       }
     });
 
-    // Indici per varchi
-    await queryInterface.addIndex('varchi', ['parcheggio_id'], {
-      name: 'varchi_parcheggio_id_idx'
+    // Indexes for gates
+    await queryInterface.addIndex('Gates', ['parking_lot_id'], {
+      name: 'gates_parking_lot_id_idx'
     });
 
-    // ===== 4. VEICOLI (con targa come PK) =====
-    await queryInterface.createTable('veicoli', {
-      targa: {
+    // ===== 4. VEHICLES (with license plate as PK) =====
+    await queryInterface.createTable('Vehicles', {
+      license_plate: {
         type: Sequelize.STRING(20),
         primaryKey: true,
         allowNull: false
       },
-      tipo_veicolo: {
+      vehicle_type: {
         type: Sequelize.STRING(20),
         allowNull: false,
-        comment: 'auto, moto, camion'
+        comment: 'car, motorcycle, truck'
       },
-      proprietario_id: {
-        type: Sequelize.INTEGER,
+      owner_id: {
+        type: Sequelize.UUID,
         allowNull: true,
         references: {
-          model: 'utenti',
+          model: 'Users',
           key: 'id'
         },
         onUpdate: 'CASCADE',
         onDelete: 'SET NULL'
       },
-      created_at: {
+      createdAt: {
         type: Sequelize.DATE,
         allowNull: false,
         defaultValue: Sequelize.literal('CURRENT_TIMESTAMP')
       },
-      updated_at: {
+      updatedAt: {
         type: Sequelize.DATE,
         allowNull: false,
         defaultValue: Sequelize.literal('CURRENT_TIMESTAMP')
       }
     });
 
-    // Indici per veicoli
-    await queryInterface.addIndex('veicoli', ['proprietario_id'], {
-      name: 'veicoli_proprietario_id_idx'
+    // Indexes for vehicles
+    await queryInterface.addIndex('Vehicles', ['owner_id'], {
+      name: 'vehicles_owner_id_idx'
     });
 
-    // ===== 5. TRANSITI =====
-    await queryInterface.createTable('transiti', {
+    // ===== 5. TRANSITS =====
+    await queryInterface.createTable('Transits', {
       id: {
         type: Sequelize.INTEGER,
         primaryKey: true,
         autoIncrement: true,
         allowNull: false
       },
-      veicolo_id: {
+      vehicle_id: {
         type: Sequelize.STRING(20),
         allowNull: false,
         references: {
-          model: 'veicoli',
-          key: 'targa'
+          model: 'Vehicles',
+          key: 'license_plate'
         },
         onUpdate: 'CASCADE',
         onDelete: 'CASCADE'
       },
-      varco_id: {
+      gate_id: {
         type: Sequelize.INTEGER,
         allowNull: false,
         references: {
-          model: 'varchi',
+          model: 'Gates',
           key: 'id'
         },
         onUpdate: 'CASCADE',
         onDelete: 'CASCADE'
       },
-      parcheggio_id: {
+      parking_lot_id: {
         type: Sequelize.INTEGER,
         allowNull: false,
         references: {
-          model: 'parcheggi',
+          model: 'Parking',
           key: 'id'
         },
         onUpdate: 'CASCADE',
         onDelete: 'CASCADE'
       },
-      tipo_transito: {
+      transit_type: {
         type: Sequelize.STRING(10),
         allowNull: false,
-        comment: 'ingresso, uscita'
+        comment: 'entrance, exit'
       },
-      data_ora: {
+      date_time: {
         type: Sequelize.DATE,
         allowNull: false
       },
-      path_immagine: {
+      image_path: {
         type: Sequelize.STRING(255),
         allowNull: true,
-        comment: 'Path immagine targa per varchi standard'
+        comment: 'License plate image path for standard gates'
       },
-      targa_rilevata: {
+      detected_license_plate: {
         type: Sequelize.STRING(255),
         allowNull: true,
-        comment: 'La targa rilevata può non coincidere con la targa vera'
+        comment: 'The detected license plate may not match the actual license plate'
       },
-      created_at: {
+      createdAt: {
         type: Sequelize.DATE,
         allowNull: false,
         defaultValue: Sequelize.literal('CURRENT_TIMESTAMP')
       },
-      updated_at: {
+      updatedAt: {
         type: Sequelize.DATE,
         allowNull: false,
         defaultValue: Sequelize.literal('CURRENT_TIMESTAMP')
       }
     });
 
-    // Indici per transiti
-    await queryInterface.addIndex('transiti', ['veicolo_id'], {
-      name: 'transiti_veicolo_id_idx'
+    // Indexes for transits
+    await queryInterface.addIndex('Transits', ['vehicle_id'], {
+      name: 'transits_vehicle_id_idx'
     });
-    await queryInterface.addIndex('transiti', ['varco_id'], {
-      name: 'transiti_varco_id_idx'
+    await queryInterface.addIndex('Transits', ['gate_id'], {
+      name: 'transits_gate_id_idx'
     });
-    await queryInterface.addIndex('transiti', ['parcheggio_id'], {
-      name: 'transiti_parcheggio_id_idx'
+    await queryInterface.addIndex('Transits', ['parking_lot_id'], {
+      name: 'transits_parking_lot_id_idx'
     });
-    await queryInterface.addIndex('transiti', ['data_ora'], {
-      name: 'transiti_data_ora_idx'
+    await queryInterface.addIndex('Transits', ['date_time'], {
+      name: 'transits_date_time_idx'
     });
-    await queryInterface.addIndex('transiti', ['veicolo_id', 'data_ora'], {
-      name: 'transiti_veicolo_data_idx'
+    await queryInterface.addIndex('Transits', ['vehicle_id', 'date_time'], {
+      name: 'transits_vehicle_date_idx'
     });
 
-    // ===== 6. TARIFFE =====
-    await queryInterface.createTable('tariffe', {
+    // ===== 6. RATES =====
+    await queryInterface.createTable('Rates', {
       id: {
         type: Sequelize.INTEGER,
         primaryKey: true,
         autoIncrement: true,
         allowNull: false
       },
-      parcheggio_id: {
+      parking_lot_id: {
         type: Sequelize.INTEGER,
         allowNull: false,
         references: {
-          model: 'parcheggi',
+          model: 'Parking',
           key: 'id'
         },
         onUpdate: 'CASCADE',
         onDelete: 'CASCADE'
       },
-      tipo_veicolo: {
+      vehicle_type: {
         type: Sequelize.STRING(20),
         allowNull: false,
-        comment: 'auto, moto, camion'
+        comment: 'car, motorcycle, truck'
       },
-      giorno: {
+      day: {
         type: Sequelize.STRING(20),
         allowNull: false,
-        comment: 'feriale, festivo, tutti'
+        comment: 'weekday, holiday, all'
       },
-      fascia_oraria_inizio: {
+      time_slot_start: {
         type: Sequelize.TIME,
         allowNull: false
       },
-      fascia_oraria_fine: {
+      time_slot_end: {
         type: Sequelize.TIME,
         allowNull: false
       },
-      tariffa_oraria: {
+      hourly_rate: {
         type: Sequelize.DECIMAL(10, 2),
         allowNull: false,
-        comment: 'Euro per ora'
+        comment: 'Euro per hour'
       },
-      tariffa_giornaliera: {
+      daily_rate: {
         type: Sequelize.DECIMAL(10, 2),
         allowNull: true,
-        comment: 'Tariffa massima giornaliera'
+        comment: 'Maximum daily rate'
       },
-      created_at: {
+      createdAt: {
         type: Sequelize.DATE,
         allowNull: false,
         defaultValue: Sequelize.literal('CURRENT_TIMESTAMP')
       },
-      updated_at: {
+      updatedAt: {
         type: Sequelize.DATE,
         allowNull: false,
         defaultValue: Sequelize.literal('CURRENT_TIMESTAMP')
       }
     });
 
-    // Indici per tariffe
-    await queryInterface.addIndex('tariffe', ['parcheggio_id'], {
-      name: 'tariffe_parcheggio_id_idx'
+    // Indexes for rates
+    await queryInterface.addIndex('Rates', ['parking_lot_id'], {
+      name: 'rates_parking_lot_id_idx'
     });
 
-    // ===== 7. FATTURE =====
-    await queryInterface.createTable('fatture', {
+    // ===== 7. INVOICES =====
+    await queryInterface.createTable('Invoices', {
       id: {
         type: Sequelize.INTEGER,
         primaryKey: true,
         autoIncrement: true,
         allowNull: false
       },
-      veicolo_id: {
+      vehicle_id: {
         type: Sequelize.STRING(20),
         allowNull: false,
         references: {
-          model: 'veicoli',
-          key: 'targa'
+          model: 'Vehicles',
+          key: 'license_plate'
         },
         onUpdate: 'CASCADE',
         onDelete: 'CASCADE'
       },
-      parcheggio_id: {
+      parking_lot_id: {
         type: Sequelize.INTEGER,
         allowNull: false,
         references: {
-          model: 'parcheggi',
+          model: 'Parking',
           key: 'id'
         },
         onUpdate: 'CASCADE',
         onDelete: 'CASCADE'
       },
-      automobilista_id: {
-        type: Sequelize.INTEGER,
+      driver_id: {
+        type: Sequelize.UUID,
         allowNull: false,
         references: {
-          model: 'utenti',
+          model: 'Users',
           key: 'id'
         },
         onUpdate: 'CASCADE',
         onDelete: 'CASCADE'
       },
-      transito_ingresso_id: {
+      entrance_transit_id: {
         type: Sequelize.INTEGER,
         allowNull: false,
         references: {
-          model: 'transiti',
+          model: 'Transits',
           key: 'id'
         },
         onUpdate: 'CASCADE',
         onDelete: 'CASCADE'
       },
-      transito_uscita_id: {
+      exit_transit_id: {
         type: Sequelize.INTEGER,
         allowNull: false,
         references: {
-          model: 'transiti',
+          model: 'Transits',
           key: 'id'
         },
         onUpdate: 'CASCADE',
         onDelete: 'CASCADE'
       },
-      importo: {
+      amount: {
         type: Sequelize.DECIMAL(10, 2),
         allowNull: false
       },
-      stato_pagamento: {
+      payment_status: {
         type: Sequelize.STRING(20),
         allowNull: false,
-        defaultValue: 'non_pagata',
-        comment: 'non_pagata, pagata, scaduta'
+        defaultValue: 'unpaid',
+        comment: 'unpaid, paid, overdue'
       },
-      data_scadenza: {
+      due_date: {
         type: Sequelize.DATE,
         allowNull: false,
-        comment: 'Uscita + 1 giorno'
+        comment: 'Exit + 1 day'
       },
-      data_pagamento: {
+      payment_date: {
         type: Sequelize.DATE,
         allowNull: true
       },
       qr_code_path: {
         type: Sequelize.STRING(255),
         allowNull: true,
-        comment: 'Path del PDF con QR code'
+        comment: 'QR code PDF file path'
       },
-      created_at: {
+      createdAt: {
         type: Sequelize.DATE,
         allowNull: false,
         defaultValue: Sequelize.literal('CURRENT_TIMESTAMP')
       },
-      updated_at: {
+      updatedAt: {
         type: Sequelize.DATE,
         allowNull: false,
         defaultValue: Sequelize.literal('CURRENT_TIMESTAMP')
       }
     });
 
-    // Indici per fatture
-    await queryInterface.addIndex('fatture', ['veicolo_id'], {
-      name: 'fatture_veicolo_id_idx'
+    // Indexes for invoices
+    await queryInterface.addIndex('Invoices', ['vehicle_id'], {
+      name: 'invoices_vehicle_id_idx'
     });
-    await queryInterface.addIndex('fatture', ['automobilista_id'], {
-      name: 'fatture_automobilista_id_idx'
+    await queryInterface.addIndex('Invoices', ['driver_id'], {
+      name: 'invoices_driver_id_idx'
     });
-    await queryInterface.addIndex('fatture', ['parcheggio_id'], {
-      name: 'fatture_parcheggio_id_idx'
+    await queryInterface.addIndex('Invoices', ['parking_lot_id'], {
+      name: 'invoices_parking_lot_id_idx'
     });
-    await queryInterface.addIndex('fatture', ['stato_pagamento'], {
-      name: 'fatture_stato_pagamento_idx'
+    await queryInterface.addIndex('Invoices', ['payment_status'], {
+      name: 'invoices_payment_status_idx'
     });
-    await queryInterface.addIndex('fatture', ['data_scadenza'], {
-      name: 'fatture_data_scadenza_idx'
+    await queryInterface.addIndex('Invoices', ['due_date'], {
+      name: 'invoices_due_date_idx'
     });
-    await queryInterface.addIndex('fatture', ['automobilista_id', 'stato_pagamento'], {
-      name: 'fatture_automobilista_stato_idx'
+    await queryInterface.addIndex('Invoices', ['driver_id', 'payment_status'], {
+      name: 'invoices_driver_status_idx'
     });
 
-    console.log('✅ Tutte le tabelle create con successo!');
+    console.log('✅ All tables created successfully!');
   },
 
   down: async (queryInterface, Sequelize) => {
-    // Ordine inverso per rispettare le foreign key
-    await queryInterface.dropTable('fatture');
-    await queryInterface.dropTable('tariffe');
-    await queryInterface.dropTable('transiti');
-    await queryInterface.dropTable('veicoli');
-    await queryInterface.dropTable('varchi');
-    await queryInterface.dropTable('parcheggi');
-    await queryInterface.dropTable('utenti');
+    // Reverse order to respect foreign keys
+    await queryInterface.dropTable('Invoices');
+    await queryInterface.dropTable('Rates');
+    await queryInterface.dropTable('Transits');
+    await queryInterface.dropTable('Vehicles');
+    await queryInterface.dropTable('Gates');
+    await queryInterface.dropTable('Parking');
+    await queryInterface.dropTable('Users');
     
-    console.log('✅ Tutte le tabelle eliminate!');
+    // Drop ENUM type for role
+    await queryInterface.sequelize.query('DROP TYPE IF EXISTS "enum_Users_role";');
+    
+    console.log('✅ All tables dropped!');
   }
 };

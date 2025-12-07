@@ -63,11 +63,12 @@ export class AuthService {
   login = async (email: string, password: string): Promise<LoginResponse> => {
     // Trova l'utente per email
     const user = await this.userDAO.findByEmail(email);
+    console.log('User found:', user?.password);
     if (!user) {
       throw new InvalidCredentialsError();
     }
 
-    // Verifica la password
+    console.log('User found:', user.password);
     const isPasswordValid = await bcrypt.compare(password, user.password);
     if (!isPasswordValid) {
       throw new InvalidCredentialsError();
