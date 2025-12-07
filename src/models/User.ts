@@ -11,8 +11,11 @@ export class User extends Model<InferAttributes<User>, InferCreationAttributes<U
   declare password: string;
   declare role: Role;
   declare tokens: number;
-}
 
+  isOperatore(): boolean {return this.role === Role.OPERATOR;}
+  isAutomobilista(): boolean {return this.role === Role.DRIVER;}
+
+}
 User.init(
   {
     id: {

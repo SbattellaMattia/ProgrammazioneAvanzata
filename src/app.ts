@@ -1,6 +1,13 @@
 import express from 'express';
 import dotenv from 'dotenv';
 import authRoutes from "./routes/authRoutes";
+import ParkingRoutes from "./routes/ParkingRoutes";
+import GateRoutes from "./routes/GateRoutes";
+import RateRoutes from "./routes/RateRoutes";
+import TransitRoutes from "./routes/TransitRoutes";
+import InvoiceRoutes from "./routes/InvoiceRoutes";
+import VehicleRoutes from "./routes/VehicleRoutes";
+import StatsRoutes from "./routes/StatsRoutes";
 
 
 
@@ -32,6 +39,42 @@ app.use(express.json());
  * @module authRoutes
  */
 app.use('', authRoutes);
+
+app.use('/rate', ParkingRoutes);
+
+app.use('/gate', GateRoutes);
+
+app.use('/rate', RateRoutes);
+
+app.use('/transit', TransitRoutes);
+
+app.use('/invoice', InvoiceRoutes);
+
+app.use('/vehicle', VehicleRoutes);
+
+app.use('/stats', StatsRoutes);
+
+
+
+
+
+
+ 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
