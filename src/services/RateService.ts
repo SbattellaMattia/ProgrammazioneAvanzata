@@ -24,7 +24,7 @@ export class RateService {
    * Crea una nuova tariffa.
    * I dati nel body sono già validati da Zod (createRateSchema).
    */
-  async createRate(data: CreateRateInput): Promise<Rate> {
+  async create(data: CreateRateInput): Promise<Rate> {
     try {
       const { parkingId, vehicleType, dayType, price, hourStart, hourEnd } =
         data;
@@ -66,7 +66,7 @@ export class RateService {
   /**
    * Restituisce tutte le tariffe.
    */
-  async getAllRates(): Promise<Rate[]> {
+  async getAll(): Promise<Rate[]> {
     try {
       return await this.rateDAO.findAll();
     } catch (error: any) {
@@ -94,7 +94,7 @@ export class RateService {
    *  - ensureExists(rateService, "Tariffa")
    * 
    */
-  async updateRate(id: string, data: UpdateRateInput): Promise<Rate> {
+  async update(id: string, data: UpdateRateInput): Promise<Rate> {
     // vietiamo il cambio di parkingId
     if ((data as any).parkingId) {
       throw new OperationNotAllowedError(
@@ -119,7 +119,7 @@ export class RateService {
    * - validate(rateIdSchema, "params")
    * - ensureExists(rateService, "Tariffa")
    */
-  async deleteRate(id: string): Promise<void> {
+  async delete(id: string): Promise<void> {
     const ok = await this.rateDAO.delete(id);
     if (!ok) {
       // caso limite: già eliminata dopo ensureExists
@@ -137,3 +137,4 @@ export class RateService {
     }
   }
 }
+export default new RateService();

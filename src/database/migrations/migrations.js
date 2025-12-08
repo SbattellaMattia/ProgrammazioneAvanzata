@@ -2,7 +2,6 @@
 
 module.exports = {
   up: async (queryInterface, Sequelize) => {
-    
     // ===== 1. USERS =====
     await queryInterface.createTable('Users', {
       id: {
@@ -49,18 +48,17 @@ module.exports = {
       }
     });
 
-    // Indexes for users
     await queryInterface.addIndex('Users', ['email'], {
       unique: true,
       name: 'users_email_unique'
     });
 
-    // ===== 2. PARKING LOTS =====
+    // ===== 2. PARKINGS =====
     await queryInterface.createTable('Parkings', {
       id: {
-        type: Sequelize.INTEGER,
+        type: Sequelize.UUID,
+        defaultValue: Sequelize.UUIDV4,
         primaryKey: true,
-        autoIncrement: true,
         allowNull: false
       },
       name: {
@@ -89,7 +87,7 @@ module.exports = {
         defaultValue: Sequelize.literal('CURRENT_TIMESTAMP')
       },
       updatedAt: {
-        type: Sequelize.DATE,   
+        type: Sequelize.DATE,
         allowNull: false,
         defaultValue: Sequelize.literal('CURRENT_TIMESTAMP')
       }
@@ -104,7 +102,7 @@ module.exports = {
         allowNull: false
       },
       parking_lot_id: {
-        type: Sequelize.INTEGER,
+        type: Sequelize.UUID,
         allowNull: false,
         references: {
           model: 'Parkings',
@@ -135,12 +133,11 @@ module.exports = {
       }
     });
 
-    // Indexes for gates
     await queryInterface.addIndex('Gates', ['parking_lot_id'], {
       name: 'gates_parking_lot_id_idx'
     });
 
-    // ===== 4. VEHICLES (with license plate as PK) =====
+    // ===== 4. VEHICLES =====
     await queryInterface.createTable('Vehicles', {
       license_plate: {
         type: Sequelize.STRING(20),
@@ -174,7 +171,6 @@ module.exports = {
       }
     });
 
-    // Indexes for vehicles
     await queryInterface.addIndex('Vehicles', ['owner_id'], {
       name: 'vehicles_owner_id_idx'
     });
@@ -208,7 +204,7 @@ module.exports = {
         onDelete: 'CASCADE'
       },
       parking_lot_id: {
-        type: Sequelize.INTEGER,
+        type: Sequelize.UUID,
         allowNull: false,
         references: {
           model: 'Parkings',
@@ -248,7 +244,6 @@ module.exports = {
       }
     });
 
-    // Indexes for transits
     await queryInterface.addIndex('Transits', ['vehicle_id'], {
       name: 'transits_vehicle_id_idx'
     });
@@ -268,48 +263,40 @@ module.exports = {
     // ===== 6. RATES =====
     await queryInterface.createTable('Rates', {
       id: {
-        type: Sequelize.INTEGER,
+        type: Sequelize.UUID,
+        defaultValue: Sequelize.UUIDV4,
         primaryKey: true,
-        autoIncrement: true,
         allowNull: false
       },
-      parking_lot_id: {
-        type: Sequelize.INTEGER,
+      parkingId: {
+        type: Sequelize.UUID,
         allowNull: false,
         references: {
-          model: 'Parkings',
+          model: 'Parkings', // Assicurati che il nome della tabella Parkings sia corretto
           key: 'id'
         },
         onUpdate: 'CASCADE',
         onDelete: 'CASCADE'
       },
-      vehicle_type: {
-        type: Sequelize.STRING(20),
-        allowNull: false,
-        comment: 'car, motorcycle, truck'
+      vehicleType: {
+        type: Sequelize.STRING(20), // O Sequelize.ENUM se vuoi forzare l'enum a livello DB
+        allowNull: false
       },
-      day: {
+      dayType: {
         type: Sequelize.STRING(20),
-        allowNull: false,
-        comment: 'weekday, holiday, all'
+        allowNull: false
       },
-      time_slot_start: {
+      price: {
+        type: Sequelize.FLOAT, // Modificato da DECIMAL a FLOAT come nel modello
+        allowNull: false
+      },
+      hourStart: {
         type: Sequelize.TIME,
         allowNull: false
       },
-      time_slot_end: {
+      hourEnd: {
         type: Sequelize.TIME,
         allowNull: false
-      },
-      hourly_rate: {
-        type: Sequelize.DECIMAL(10, 2),
-        allowNull: false,
-        comment: 'Euro per hour'
-      },
-      daily_rate: {
-        type: Sequelize.DECIMAL(10, 2),
-        allowNull: true,
-        comment: 'Maximum daily rate'
       },
       createdAt: {
         type: Sequelize.DATE,
@@ -324,8 +311,8 @@ module.exports = {
     });
 
     // Indexes for rates
-    await queryInterface.addIndex('Rates', ['parking_lot_id'], {
-      name: 'rates_parking_lot_id_idx'
+    await queryInterface.addIndex('Rates', ['parkingId'], {
+      name: 'rates_parking_id_idx'
     });
 
     // ===== 7. INVOICES =====
@@ -347,7 +334,7 @@ module.exports = {
         onDelete: 'CASCADE'
       },
       parking_lot_id: {
-        type: Sequelize.INTEGER,
+        type: Sequelize.UUID,
         allowNull: false,
         references: {
           model: 'Parkings',
@@ -422,7 +409,6 @@ module.exports = {
       }
     });
 
-    // Indexes for invoices
     await queryInterface.addIndex('Invoices', ['vehicle_id'], {
       name: 'invoices_vehicle_id_idx'
     });
@@ -446,7 +432,6 @@ module.exports = {
   },
 
   down: async (queryInterface, Sequelize) => {
-    // Reverse order to respect foreign keys
     await queryInterface.dropTable('Invoices');
     await queryInterface.dropTable('Rates');
     await queryInterface.dropTable('Transits');
@@ -454,10 +439,9 @@ module.exports = {
     await queryInterface.dropTable('Gates');
     await queryInterface.dropTable('Parkings');
     await queryInterface.dropTable('Users');
-    
-    // Drop ENUM type for role
+
     await queryInterface.sequelize.query('DROP TYPE IF EXISTS "enum_Users_role";');
-    
+
     console.log('✅ All tables dropped!');
   }
 };

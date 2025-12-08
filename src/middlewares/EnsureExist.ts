@@ -6,7 +6,7 @@ import { asyncHandler } from '../utils/AsyncHandler';
 evita la duplicazione del tipo in più middleware 
 */
 interface ReadService<T> {
-  getById(id: number): Promise<T | null>;
+  getById(id: string): Promise<T | null>;
 }
 
 /**
@@ -16,7 +16,7 @@ interface ReadService<T> {
  */
 export const ensureExists = (service: ReadService<any>, resourceName: string) => {
   return asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
-    const id = parseInt(req.params.id);
+    const id = req.params.id;
     
     // Eseguiamo la ricerca
     const entity = await service.getById(id);

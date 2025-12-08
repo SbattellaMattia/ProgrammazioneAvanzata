@@ -43,7 +43,7 @@ export abstract class DAO<T extends Model> {
   /**
    * Trova per ID
    */
-  async findById(id: number | string): Promise<T | null> {
+  async findById(id: string): Promise<T | null> {
     return this.executeQuery(
       async () => await this.model.findByPk(id),
       'findById'
@@ -83,7 +83,7 @@ export abstract class DAO<T extends Model> {
   /**
    * Aggiorna
    */
-  async update(id: number | string, data: Partial<T['_attributes']>): Promise<T | null> {
+  async update(id: string, data: Partial<T['_attributes']>): Promise<T | null> {
     return this.executeQuery(async () => {
       const instance = await this.model.findByPk(id);
       
@@ -99,7 +99,7 @@ export abstract class DAO<T extends Model> {
   /**
    * Elimina
    */
-  async delete(id: number | string): Promise<boolean> {
+  async delete(id: string): Promise<boolean> {
     return this.executeQuery(async () => {
       const deleted = await this.model.destroy({ where: { id } as any });
       return deleted > 0;

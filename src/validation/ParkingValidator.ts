@@ -1,27 +1,41 @@
 import { z } from 'zod';
 
 export const createParkingSchema = z.object({
-  name: z.string({
-    required_error: "Il nome del parcheggio è obbligatorio",
-    invalid_type_error: "Il nome deve essere una stringa"
-  }).min(1, "Il nome non può essere vuoto"),
-  
-  address: z.string({
-    required_error: "L'indirizzo è obbligatorio",
-    invalid_type_error: "L'indirizzo deve essere una stringa"
-  }).min(1, "L'indirizzo non può essere vuoto"),
+    name: z.string({
+        required_error: "Il nome del parcheggio è obbligatorio",
+        invalid_type_error: "Il nome deve essere una stringa"
+    }).min(1, "Il nome non può essere vuoto"),
 
-  capacity: z.number({
-    required_error: "La capacità è obbligatoria",
-    invalid_type_error: "La capacità deve essere un numero"
-  }).int("La capacità deve essere un numero intero")
-    .positive("La capacità deve essere maggiore di 0"),
+    address: z.string({
+        required_error: "L'indirizzo è obbligatorio",
+        invalid_type_error: "L'indirizzo deve essere una stringa"
+    }).min(1, "L'indirizzo non può essere vuoto"),
+
+    carCapacity: z.number({
+        required_error: "La capacità delle macchine è obbligatoria",
+        invalid_type_error: "La capacità delle macchinedeve essere un numero"
+    }).int("La capacità delle macchine deve essere un numero intero")
+        .positive("La capacità delle macchine deve essere maggiore di 0"),
+
+    motorcycleCapacity: z.number({
+        required_error: "La capacità delle moto è obbligatoria",
+        invalid_type_error: "La capacità delle moto deve essere un numero"
+    }).int("La capacità delle moto deve essere un numero intero")
+        .positive("La capacità delle moto deve essere maggiore di 0"),
+
+    truckCapacity: z.number({
+        required_error: "La capacità dei camion è obbligatoria",
+        invalid_type_error: "La capacità dei camion deve essere un numero"
+    }).int("La capacità dei camion deve essere un numero intero")
+        .positive("La capacità dei camion deve essere maggiore di 0"),
+
+
 });
 
 export const updateParkingSchema = createParkingSchema.partial();
 
 export const parkingIdSchema = z.object({
-  id: z.string().uuid("L'ID deve essere un UUID valido"),
+    id: z.string().uuid("L'ID deve essere un UUID valido"),
 });
 
 // Tipi inferiti (opzionale, per tipizzazione forte nel Service/Controller)

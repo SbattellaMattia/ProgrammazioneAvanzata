@@ -7,21 +7,30 @@ module.exports = {
   up: async (queryInterface, Sequelize) => {
     const now = new Date();
 
+    // ===== ID FISSI PER RELAZIONI =====
+    const userDriver1Id = uuidv4();
+    const userDriver2Id = uuidv4();
+    const userDriver3Id = uuidv4();
+    const userOperatorId = uuidv4();
+
+    const parkingDowntownId = uuidv4();
+    const parkingStationId = uuidv4();
+
     // ===== 1. USERS =====
     await queryInterface.bulkInsert('Users', [
       {
-        id: uuidv4(),
+        id: userDriver1Id,
         name: 'Mario',
         surname: 'Rossi',
         email: 'mario.rossi@email.com',
         password: await bcrypt.hash('password123', 10),
         role: 'DRIVER',
         tokens: 100,
-        createdAt: now,  
-        updatedAt: now,
+        createdAt: now,
+        updatedAt: now
       },
       {
-        id: uuidv4(),
+        id: userDriver2Id,
         name: 'Giulia',
         surname: 'Bianchi',
         email: 'giulia.bianchi@email.com',
@@ -29,10 +38,10 @@ module.exports = {
         role: 'DRIVER',
         tokens: 100,
         createdAt: now,
-        updatedAt: now,
+        updatedAt: now
       },
       {
-        id: uuidv4(),
+        id: userDriver3Id,
         name: 'Luca',
         surname: 'Verdi',
         email: 'luca.verdi@email.com',
@@ -40,10 +49,10 @@ module.exports = {
         role: 'DRIVER',
         tokens: 100,
         createdAt: now,
-        updatedAt: now,
+        updatedAt: now
       },
       {
-        id: uuidv4(),
+        id: userOperatorId,
         name: 'Andrea',
         surname: 'Ferrari',
         email: 'andrea.ferrari@email.com',
@@ -51,86 +60,86 @@ module.exports = {
         role: 'OPERATOR',
         tokens: 500,
         createdAt: now,
-        updatedAt: now,
-      },
+        updatedAt: now
+      }
     ]);
 
-    // ===== 2. PARKING LOTS =====
+    // ===== 2. PARKINGS =====
     await queryInterface.bulkInsert('Parkings', [
       {
-        id: 1,
+        id: parkingDowntownId,
         name: 'Downtown Parking',
         address: 'Via Roma 15, Milan',
         carCapacity: 100,
         motorcycleCapacity: 20,
         truckCapacity: 10,
         createdAt: now,
-        updatedAt: now,
+        updatedAt: now
       },
       {
-        id: 2,
+        id: parkingStationId,
         name: 'Station Parking',
         address: 'Piazza Garibaldi 3, Milan',
         carCapacity: 150,
         motorcycleCapacity: 30,
         truckCapacity: 15,
         createdAt: now,
-        updatedAt: now,
-      },
+        updatedAt: now
+      }
     ]);
 
     // ===== 3. GATES =====
     await queryInterface.bulkInsert('Gates', [
-      // Downtown Parking
+      // Downtown Parking (1–3)
       {
         id: 1,
-        parking_lot_id: 1,
+        parking_lot_id: parkingDowntownId,
         type: 'standard',
         direction: 'entrance',
         createdAt: now,
-        updatedAt: now,
+        updatedAt: now
       },
       {
         id: 2,
-        parking_lot_id: 1,
+        parking_lot_id: parkingDowntownId,
         type: 'standard',
         direction: 'exit',
         createdAt: now,
-        updatedAt: now,
+        updatedAt: now
       },
       {
         id: 3,
-        parking_lot_id: 1,
+        parking_lot_id: parkingDowntownId,
         type: 'smart',
         direction: 'bidirectional',
         createdAt: now,
-        updatedAt: now,
+        updatedAt: now
       },
-      // Station Parking
+      // Station Parking (4–6)
       {
         id: 4,
-        parking_lot_id: 2,
+        parking_lot_id: parkingStationId,
         type: 'smart',
         direction: 'entrance',
         createdAt: now,
-        updatedAt: now,
+        updatedAt: now
       },
       {
         id: 5,
-        parking_lot_id: 2,
+        parking_lot_id: parkingStationId,
         type: 'smart',
         direction: 'exit',
         createdAt: now,
-        updatedAt: now,
+        updatedAt: now
       },
       {
         id: 6,
-        parking_lot_id: 2,
+        parking_lot_id: parkingStationId,
         type: 'standard',
         direction: 'bidirectional',
         createdAt: now,
-        updatedAt: now,
-      },
+        updatedAt: now
+      }
     ]);
 
     // ===== 4. VEHICLES =====
@@ -138,95 +147,89 @@ module.exports = {
       {
         license_plate: 'AB123CD',
         vehicle_type: 'car',
-        owner_id: null, // Will need actual UUID from Users if you want to link
+        owner_id: userDriver1Id,
         createdAt: now,
-        updatedAt: now,
+        updatedAt: now
       },
       {
         license_plate: 'EF456GH',
         vehicle_type: 'motorcycle',
-        owner_id: null,
+        owner_id: userDriver2Id,
         createdAt: now,
-        updatedAt: now,
+        updatedAt: now
       },
       {
         license_plate: 'IJ789KL',
         vehicle_type: 'car',
-        owner_id: null,
+        owner_id: userDriver3Id,
         createdAt: now,
-        updatedAt: now,
+        updatedAt: now
       },
       {
         license_plate: 'MN012OP',
         vehicle_type: 'truck',
-        owner_id: null,
+        owner_id: userDriver3Id,
         createdAt: now,
-        updatedAt: now,
-      },
+        updatedAt: now
+      }
     ]);
 
-    // ===== 5. RATES =====
     await queryInterface.bulkInsert('Rates', [
       {
-        id: 1,
-        parking_lot_id: 1,
-        vehicle_type: 'car',
-        day: 'weekday',
-        time_slot_start: '08:00:00',
-        time_slot_end: '20:00:00',
-        hourly_rate: 2.50,
-        daily_rate: 15.00,
+        id: uuidv4(),
+        parkingId: parkingDowntownId,
+        vehicleType: 'car',       
+        dayType: 'weekday',       
+        hourStart: '08:00:00',
+        hourEnd: '20:00:00',
+        price: 2.50,              
         createdAt: now,
-        updatedAt: now,
+        updatedAt: now
       },
       {
-        id: 2,
-        parking_lot_id: 1,
-        vehicle_type: 'car',
-        day: 'weekday',
-        time_slot_start: '20:00:00',
-        time_slot_end: '08:00:00',
-        hourly_rate: 1.00,
-        daily_rate: 10.00,
+        id: uuidv4(),
+        parkingId: parkingDowntownId,
+        vehicleType: 'car',
+        dayType: 'weekday',
+        hourStart: '20:00:00',
+        hourEnd: '08:00:00',
+        price: 1.00,
         createdAt: now,
-        updatedAt: now,
+        updatedAt: now
       },
       {
-        id: 3,
-        parking_lot_id: 1,
-        vehicle_type: 'motorcycle',
-        day: 'all',
-        time_slot_start: '00:00:00',
-        time_slot_end: '23:59:59',
-        hourly_rate: 1.00,
-        daily_rate: 5.00,
+        id: uuidv4(),
+        parkingId: parkingDowntownId,
+        vehicleType: 'motorcycle',
+        dayType: 'all',
+        hourStart: '00:00:00',
+        hourEnd: '23:59:59',
+        price: 1.00,
         createdAt: now,
-        updatedAt: now,
+        updatedAt: now
       },
       {
-        id: 4,
-        parking_lot_id: 2,
-        vehicle_type: 'car',
-        day: 'weekday',
-        time_slot_start: '06:00:00',
-        time_slot_end: '22:00:00',
-        hourly_rate: 3.00,
-        daily_rate: 20.00,
+        id: uuidv4(),
+        parkingId: parkingStationId,
+        vehicleType: 'car',
+        dayType: 'weekday',
+        hourStart: '06:00:00',
+        hourEnd: '22:00:00',
+        price: 3.00,
         createdAt: now,
-        updatedAt: now,
+        updatedAt: now
       },
       {
-        id: 5,
-        parking_lot_id: 2,
-        vehicle_type: 'truck',
-        day: 'all',
-        time_slot_start: '00:00:00',
-        time_slot_end: '23:59:59',
-        hourly_rate: 5.00,
-        daily_rate: 40.00,
+        id: uuidv4(),
+        parkingId: parkingStationId,
+        vehicleType: 'truck',
+        dayType: 'all',
+        hourStart: '00:00:00',
+        hourEnd: '23:59:59',
+        price: 5.00,
         createdAt: now,
-        updatedAt: now,
-      },
+        updatedAt: now
+      }
     ]);
 
     // ===== 6. TRANSITS =====
@@ -245,74 +248,74 @@ module.exports = {
         id: 1,
         vehicle_id: 'AB123CD',
         gate_id: 1,
-        parking_lot_id: 1,
+        parking_lot_id: parkingDowntownId,
         transit_type: 'entrance',
         date_time: yesterday,
         image_path: '/images/transits/img001.jpg',
         detected_license_plate: 'AB123CD',
         createdAt: now,
-        updatedAt: now,
+        updatedAt: now
       },
       {
         id: 2,
         vehicle_id: 'AB123CD',
         gate_id: 2,
-        parking_lot_id: 1,
+        parking_lot_id: parkingDowntownId,
         transit_type: 'exit',
         date_time: yesterdayExit,
         image_path: '/images/transits/img002.jpg',
         detected_license_plate: 'AB123CD',
         createdAt: now,
-        updatedAt: now,
+        updatedAt: now
       },
       {
         id: 3,
         vehicle_id: 'EF456GH',
         gate_id: 4,
-        parking_lot_id: 2,
+        parking_lot_id: parkingStationId,
         transit_type: 'entrance',
         date_time: today,
         image_path: null,
         detected_license_plate: 'EF456GH',
         createdAt: now,
-        updatedAt: now,
+        updatedAt: now
       },
       {
         id: 4,
         vehicle_id: 'IJ789KL',
         gate_id: 1,
-        parking_lot_id: 1,
+        parking_lot_id: parkingDowntownId,
         transit_type: 'entrance',
         date_time: new Date(now.getTime() - 3 * 60 * 60 * 1000),
         image_path: '/images/transits/img003.jpg',
         detected_license_plate: 'IJ789KL',
         createdAt: now,
-        updatedAt: now,
+        updatedAt: now
       },
       {
         id: 5,
         vehicle_id: 'IJ789KL',
         gate_id: 2,
-        parking_lot_id: 1,
+        parking_lot_id: parkingDowntownId,
         transit_type: 'exit',
         date_time: new Date(now.getTime() - 1 * 60 * 60 * 1000),
         image_path: '/images/transits/img004.jpg',
         detected_license_plate: 'IJ789KL',
         createdAt: now,
-        updatedAt: now,
+        updatedAt: now
       },
       {
         id: 6,
         vehicle_id: 'MN012OP',
         gate_id: 4,
-        parking_lot_id: 2,
+        parking_lot_id: parkingStationId,
         transit_type: 'entrance',
         date_time: new Date(yesterday.getTime() - 2 * 60 * 60 * 1000),
         image_path: null,
         detected_license_plate: 'MN012OP',
         createdAt: now,
-        updatedAt: now,
-      },
+        updatedAt: now
+      }
     ]);
 
     // ===== 7. INVOICES =====
@@ -322,18 +325,12 @@ module.exports = {
     const dueDate2 = new Date(now.getTime() - 1 * 60 * 60 * 1000);
     dueDate2.setDate(dueDate2.getDate() + 1);
 
-    // Get user IDs to link invoices (you'll need to query or use fixed UUIDs)
-    const users = await queryInterface.sequelize.query(
-      'SELECT id FROM "Users" ORDER BY "createdAt" LIMIT 3',
-      { type: queryInterface.sequelize.QueryTypes.SELECT }
-    );
-
     await queryInterface.bulkInsert('Invoices', [
       {
         id: 1,
         vehicle_id: 'AB123CD',
-        parking_lot_id: 1,
-        driver_id: users[0].id,
+        parking_lot_id: parkingDowntownId,
+        driver_id: userDriver1Id,
         entrance_transit_id: 1,
         exit_transit_id: 2,
         amount: 10.00,
@@ -342,13 +339,13 @@ module.exports = {
         payment_date: yesterdayExit,
         qr_code_path: '/invoices/qr_001.pdf',
         createdAt: now,
-        updatedAt: now,
+        updatedAt: now
       },
       {
         id: 2,
         vehicle_id: 'IJ789KL',
-        parking_lot_id: 1,
-        driver_id: users[2].id,
+        parking_lot_id: parkingDowntownId,
+        driver_id: userDriver3Id,
         entrance_transit_id: 4,
         exit_transit_id: 5,
         amount: 5.00,
@@ -357,18 +354,11 @@ module.exports = {
         payment_date: null,
         qr_code_path: '/invoices/qr_002.pdf',
         createdAt: now,
-        updatedAt: now,
-      },
+        updatedAt: now
+      }
     ]);
 
     console.log('✅ Seeding completed successfully!');
-    console.log('📊 Summary:');
-    console.log('   - 4 users (3 drivers + 1 operator)');
-    console.log('   - 2 parking lots with 3 gates each');
-    console.log('   - 4 vehicles');
-    console.log('   - 5 rates');
-    console.log('   - 6 transits (2 completed, 2 entrance only)');
-    console.log('   - 2 invoices (only for completed transits)');
   },
 
   down: async (queryInterface, Sequelize) => {
@@ -377,9 +367,9 @@ module.exports = {
     await queryInterface.bulkDelete('Rates', null, {});
     await queryInterface.bulkDelete('Vehicles', null, {});
     await queryInterface.bulkDelete('Gates', null, {});
-    await queryInterface.bulkDelete('Parking', null, {});
+    await queryInterface.bulkDelete('Parkings', null, {});
     await queryInterface.bulkDelete('Users', null, {});
-    
+
     console.log('✅ Rollback completed!');
   }
 };

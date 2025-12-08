@@ -52,6 +52,24 @@ app.use('/vehicle', VehicleRoutes);
 
 app.use('/stats', StatsRoutes);
 
+
+
+app.get('/xmas', (req, res) => {
+  const tree = [
+    "      ⭐      ",
+    "     /  \\     ",
+    "    /    \\    ",
+    "   /--o---\\   ",
+    "  /   o    \\  ",
+    " /__________\\ ",
+    "     |  |     "
+  ].join('\n');
+  res.json({
+    message: "oh oh oh merry xmas",
+    tree: tree
+  });
+});
+
 /**
  * Definisce la porta su cui il server sarà in esecuzione.
  * Utilizza il valore della variabile d'ambiente `PORT` oppure, in assenza, utilizza la porta 3000.
