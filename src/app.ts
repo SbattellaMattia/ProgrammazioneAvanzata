@@ -1,6 +1,6 @@
 import express from 'express';
 import dotenv from 'dotenv';
-import authRoutes from "./routes/AuthRoutes";
+import authRoutes from './routes/authRoutes';
 import ParkingRoutes from "./routes/ParkingRoutes";
 import GateRoutes from "./routes/GateRoutes";
 import RateRoutes from "./routes/RateRoutes";
