@@ -96,45 +96,45 @@ module.exports = {
     // ===== 3. GATES =====
     await queryInterface.createTable('Gates', {
       id: {
-        type: Sequelize.INTEGER,
+        type: Sequelize.UUID,
+        defaultValue: Sequelize.UUIDV4,
         primaryKey: true,
-        autoIncrement: true,
-        allowNull: false
+        allowNull: false,
       },
-      parking_lot_id: {
+      parkingId: {
         type: Sequelize.UUID,
         allowNull: false,
         references: {
           model: 'Parkings',
-          key: 'id'
+          key: 'id',
         },
         onUpdate: 'CASCADE',
-        onDelete: 'CASCADE'
+        onDelete: 'CASCADE',
       },
       type: {
         type: Sequelize.STRING(20),
         allowNull: false,
-        comment: 'standard, smart'
+        comment: 'standard, smart',
       },
       direction: {
         type: Sequelize.STRING(20),
         allowNull: false,
-        comment: 'entrance, exit, bidirectional'
+        comment: 'in, out, bidirectional',
       },
       createdAt: {
         type: Sequelize.DATE,
         allowNull: false,
-        defaultValue: Sequelize.literal('CURRENT_TIMESTAMP')
+        defaultValue: Sequelize.literal('CURRENT_TIMESTAMP'),
       },
       updatedAt: {
         type: Sequelize.DATE,
         allowNull: false,
-        defaultValue: Sequelize.literal('CURRENT_TIMESTAMP')
-      }
+        defaultValue: Sequelize.literal('CURRENT_TIMESTAMP'),
+      },
     });
 
-    await queryInterface.addIndex('Gates', ['parking_lot_id'], {
-      name: 'gates_parking_lot_id_idx'
+    await queryInterface.addIndex('Gates', ['parkingId'], {
+      name: 'gates_parking_id_idx',
     });
 
     // ===== 4. VEHICLES =====
@@ -194,7 +194,7 @@ module.exports = {
         onDelete: 'CASCADE'
       },
       gate_id: {
-        type: Sequelize.INTEGER,
+        type: Sequelize.UUID,
         allowNull: false,
         references: {
           model: 'Gates',

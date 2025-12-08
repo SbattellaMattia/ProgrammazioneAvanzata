@@ -1,20 +1,39 @@
-import { Router} from 'express';
+import { Router } from 'express';
+import GateController from '../controllers/GateController';
+import GateService from '../services/GateService';
+import { validate } from '../middlewares/Validate';
+import { ensureExists } from '../middlewares/EnsureExist';
+import { createGateSchema, updateGateSchema, gateIdSchema } from '../validation/GateValidation';
 
 const router = Router();
 
-/** Middleware per autenticazione e autorizzazione degli operatori
- * @middleware authenticateToken
- * */
-//router.use();
+// --- Rotte senza ID ---
+router.post(
+  '/', 
+  validate(createGateSchema, 'body'), 
+  GateController.create
+);
 
-//Altri middleware specifici per le rotte di parcheggio
+router.get('/', GateController.getAll);
+// --- Rotte con ID ---
 
-//router.post('/gate', middleware, GateController.create);
+// Definisco una catena standard per le operazioni su ID:
+// 1. Valido che l'ID sia un numero
+// 2. Controllo che l'entità esista (e la carico)
+const requireGate = [
+  validate(gateIdSchema, 'params'),
+  ensureExists(GateService, 'Gate')
+];
 
-//router.get('/gate/:id', middleware, GateController.getById);
-//router.get('/gates', GateController.getAll);
+router.get('/:id', ...requireGate, GateController.getById);
 
-//router.delete('/gate/:id',middleware, GateController.delete);
+router.put(
+  '/:id', 
+  ...requireGate,                 // Prima controlla esistenza
+  validate(updateGateSchema, 'body'), // Poi valida il body
+  GateController.update
+);
 
-//router.put('/gate/:id',middleware ,GateController.update);
+router.delete('/:id', ...requireGate, GateController.delete);
+
 export default router;

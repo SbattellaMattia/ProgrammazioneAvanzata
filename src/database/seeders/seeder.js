@@ -16,6 +16,13 @@ module.exports = {
     const parkingDowntownId = uuidv4();
     const parkingStationId = uuidv4();
 
+    const gate1Id = uuidv4();
+    const gate2Id = uuidv4();
+    const gate3Id = uuidv4();
+    const gate4Id = uuidv4();
+    const gate5Id = uuidv4();
+    const gate6Id = uuidv4();
+
     // ===== 1. USERS =====
     await queryInterface.bulkInsert('Users', [
       {
@@ -92,24 +99,24 @@ module.exports = {
     await queryInterface.bulkInsert('Gates', [
       // Downtown Parking (1–3)
       {
-        id: 1,
-        parking_lot_id: parkingDowntownId,
+        id: gate1Id,
+        parkingId: parkingDowntownId,
         type: 'standard',
-        direction: 'entrance',
+        direction: 'in',
         createdAt: now,
         updatedAt: now
       },
       {
-        id: 2,
-        parking_lot_id: parkingDowntownId,
+        id: gate2Id,
+        parkingId: parkingDowntownId,
         type: 'standard',
-        direction: 'exit',
+        direction: 'out',
         createdAt: now,
         updatedAt: now
       },
       {
-        id: 3,
-        parking_lot_id: parkingDowntownId,
+        id: gate3Id,
+        parkingId: parkingDowntownId,
         type: 'smart',
         direction: 'bidirectional',
         createdAt: now,
@@ -117,24 +124,24 @@ module.exports = {
       },
       // Station Parking (4–6)
       {
-        id: 4,
-        parking_lot_id: parkingStationId,
+        id: gate4Id,
+        parkingId: parkingStationId,
         type: 'smart',
-        direction: 'entrance',
+        direction: 'in',
         createdAt: now,
         updatedAt: now
       },
       {
-        id: 5,
-        parking_lot_id: parkingStationId,
+        id: gate5Id,
+        parkingId: parkingStationId,
         type: 'smart',
-        direction: 'exit',
+        direction: 'out',
         createdAt: now,
         updatedAt: now
       },
       {
-        id: 6,
-        parking_lot_id: parkingStationId,
+        id: gate6Id,
+        parkingId: parkingStationId,
         type: 'standard',
         direction: 'bidirectional',
         createdAt: now,
@@ -247,7 +254,7 @@ module.exports = {
       {
         id: 1,
         vehicle_id: 'AB123CD',
-        gate_id: 1,
+        gate_id: gate1Id,
         parking_lot_id: parkingDowntownId,
         transit_type: 'entrance',
         date_time: yesterday,
@@ -259,7 +266,7 @@ module.exports = {
       {
         id: 2,
         vehicle_id: 'AB123CD',
-        gate_id: 2,
+        gate_id: gate2Id,
         parking_lot_id: parkingDowntownId,
         transit_type: 'exit',
         date_time: yesterdayExit,
@@ -271,7 +278,7 @@ module.exports = {
       {
         id: 3,
         vehicle_id: 'EF456GH',
-        gate_id: 4,
+        gate_id: gate4Id,
         parking_lot_id: parkingStationId,
         transit_type: 'entrance',
         date_time: today,
@@ -283,7 +290,7 @@ module.exports = {
       {
         id: 4,
         vehicle_id: 'IJ789KL',
-        gate_id: 1,
+        gate_id: gate1Id,
         parking_lot_id: parkingDowntownId,
         transit_type: 'entrance',
         date_time: new Date(now.getTime() - 3 * 60 * 60 * 1000),
@@ -295,7 +302,7 @@ module.exports = {
       {
         id: 5,
         vehicle_id: 'IJ789KL',
-        gate_id: 2,
+        gate_id: gate2Id,
         parking_lot_id: parkingDowntownId,
         transit_type: 'exit',
         date_time: new Date(now.getTime() - 1 * 60 * 60 * 1000),
@@ -307,7 +314,7 @@ module.exports = {
       {
         id: 6,
         vehicle_id: 'MN012OP',
-        gate_id: 4,
+        gate_id: gate4Id,
         parking_lot_id: parkingStationId,
         transit_type: 'entrance',
         date_time: new Date(yesterday.getTime() - 2 * 60 * 60 * 1000),
