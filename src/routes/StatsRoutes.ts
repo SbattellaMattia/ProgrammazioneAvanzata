@@ -1,6 +1,23 @@
-import { Router} from 'express';
+import { Router } from 'express';
+import StatsController from '../controllers/StatsController';
+import { validate } from '../middlewares/Validate';
+import { statsQuerySchema } from '../validation/StatsValidator';
+
 
 const router = Router();
+
+router.get(
+  '/',
+  validate(statsQuerySchema, 'query'),
+  StatsController.getGlobalStats
+);
+
+export default router;
+
+
+//import { Router} from 'express';
+
+//const router = Router();
 
 /** Middleware per autenticazione e autorizzazione degli operatori
  * @middleware authenticateToken
@@ -26,4 +43,4 @@ const router = Router();
 
 //router.get('/stats', AuthMiddleware, StatsController.getAll);
 
-export default router;
+//export default router;
