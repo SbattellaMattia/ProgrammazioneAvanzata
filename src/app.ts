@@ -1,6 +1,7 @@
 import express from 'express';
 import dotenv from 'dotenv';
-import AuthRoutes from "./routes/authRoutes";
+import path from 'path';
+import AuthRoutes from "./routes/AuthRoutes";
 import ParkingRoutes from "./routes/ParkingRoutes";
 import GateRoutes from "./routes/GateRoutes";
 import RateRoutes from "./routes/RateRoutes";
@@ -8,6 +9,9 @@ import TransitRoutes from "./routes/TransitRoutes";
 import InvoiceRoutes from "./routes/InvoiceRoutes";
 import VehicleRoutes from "./routes/VehicleRoutes";
 import StatsRoutes from "./routes/StatsRoutes";
+import { errorHandler } from './middlewares/ErrorsMiddleware';
+import { NotFoundError } from './errors';
+import { notFoundHandler } from './middlewares/InvalidRouteMiddleware';
 
 /** 
   * Carica le variabili d'ambiente dal file .env.
@@ -53,22 +57,15 @@ app.use('/vehicle', VehicleRoutes);
 app.use('/stats', StatsRoutes);
 
 
-
-app.get('/xmas', (req, res) => {
-  const tree = [
-    "      ⭐      ",
-    "     /  \\     ",
-    "    /    \\    ",
-    "   /--o---\\   ",
-    "  /   o    \\  ",
-    " /__________\\ ",
-    "     |  |     "
-  ].join('\n');
-  res.json({
-    message: "oh oh oh merry xmas",
-    tree: tree
-  });
+app.get('/xmas', (req, res, next) => {
+    const filePath = path.join(process.cwd(), 'src', 'img', 'xmas.gif');
+    res.sendFile(filePath, (err) => {
+        if (err) {next(new NotFoundError('Immagine non trovata'));}
+    });
 });
+
+app.use(notFoundHandler);
+app.use(errorHandler);
 
 /**
  * Definisce la porta su cui il server sarà in esecuzione.

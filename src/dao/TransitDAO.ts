@@ -60,3 +60,5 @@ export class TransitDAO extends DAO<Transit> implements ITransitDAO {
     });
   }
 }
+
+export default new TransitDAO();

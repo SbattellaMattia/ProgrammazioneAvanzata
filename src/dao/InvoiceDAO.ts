@@ -1,11 +1,12 @@
 // src/dao/InvoiceDAO.ts
+import { Op } from "sequelize";
 import Invoice from "../models/Invoice";
 import { DAO } from "./DAO";
 
 export interface IInvoiceDAO {
   existsById(id: string): Promise<boolean>;
   findForUser(userId: string): Promise<Invoice[]>;
-  findForParking(parkingId: string): Promise<Invoice[]>;
+  findForParking(parkingId: string, from: Date, to: Date): Promise<Invoice[]>;
 }
 
 export class InvoiceDAO extends DAO<Invoice> implements IInvoiceDAO {
@@ -30,7 +31,16 @@ export class InvoiceDAO extends DAO<Invoice> implements IInvoiceDAO {
   /**
    * Restituisce tutte le fatture di un parcheggio 
    */
-  async findForParking(parkingId: string): Promise<Invoice[]> {
-    return this.findAll({where: { parkingId },order: [["createdAt", "DESC"]],});
+  async findForParking(parkingId: string, from: Date, to: Date): Promise<Invoice[]> {
+    return this.findAll({where: { parkingId, createdAt: { $gte: from, $lte: to } },order: [["createdAt", "DESC"]],});
+  }
+
+  async findInDateRange(from: Date, to: Date): Promise<Invoice[]> {
+    return this.findAll({
+      where: {
+        createdAt: { [Op.gte]: from, [Op.lte]: to }
+      }
+    });
   }
 }
+export default new InvoiceDAO();

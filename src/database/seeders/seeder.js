@@ -3,11 +3,16 @@
 const bcrypt = require('bcryptjs');
 const { v4: uuidv4 } = require('uuid');
 
+/** @type {import('sequelize-cli').Migration} */
 module.exports = {
   up: async (queryInterface, Sequelize) => {
     const now = new Date();
+    const hashedPassword = await bcrypt.hash('password123', 10);
 
-    // ===== ID FISSI PER RELAZIONI =====
+    // ==========================================================
+    // 1. COSTANTI E ID FISSI (Infrastruttura)
+    // ==========================================================
+
     const userDriver1Id = uuidv4();
     const userDriver2Id = uuidv4();
     const userDriver3Id = uuidv4();
@@ -16,356 +21,164 @@ module.exports = {
     const parkingDowntownId = uuidv4();
     const parkingStationId = uuidv4();
 
-    const gate1Id = uuidv4();
-    const gate2Id = uuidv4();
-    const gate3Id = uuidv4();
-    const gate4Id = uuidv4();
-    const gate5Id = uuidv4();
-    const gate6Id = uuidv4();
+    // Gates
+    const gateDownIn = uuidv4();
+    const gateDownOut = uuidv4();
+    const gateDownBi = uuidv4();
+    const gateStatIn = uuidv4();
+    const gateStatOut = uuidv4();
+    const gateStatBi = uuidv4();
 
-    // ===== 1. USERS =====
+    // Vehicles
+    const plateCarA = 'AB123CD'; // Owner: Driver1
+    const plateMotoB = 'EF456GH'; // Owner: Driver2
+    const plateCarC = 'IJ789KL'; // Owner: Driver3
+    const plateTruckD = 'MN012OP'; // Owner: Driver3
+
+    // ==========================================================
+    // 2. INSERIMENTO ENTITÀ BASE
+    // ==========================================================
+
+    console.log('🌱 Seeding Users...');
     await queryInterface.bulkInsert('Users', [
-      {
-        id: userDriver1Id,
-        name: 'Mario',
-        surname: 'Rossi',
-        email: 'mario.rossi@email.com',
-        password: await bcrypt.hash('password123', 10),
-        role: 'DRIVER',
-        tokens: 100,
-        createdAt: now,
-        updatedAt: now
-      },
-      {
-        id: userDriver2Id,
-        name: 'Giulia',
-        surname: 'Bianchi',
-        email: 'giulia.bianchi@email.com',
-        password: await bcrypt.hash('password123', 10),
-        role: 'DRIVER',
-        tokens: 100,
-        createdAt: now,
-        updatedAt: now
-      },
-      {
-        id: userDriver3Id,
-        name: 'Luca',
-        surname: 'Verdi',
-        email: 'luca.verdi@email.com',
-        password: await bcrypt.hash('password123', 10),
-        role: 'DRIVER',
-        tokens: 100,
-        createdAt: now,
-        updatedAt: now
-      },
-      {
-        id: userOperatorId,
-        name: 'Andrea',
-        surname: 'Ferrari',
-        email: 'andrea.ferrari@email.com',
-        password: await bcrypt.hash('password123', 10),
-        role: 'OPERATOR',
-        tokens: 500,
-        createdAt: now,
-        updatedAt: now
-      }
+      { id: userDriver1Id, name: 'Mario', surname: 'Rossi', email: 'mario.rossi@email.com', password: hashedPassword, role: 'DRIVER', tokens: 100, createdAt: now, updatedAt: now },
+      { id: userDriver2Id, name: 'Giulia', surname: 'Bianchi', email: 'giulia.bianchi@email.com', password: hashedPassword, role: 'DRIVER', tokens: 100, createdAt: now, updatedAt: now },
+      { id: userDriver3Id, name: 'Luca', surname: 'Verdi', email: 'luca.verdi@email.com', password: hashedPassword, role: 'DRIVER', tokens: 100, createdAt: now, updatedAt: now },
+      { id: userOperatorId, name: 'Andrea', surname: 'Ferrari', email: 'andrea.ferrari@email.com', password: hashedPassword, role: 'OPERATOR', tokens: 500, createdAt: now, updatedAt: now }
     ]);
 
-    // ===== 2. PARKINGS =====
+    console.log('🌱 Seeding Parkings...');
     await queryInterface.bulkInsert('Parkings', [
-      {
-        id: parkingDowntownId,
-        name: 'Downtown Parking',
-        address: 'Via Roma 15, Milan',
-        carCapacity: 100,
-        motorcycleCapacity: 20,
-        truckCapacity: 10,
-        createdAt: now,
-        updatedAt: now
-      },
-      {
-        id: parkingStationId,
-        name: 'Station Parking',
-        address: 'Piazza Garibaldi 3, Milan',
-        carCapacity: 150,
-        motorcycleCapacity: 30,
-        truckCapacity: 15,
-        createdAt: now,
-        updatedAt: now
-      }
+      { id: parkingDowntownId, name: 'Downtown Parking', address: 'Via Roma 15, Milan', carCapacity: 100, motorcycleCapacity: 20, truckCapacity: 10, createdAt: now, updatedAt: now },
+      { id: parkingStationId, name: 'Station Parking', address: 'Piazza Garibaldi 3, Milan', carCapacity: 150, motorcycleCapacity: 30, truckCapacity: 15, createdAt: now, updatedAt: now }
     ]);
 
-    // ===== 3. GATES =====
+    console.log('🌱 Seeding Gates...');
     await queryInterface.bulkInsert('Gates', [
-      // Downtown Parking (1–3)
-      {
-        id: gate1Id,
-        parkingId: parkingDowntownId,
-        type: 'standard',
-        direction: 'in',
-        createdAt: now,
-        updatedAt: now
-      },
-      {
-        id: gate2Id,
-        parkingId: parkingDowntownId,
-        type: 'standard',
-        direction: 'out',
-        createdAt: now,
-        updatedAt: now
-      },
-      {
-        id: gate3Id,
-        parkingId: parkingDowntownId,
-        type: 'smart',
-        direction: 'bidirectional',
-        createdAt: now,
-        updatedAt: now
-      },
-      // Station Parking (4–6)
-      {
-        id: gate4Id,
-        parkingId: parkingStationId,
-        type: 'smart',
-        direction: 'in',
-        createdAt: now,
-        updatedAt: now
-      },
-      {
-        id: gate5Id,
-        parkingId: parkingStationId,
-        type: 'smart',
-        direction: 'out',
-        createdAt: now,
-        updatedAt: now
-      },
-      {
-        id: gate6Id,
-        parkingId: parkingStationId,
-        type: 'standard',
-        direction: 'bidirectional',
-        createdAt: now,
-        updatedAt: now
-      }
+      { id: gateDownIn, parkingId: parkingDowntownId, type: 'standard', direction: 'in', createdAt: now, updatedAt: now },
+      { id: gateDownOut, parkingId: parkingDowntownId, type: 'standard', direction: 'out', createdAt: now, updatedAt: now },
+      { id: gateDownBi, parkingId: parkingDowntownId, type: 'smart', direction: 'bidirectional', createdAt: now, updatedAt: now },
+      { id: gateStatIn, parkingId: parkingStationId, type: 'smart', direction: 'in', createdAt: now, updatedAt: now },
+      { id: gateStatOut, parkingId: parkingStationId, type: 'smart', direction: 'out', createdAt: now, updatedAt: now },
+      { id: gateStatBi, parkingId: parkingStationId, type: 'standard', direction: 'bidirectional', createdAt: now, updatedAt: now }
     ]);
 
-    // ===== 4. VEHICLES =====
+    console.log('🌱 Seeding Vehicles...');
     await queryInterface.bulkInsert('Vehicles', [
-      {
-        license_plate: 'AB123CD',
-        vehicle_type: 'car',
-        owner_id: userDriver1Id,
-        createdAt: now,
-        updatedAt: now
-      },
-      {
-        license_plate: 'EF456GH',
-        vehicle_type: 'motorcycle',
-        owner_id: userDriver2Id,
-        createdAt: now,
-        updatedAt: now
-      },
-      {
-        license_plate: 'IJ789KL',
-        vehicle_type: 'car',
-        owner_id: userDriver3Id,
-        createdAt: now,
-        updatedAt: now
-      },
-      {
-        license_plate: 'MN012OP',
-        vehicle_type: 'truck',
-        owner_id: userDriver3Id,
-        createdAt: now,
-        updatedAt: now
-      }
+      { license_plate: plateCarA, vehicle_type: 'car', owner_id: userDriver1Id, createdAt: now, updatedAt: now },
+      { license_plate: plateMotoB, vehicle_type: 'motorcycle', owner_id: userDriver2Id, createdAt: now, updatedAt: now },
+      { license_plate: plateCarC, vehicle_type: 'car', owner_id: userDriver3Id, createdAt: now, updatedAt: now },
+      { license_plate: plateTruckD, vehicle_type: 'truck', owner_id: userDriver3Id, createdAt: now, updatedAt: now }
     ]);
 
-    await queryInterface.bulkInsert('Rates', [
-      {
+    // ==========================================================
+    // 3. GENERAZIONE MASSIVA DI TRANSITI E FATTURE
+    // ==========================================================
+    console.log('🚀 Generating mass data (50+ records)...');
+
+    const transits = [];
+    const invoices = [];
+
+    // Helper: Definiamo le possibili combinazioni veicolo/utente/parcheggio
+    const scenarios = [
+      { plate: plateCarA, user: userDriver1Id, park: parkingDowntownId, gIn: gateDownIn, gOut: gateDownOut, basePrice: 5 },
+      { plate: plateMotoB, user: userDriver2Id, park: parkingDowntownId, gIn: gateDownBi, gOut: gateDownBi, basePrice: 2 },
+      { plate: plateCarC, user: userDriver3Id, park: parkingStationId, gIn: gateStatIn, gOut: gateStatOut, basePrice: 4 },
+      { plate: plateTruckD, user: userDriver3Id, park: parkingStationId, gIn: gateStatIn, gOut: gateStatBi, basePrice: 10 },
+      { plate: plateCarA, user: userDriver1Id, park: parkingStationId, gIn: gateStatBi, gOut: gateStatOut, basePrice: 4.5 },
+    ];
+
+    const statuses = ['paid', 'paid', 'paid', 'unpaid', 'expired']; // Più probabilità di PAID
+
+    // Generiamo 50 eventi negli ultimi 30 giorni
+    for (let i = 0; i < 50; i++) {
+      // 1. Scegli scenario random
+      const sc = scenarios[Math.floor(Math.random() * scenarios.length)];
+      
+      // 2. Scegli data random negli ultimi 30 giorni
+      const daysBack = Math.floor(Math.random() * 30);
+      const entryTime = new Date(now);
+      entryTime.setDate(entryTime.getDate() - daysBack);
+      entryTime.setHours(8 + Math.floor(Math.random() * 10), Math.floor(Math.random() * 60)); // Tra le 8:00 e le 18:00
+
+      // 3. Genera uscita (tra 1 e 5 ore dopo)
+      const durationHours = 1 + Math.floor(Math.random() * 4);
+      const exitTime = new Date(entryTime);
+      exitTime.setHours(exitTime.getHours() + durationHours);
+
+      // 4. Crea ID Transiti
+      const tInId = uuidv4();
+      const tOutId = uuidv4();
+
+      // 5. Calcola importo (prezzo base * ore + random centesimi)
+      const amount = parseFloat((sc.basePrice * durationHours + Math.random()).toFixed(2));
+
+      // 6. Push Transiti
+      transits.push({
+        id: tInId,
+        vehicleId: sc.plate,
+        gateId: sc.gIn,
+        parkingId: sc.park,
+        transitType: 'entrance',
+        dateTime: entryTime,
+        imagePath: `/images/auto_gen_in_${i}.jpg`,
+        detectedLicensePlate: sc.plate,
+        createdAt: entryTime,
+        updatedAt: entryTime
+      });
+
+      transits.push({
+        id: tOutId,
+        vehicleId: sc.plate,
+        gateId: sc.gOut,
+        parkingId: sc.park,
+        transitType: 'exit',
+        dateTime: exitTime,
+        imagePath: `/images/auto_gen_out_${i}.jpg`,
+        detectedLicensePlate: sc.plate,
+        createdAt: exitTime,
+        updatedAt: exitTime
+      });
+
+      // 7. Push Fattura
+      const dueDate = new Date(exitTime);
+      dueDate.setDate(dueDate.getDate() + 1); // Scadenza 1 giorno dopo
+
+      invoices.push({
         id: uuidv4(),
-        parkingId: parkingDowntownId,
-        vehicleType: 'car',       
-        dayType: 'weekday',       
-        hourStart: '08:00:00',
-        hourEnd: '20:00:00',
-        price: 2.50,              
-        createdAt: now,
-        updatedAt: now
-      },
-      {
-        id: uuidv4(),
-        parkingId: parkingDowntownId,
-        vehicleType: 'car',
-        dayType: 'weekday',
-        hourStart: '20:00:00',
-        hourEnd: '08:00:00',
-        price: 1.00,
-        createdAt: now,
-        updatedAt: now
-      },
-      {
-        id: uuidv4(),
-        parkingId: parkingDowntownId,
-        vehicleType: 'motorcycle',
-        dayType: 'all',
-        hourStart: '00:00:00',
-        hourEnd: '23:59:59',
-        price: 1.00,
-        createdAt: now,
-        updatedAt: now
-      },
-      {
-        id: uuidv4(),
-        parkingId: parkingStationId,
-        vehicleType: 'car',
-        dayType: 'weekday',
-        hourStart: '06:00:00',
-        hourEnd: '22:00:00',
-        price: 3.00,
-        createdAt: now,
-        updatedAt: now
-      },
-      {
-        id: uuidv4(),
-        parkingId: parkingStationId,
-        vehicleType: 'truck',
-        dayType: 'all',
-        hourStart: '00:00:00',
-        hourEnd: '23:59:59',
-        price: 5.00,
-        createdAt: now,
-        updatedAt: now
-      }
-    ]);
+        userId: sc.user,
+        parkingId: sc.park,
+        entryTransitId: tInId,
+        exitTransitId: tOutId,
+        amount: amount,
+        status: statuses[Math.floor(Math.random() * statuses.length)],
+        dueDate: dueDate,
+        qrPath: `/invoices/gen_${i}.pdf`,
+        createdAt: exitTime, // Creata all'uscita
+        updatedAt: exitTime
+      });
+    }
 
-    // ===== 6. TRANSITS =====
-    const yesterday = new Date(now);
-    yesterday.setDate(yesterday.getDate() - 1);
-    yesterday.setHours(10, 30, 0, 0);
+    // Aggiungiamo anche un paio di veicoli che sono ANCORA DENTRO (solo entrata, niente fattura)
+    const activeTransitId = uuidv4();
+    transits.push({
+      id: activeTransitId,
+      vehicleId: plateCarC,
+      gateId: gateDownIn,
+      parkingId: parkingDowntownId,
+      transitType: 'entrance',
+      dateTime: new Date(), // Adesso
+      imagePath: '/images/live.jpg',
+      detectedLicensePlate: plateCarC,
+      createdAt: new Date(),
+      updatedAt: new Date()
+    });
 
-    const yesterdayExit = new Date(yesterday);
-    yesterdayExit.setHours(14, 15, 0, 0);
+    // SCRITTURA NEL DB
+    await queryInterface.bulkInsert('Transits', transits);
+    await queryInterface.bulkInsert('Invoices', invoices);
 
-    const today = new Date(now);
-    today.setHours(9, 0, 0, 0);
-
-    await queryInterface.bulkInsert('Transits', [
-      {
-        id: 1,
-        vehicle_id: 'AB123CD',
-        gate_id: gate1Id,
-        parking_lot_id: parkingDowntownId,
-        transit_type: 'entrance',
-        date_time: yesterday,
-        image_path: '/images/transits/img001.jpg',
-        detected_license_plate: 'AB123CD',
-        createdAt: now,
-        updatedAt: now
-      },
-      {
-        id: 2,
-        vehicle_id: 'AB123CD',
-        gate_id: gate2Id,
-        parking_lot_id: parkingDowntownId,
-        transit_type: 'exit',
-        date_time: yesterdayExit,
-        image_path: '/images/transits/img002.jpg',
-        detected_license_plate: 'AB123CD',
-        createdAt: now,
-        updatedAt: now
-      },
-      {
-        id: 3,
-        vehicle_id: 'EF456GH',
-        gate_id: gate4Id,
-        parking_lot_id: parkingStationId,
-        transit_type: 'entrance',
-        date_time: today,
-        image_path: null,
-        detected_license_plate: 'EF456GH',
-        createdAt: now,
-        updatedAt: now
-      },
-      {
-        id: 4,
-        vehicle_id: 'IJ789KL',
-        gate_id: gate1Id,
-        parking_lot_id: parkingDowntownId,
-        transit_type: 'entrance',
-        date_time: new Date(now.getTime() - 3 * 60 * 60 * 1000),
-        image_path: '/images/transits/img003.jpg',
-        detected_license_plate: 'IJ789KL',
-        createdAt: now,
-        updatedAt: now
-      },
-      {
-        id: 5,
-        vehicle_id: 'IJ789KL',
-        gate_id: gate2Id,
-        parking_lot_id: parkingDowntownId,
-        transit_type: 'exit',
-        date_time: new Date(now.getTime() - 1 * 60 * 60 * 1000),
-        image_path: '/images/transits/img004.jpg',
-        detected_license_plate: 'IJ789KL',
-        createdAt: now,
-        updatedAt: now
-      },
-      {
-        id: 6,
-        vehicle_id: 'MN012OP',
-        gate_id: gate4Id,
-        parking_lot_id: parkingStationId,
-        transit_type: 'entrance',
-        date_time: new Date(yesterday.getTime() - 2 * 60 * 60 * 1000),
-        image_path: null,
-        detected_license_plate: 'MN012OP',
-        createdAt: now,
-        updatedAt: now
-      }
-    ]);
-
-    // ===== 7. INVOICES =====
-    const dueDate1 = new Date(yesterdayExit);
-    dueDate1.setDate(dueDate1.getDate() + 1);
-
-    const dueDate2 = new Date(now.getTime() - 1 * 60 * 60 * 1000);
-    dueDate2.setDate(dueDate2.getDate() + 1);
-
-    await queryInterface.bulkInsert('Invoices', [
-      {
-        id: 1,
-        vehicle_id: 'AB123CD',
-        parking_lot_id: parkingDowntownId,
-        driver_id: userDriver1Id,
-        entrance_transit_id: 1,
-        exit_transit_id: 2,
-        amount: 10.00,
-        payment_status: 'paid',
-        due_date: dueDate1,
-        payment_date: yesterdayExit,
-        qr_code_path: '/invoices/qr_001.pdf',
-        createdAt: now,
-        updatedAt: now
-      },
-      {
-        id: 2,
-        vehicle_id: 'IJ789KL',
-        parking_lot_id: parkingDowntownId,
-        driver_id: userDriver3Id,
-        entrance_transit_id: 4,
-        exit_transit_id: 5,
-        amount: 5.00,
-        payment_status: 'unpaid',
-        due_date: dueDate2,
-        payment_date: null,
-        qr_code_path: '/invoices/qr_002.pdf',
-        createdAt: now,
-        updatedAt: now
-      }
-    ]);
-
-    console.log('✅ Seeding completed successfully!');
+    console.log(`✅ Generated ${transits.length} transits and ${invoices.length} invoices successfully!`);
   },
 
   down: async (queryInterface, Sequelize) => {
@@ -376,7 +189,5 @@ module.exports = {
     await queryInterface.bulkDelete('Gates', null, {});
     await queryInterface.bulkDelete('Parkings', null, {});
     await queryInterface.bulkDelete('Users', null, {});
-
-    console.log('✅ Rollback completed!');
   }
 };

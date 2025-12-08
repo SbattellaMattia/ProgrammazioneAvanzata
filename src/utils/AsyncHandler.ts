@@ -1,6 +1,20 @@
 /**
- * Middleware per gestire gli errori nei controller asincroni
- */
+ * Middleware per gestire gli errori nei controller asincroni.
+ * Higher-Order Function, cioè una funzione che accetta una funzione e ne restituisce un'altra modificata.
+*
+* @param fn La funzione asincrona (controller) da avvolgere.
+* @returns Una nuova funzione che gestisce automaticamente gli errori.
+* 
+* Come funziona:
+* Promise.resolve(fn(req, res, next)).catch(next);
+* fn(req, res, next): Esegue la tua logica (es. il tuo controller getUserById).
+* Promise.resolve(...): Avvolge il risultato della tua funzione. Anche se la  funzione è già async (e quindi ritorna una Promise), 
+* questo assicura che il risultato sia trattato come una Promise standard.
+* .catch(next): Questa è la parte fondamentale.
+* Se la tua funzione va a buon fine, non succede nulla e il tuo codice invia la risposta (res.json...).
+* Se la tua funzione lancia un errore (o la Promise viene rigettata), il .catch intercetta quell'errore.
+* Invece di mandare in crash tutto, passa l'errore alla funzione next di Express (next(error)).
+*/
 import { Request, Response, NextFunction } from 'express';
 
 /**

@@ -1,0 +1,17 @@
+import { z } from 'zod';
+
+export const statsQuerySchema = z.object({
+  from: z.coerce.date({
+    invalid_type_error: "La data di inizio deve essere valida (ISO 8601)",
+  }).optional(), 
+
+  to: z.coerce.date({
+    invalid_type_error: "La data di fine deve essere valida (ISO 8601)",
+  }).optional(),
+
+  format: z.enum(['json', 'pdf'], {
+    errorMap: () => ({ message: "Il formato deve essere 'json' o 'pdf'" })
+  }).optional().default('json'),
+});
+
+export type StatsQueryDTO = z.infer<typeof statsQuerySchema>;

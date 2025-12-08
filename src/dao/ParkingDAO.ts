@@ -41,3 +41,5 @@ export class ParkingDAO extends DAO<Parking> implements IParkingDAO {
     };
   }
 }
+
+export default new ParkingDAO();
