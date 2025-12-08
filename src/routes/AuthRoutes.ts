@@ -1,5 +1,5 @@
 import { Router} from 'express';
-import { AuthController } from '../controllers/authController';
+import { AuthController } from '../controllers/AuthController';
 import { UserDAO } from '../dao/UserDAO';
 import { AuthService } from '../services/AuthService';
 import { AuthMiddleware } from '../middlewares/AuthMiddleware';
