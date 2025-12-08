@@ -13,7 +13,7 @@ const timeStringSchema = z
   );
 
 /**
- * Schema per create tariffa
+ * Zod schema per creare tariffa
  */
 export const createRateSchema = z.object({
   parkingId: z.string().uuid("parkingId deve essere un UUID valido"),
@@ -54,5 +54,11 @@ export const updateRateSchema = z
     }
   );
 
+export const rateIdSchema = z.object({
+  id: z.string().uuid("L'ID deve essere un UUID valido"),
+});
+
+
 export type CreateRateInput = z.infer<typeof createRateSchema>;
 export type UpdateRateInput = z.infer<typeof updateRateSchema>;
+export type RateIdParams = z.infer<typeof rateIdSchema>;

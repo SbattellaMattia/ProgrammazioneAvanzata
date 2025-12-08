@@ -21,9 +21,10 @@ export const createParkingSchema = z.object({
 export const updateParkingSchema = createParkingSchema.partial();
 
 export const parkingIdSchema = z.object({
-  id: z.string().regex(/^\d+$/, "L'ID deve essere un numero intero").transform(Number)
+  id: z.string().uuid("L'ID deve essere un UUID valido"),
 });
 
 // Tipi inferiti (opzionale, per tipizzazione forte nel Service/Controller)
 export type CreateParkingDTO = z.infer<typeof createParkingSchema>;
 export type UpdateParkingDTO = z.infer<typeof updateParkingSchema>;
+export type ParkingIdParams = z.infer<typeof parkingIdSchema>;

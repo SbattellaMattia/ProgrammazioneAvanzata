@@ -1,9 +1,15 @@
+// src/services/RateService.ts
 import { Rate } from "../models/Rate";
 import { RateDAO } from "../dao/RateDAO";
 import { ParkingDAO } from "../dao/ParkingDAO";
-import { CreateRateInput, UpdateRateInput } from "../validation/RateValidation";
-import { BadRequestError, ValidationError, NotFoundError, DatabaseError } from "../errors/CustomErrors";
-
+import {CreateRateInput, UpdateRateInput,} from "../validation/RateValidation";
+import {
+  BadRequestError,
+  ValidationError,
+  NotFoundError,
+  DatabaseError,
+  OperationNotAllowedError,
+} from "../errors/CustomErrors";
 
 export class RateService {
   private readonly rateDAO: RateDAO;
@@ -16,16 +22,15 @@ export class RateService {
 
   /**
    * Crea una nuova tariffa.
-   * I dati nel body sono validati da Zod (createRateSchema).
+   * I dati nel body sono già validati da Zod (createRateSchema).
    */
   async createRate(data: CreateRateInput): Promise<Rate> {
     try {
       const { parkingId, vehicleType, dayType, price, hourStart, hourEnd } =
         data;
 
-      // il parcheggio deve esistere
+      // Il parcheggio deve esistere 
       await this.checkParking(parkingId);
-
 
       return await this.rateDAO.create({
         parkingId,
@@ -43,24 +48,19 @@ export class RateService {
       ) {
         throw error;
       }
-      throw new DatabaseError("Errore durante la creazione della tariffa", error);
+      throw new DatabaseError(
+        "Errore durante la creazione della tariffa",
+        error
+      );
     }
   }
 
   /**
-   * Restituisce una tariffa per ID.
+   * Cerca una tariffa per ID.
+   * Necessario per il middleware `ensureExists`.
    */
-  async getRateById(id: string): Promise<Rate> {
-    if (!id) {
-      throw new BadRequestError("ID mancante");
-    }
-
-    const rate = await this.rateDAO.findById(id);
-    if (!rate) {
-      throw new NotFoundError("Tariffa", id);
-    }
-
-    return rate;
+  async getById(id: string): Promise<Rate | null> {
+    return this.rateDAO.findById(id);
   }
 
   /**
@@ -70,7 +70,10 @@ export class RateService {
     try {
       return await this.rateDAO.findAll();
     } catch (error: any) {
-      throw new DatabaseError("Errore nel recupero di tutte le tariffe", error);
+      throw new DatabaseError(
+        "Errore nel recupero di tutte le tariffe",
+        error
+      );
     }
   }
 
@@ -78,10 +81,6 @@ export class RateService {
    * Restituisce le tariffe relative a un parcheggio.
    */
   async getRatesByParking(parkingId: string): Promise<Rate[]> {
-    if (!parkingId) {
-      throw new BadRequestError("parkingId mancante");
-    }
-
     await this.checkParking(parkingId);
     return this.rateDAO.findByParking(parkingId);
   }
@@ -89,24 +88,24 @@ export class RateService {
   /**
    * Aggiorna una tariffa.
    * I dati nel body sono validati da Zod (updateRateSchema).
+   *
+   * I controlli sono fatti in rotta, ad esempio:
+   *  - validate(rateIdSchema, "params")
+   *  - ensureExists(rateService, "Tariffa")
+   * 
    */
   async updateRate(id: string, data: UpdateRateInput): Promise<Rate> {
-    if (!id) {
-      throw new BadRequestError("ID mancante");
-    }
-
-    const existing = await this.rateDAO.findById(id);
-    if (!existing) {
-      throw new NotFoundError("Tariffa", id);
-    }
-
-    // Garantisce che il parkingId non venga modificato durante l'aggiornamento della tariffa
+    // vietiamo il cambio di parkingId
     if ((data as any).parkingId) {
-      throw new ValidationError("Non è permesso modificare il parkingId di una tariffa esistente");
+      throw new OperationNotAllowedError(
+        "updateRate",
+        "Non è permesso modificare il parkingId di una tariffa esistente"
+      );
     }
 
     const updated = await this.rateDAO.update(id, data as any);
     if (!updated) {
+      // caso limite: la tariffa è stata cancellata dopo ensureExists
       throw new DatabaseError("Impossibile aggiornare la tariffa");
     }
 
@@ -115,19 +114,15 @@ export class RateService {
 
   /**
    * Elimina una tariffa.
+   *
+   * I controlli sono fatti in rotta, ad esempio: 
+   * - validate(rateIdSchema, "params")
+   * - ensureExists(rateService, "Tariffa")
    */
   async deleteRate(id: string): Promise<void> {
-    if (!id) {
-      throw new BadRequestError("ID mancante");
-    }
-
-    const exists = await this.rateDAO.findById(id);
-    if (!exists) {
-      throw new NotFoundError("Tariffa", id);
-    }
-
     const ok = await this.rateDAO.delete(id);
     if (!ok) {
+      // caso limite: già eliminata dopo ensureExists
       throw new DatabaseError("Errore eliminazione tariffa");
     }
   }

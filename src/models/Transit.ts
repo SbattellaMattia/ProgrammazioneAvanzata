@@ -10,7 +10,7 @@ export class Transit extends Model<InferAttributes<Transit>, InferCreationAttrib
   declare gateId: string;
   declare vehicleId: string;
   declare type: TransitType;
-  declare timestamp: Date;
+  declare date: Date;
   declare imageData: string | null;
   declare detectedPlate: string | null;
 }
@@ -43,7 +43,7 @@ Transit.init(
       allowNull: false,
     },
 
-    timestamp: {
+    date: {
       type: DataTypes.DATE,
       allowNull: false,
     },
