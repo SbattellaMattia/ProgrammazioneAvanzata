@@ -1,21 +1,44 @@
-import {Router} from 'express';
+import { Router } from 'express';
+import ParkingController from '../controllers/ParkingController';
+import ParkingService from '../services/ParkingService'; // Necessario per il middleware
+import { validate } from '../middlewares/Validate';
+import { ensureExists } from '../middlewares/EnsureExist';
+import { 
+  createParkingSchema, 
+  updateParkingSchema, 
+  parkingIdSchema 
+} from '../validation/ParkingValidator';
 
 const router = Router();
 
-/** Middleware per autenticazione e autorizzazione degli operatori
- * @middleware authenticateToken
- * */
-//router.use();
+// --- Rotte senza ID ---
+router.post(
+  '/', 
+  validate(createParkingSchema, 'body'), 
+  ParkingController.create
+);
 
-//Altri middleware specifici per le rotte di parcheggio
+router.get('/', ParkingController.getAll);
 
-//router.post('/parking', middleware, ParkingController.create);
+// --- Rotte con ID ---
 
-//router.get('/parking/:id', middleware, ParkingController.getById);
-//router.get('/parkings', ParkingController.getAll);
+// Definisco una catena standard per le operazioni su ID:
+// 1. Valido che l'ID sia un numero
+// 2. Controllo che l'entità esista (e la carico)
+const requireParking = [
+  validate(parkingIdSchema, 'params'),
+  ensureExists(ParkingService, 'Parcheggio')
+];
 
-//router.delete('/parking/:id',middleware, ParkingController.delete);
+router.get('/:id', ...requireParking, ParkingController.getById);
 
-//router.put('/parking/:id',middleware ,ParkingController.update);
+router.put(
+  '/:id', 
+  ...requireParking,                 // Prima controlla esistenza
+  validate(updateParkingSchema, 'body'), // Poi valida il body
+  ParkingController.update
+);
+
+router.delete('/:id', ...requireParking, ParkingController.delete);
 
 export default router;

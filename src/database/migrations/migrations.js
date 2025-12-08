@@ -56,7 +56,7 @@ module.exports = {
     });
 
     // ===== 2. PARKING LOTS =====
-    await queryInterface.createTable('Parking', {
+    await queryInterface.createTable('Parkings', {
       id: {
         type: Sequelize.INTEGER,
         primaryKey: true,
@@ -71,15 +71,15 @@ module.exports = {
         type: Sequelize.STRING(255),
         allowNull: true
       },
-      car_spots: {
+      carCapacity: {
         type: Sequelize.INTEGER,
         allowNull: false
       },
-      motorcycle_spots: {
+      motorcycleCapacity: {
         type: Sequelize.INTEGER,
         allowNull: false
       },
-      truck_spots: {
+      truckCapacity: {
         type: Sequelize.INTEGER,
         allowNull: false
       },
@@ -89,7 +89,7 @@ module.exports = {
         defaultValue: Sequelize.literal('CURRENT_TIMESTAMP')
       },
       updatedAt: {
-        type: Sequelize.DATE,
+        type: Sequelize.DATE,   
         allowNull: false,
         defaultValue: Sequelize.literal('CURRENT_TIMESTAMP')
       }
@@ -107,7 +107,7 @@ module.exports = {
         type: Sequelize.INTEGER,
         allowNull: false,
         references: {
-          model: 'Parking',
+          model: 'Parkings',
           key: 'id'
         },
         onUpdate: 'CASCADE',
@@ -211,7 +211,7 @@ module.exports = {
         type: Sequelize.INTEGER,
         allowNull: false,
         references: {
-          model: 'Parking',
+          model: 'Parkings',
           key: 'id'
         },
         onUpdate: 'CASCADE',
@@ -277,7 +277,7 @@ module.exports = {
         type: Sequelize.INTEGER,
         allowNull: false,
         references: {
-          model: 'Parking',
+          model: 'Parkings',
           key: 'id'
         },
         onUpdate: 'CASCADE',
@@ -350,7 +350,7 @@ module.exports = {
         type: Sequelize.INTEGER,
         allowNull: false,
         references: {
-          model: 'Parking',
+          model: 'Parkings',
           key: 'id'
         },
         onUpdate: 'CASCADE',
@@ -452,7 +452,7 @@ module.exports = {
     await queryInterface.dropTable('Transits');
     await queryInterface.dropTable('Vehicles');
     await queryInterface.dropTable('Gates');
-    await queryInterface.dropTable('Parking');
+    await queryInterface.dropTable('Parkings');
     await queryInterface.dropTable('Users');
     
     // Drop ENUM type for role

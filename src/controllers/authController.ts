@@ -2,7 +2,7 @@
 import { Request, Response } from 'express';
 import { AuthService } from '../services/AuthService';
 import { StatusCodes } from 'http-status-codes';
-import { asyncHandler } from './AsyncHandler';
+import { asyncHandler } from '../utils/AsyncHandler';
 
 
 export class AuthController {

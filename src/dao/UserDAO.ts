@@ -5,7 +5,7 @@ import { DAO } from './DAO';
 
 export interface IUserDAO {
   findByEmail(email: string): Promise<User | null>;
-  decrementTokens(id: number, amount: number): Promise<User | null>;
+  decrementTokens(id: string, amount: number): Promise<User | null>;
 }
 
 /**
@@ -22,7 +22,7 @@ export class UserDAO extends DAO<User> implements IUserDAO {
     return this.executeQuery(async () => await this.findOne({ email } as any),'findByEmail');}
 
 
-  async checkTokens(id: number): Promise<Boolean> {
+  async checkTokens(id: string): Promise<Boolean> {
     return this.executeQuery(async () => {
       const user = await this.findById(id);
     
@@ -33,7 +33,7 @@ export class UserDAO extends DAO<User> implements IUserDAO {
   }
   
 
-  async decrementTokens(id: number, amount: number): Promise<User | null> {
+  async decrementTokens(id: string, amount: number): Promise<User | null> {
     return this.executeQuery(async () => {
       const user = await this.findById(id);
       

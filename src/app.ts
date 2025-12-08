@@ -1,6 +1,6 @@
 import express from 'express';
 import dotenv from 'dotenv';
-import authRoutes from './routes/authRoutes';
+import AuthRoutes from './routes/AuthRoutes';
 import ParkingRoutes from "./routes/ParkingRoutes";
 import GateRoutes from "./routes/GateRoutes";
 import RateRoutes from "./routes/RateRoutes";
@@ -8,8 +8,6 @@ import TransitRoutes from "./routes/TransitRoutes";
 import InvoiceRoutes from "./routes/InvoiceRoutes";
 import VehicleRoutes from "./routes/VehicleRoutes";
 import StatsRoutes from "./routes/StatsRoutes";
-
-
 
 /** 
   * Carica le variabili d'ambiente dal file .env.
@@ -38,9 +36,9 @@ app.use(express.json());
  * @see authRoutes.js
  * @module authRoutes
  */
-app.use('', authRoutes);
+app.use('', AuthRoutes);
 
-app.use('/rate', ParkingRoutes);
+app.use('/parking', ParkingRoutes);
 
 app.use('/gate', GateRoutes);
 
@@ -53,32 +51,6 @@ app.use('/invoice', InvoiceRoutes);
 app.use('/vehicle', VehicleRoutes);
 
 app.use('/stats', StatsRoutes);
-
-
-
-
-
-
-
-
- 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 /**
  * Definisce la porta su cui il server sarà in esecuzione.

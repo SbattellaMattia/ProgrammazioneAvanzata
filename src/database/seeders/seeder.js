@@ -56,24 +56,24 @@ module.exports = {
     ]);
 
     // ===== 2. PARKING LOTS =====
-    await queryInterface.bulkInsert('Parking', [
+    await queryInterface.bulkInsert('Parkings', [
       {
         id: 1,
         name: 'Downtown Parking',
         address: 'Via Roma 15, Milan',
-        car_spots: 100,
-        motorcycle_spots: 20,
-        truck_spots: 10,
-        createdAt: now,  // ← camelCase
-        updatedAt: now,  // ← camelCase
+        carCapacity: 100,
+        motorcycleCapacity: 20,
+        truckCapacity: 10,
+        createdAt: now,
+        updatedAt: now,
       },
       {
         id: 2,
         name: 'Station Parking',
         address: 'Piazza Garibaldi 3, Milan',
-        car_spots: 150,
-        motorcycle_spots: 30,
-        truck_spots: 15,
+        carCapacity: 150,
+        motorcycleCapacity: 30,
+        truckCapacity: 15,
         createdAt: now,
         updatedAt: now,
       },
