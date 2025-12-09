@@ -6,9 +6,12 @@ import { NotFoundError } from '../errors/CustomErrors';
 class InvoiceService {
 
 
-    async getAll() {
-        return await invoiceDAO.findAll();
+    async getAll(from: Date, to: Date, state: string): Promise<any[]> {
+        return await invoiceDAO.findInDateRange('dueDate', from, to, { status: state });
     }
+
+
+    
     /**
      * Genera il PDF del bollettino per una specifica fattura.
      * Restituisce il Buffer del PDF.

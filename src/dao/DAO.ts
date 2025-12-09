@@ -1,4 +1,4 @@
-import { Model, ModelStatic, WhereOptions } from 'sequelize';
+import { FindOptions, Model, ModelStatic, WhereOptions, Op } from 'sequelize';
 import { DatabaseError } from '../errors';
 
 /**
@@ -122,5 +122,45 @@ export abstract class DAO<T extends Model> {
   async exists(where: WhereOptions<T>): Promise<boolean> {
     const count = await this.count(where);
     return count > 0;
+  }
+
+
+  /**   * Trova record in un intervallo di date su un campo specifico
+   * @param dateField Il campo data su cui filtrare
+   * @param from Data di inizio (inclusiva) 
+   * @param to Data di fine (inclusiva)
+   * @param additionalWhere Altre condizioni where opzionali
+   * @return Array di record trovati
+   * 
+   * @example
+  * Trova transiti tra due date
+  * const transits = await transitDAO.findInDateRange('date', new Date('2024-01-01'), new Date('2024-01-31'));
+   */ 
+
+  async findInDateRange(
+    dateField: keyof T['_attributes'], // TypeScript safety: deve essere una chiave del modello
+    from?: Date,
+    to?: Date,
+    additionalWhere: WhereOptions<T> = {}
+  ): Promise<T[]> {
+    return this.executeQuery(async () => {
+      
+      const whereClause: any = { ...additionalWhere };
+
+      // Costruiamo la clausola temporale solo se c'è almeno una data
+      if (from || to) {
+        whereClause[dateField] = {};
+        if (from) whereClause[dateField][Op.gte] = from; // >= from
+        if (to) whereClause[dateField][Op.lte] = to;     // <= to
+      }
+
+      // Default Order: Ordiniamo per data decrescente (comodo per liste e log)
+      const options: FindOptions = {
+        where: whereClause,
+        order: [[dateField as string, 'DESC']]
+      };
+
+      return await this.model.findAll(options);
+    }, 'findInDateRange');
   }
 }
