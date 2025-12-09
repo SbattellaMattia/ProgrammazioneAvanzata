@@ -5,9 +5,13 @@ import { PdfGenerator } from '../utils/PdfGenerator';
 import { NotFoundError } from '../errors/CustomErrors'; 
 class InvoiceService {
 
+    async getAll(){
+        return await invoiceDAO.findAll();
+    }
 
-    async getAll(from: Date, to: Date, state: string): Promise<any[]> {
-        return await invoiceDAO.findInDateRange('dueDate', from, to, { status: state });
+
+    async getAllFrom(from: Date, to: Date, state: string): Promise<any[]> {
+        return await invoiceDAO.findInDateRange('dueDate', from, to, { status: state }); //cambiare due date non esiste
     }
 
 

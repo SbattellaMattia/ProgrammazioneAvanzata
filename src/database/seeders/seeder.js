@@ -34,6 +34,8 @@ module.exports = {
     const plateMotoB = 'ZA22321'; // Owner: Driver2
     const plateCarC = 'GA129KM'; // Owner: Driver3
     const plateTruckD = 'DW367BX'; // Owner: Driver3
+    const plateCarE = 'AA000AA'; // Owner: Driver1
+    const plateCarF = 'BB111BB'; // Owner: Driver2
 
     // ==========================================================
     // 2. INSERIMENTO ENTITÀ BASE
@@ -68,7 +70,9 @@ module.exports = {
       { plate: plateCarA, type: 'car', ownerId: userDriver1Id,imagePath:'src/img/img_prova1.png', jsonPath: null,createdAt: now, updatedAt: now },
       { plate: plateMotoB, type: 'motorcycle', ownerId: userDriver2Id, imagePath:'src/img/img_prova4.png',jsonPath:null,createdAt: now, updatedAt: now },
       { plate: plateCarC, type: 'car', ownerId: userDriver3Id,imagePath:'src/img/img_prova2.png', jsonPath: null,createdAt: now, updatedAt: now },
-      { plate: plateTruckD, type: 'truck', ownerId: userDriver3Id,imagePath:'src/img/img_prova3.png', jsonPath: null, createdAt: now, updatedAt: now }
+      { plate: plateTruckD, type: 'truck', ownerId: userDriver3Id,imagePath:'src/img/img_prova3.png', jsonPath: null, createdAt: now, updatedAt: now },
+      { plate: plateCarE, type: 'car', ownerId: userDriver1Id,imagePath:'src/img/img_prova1.png', jsonPath: null,createdAt: now, updatedAt: now },
+      { plate: plateCarF, type: 'car', ownerId: userDriver1Id,imagePath:'src/img/img_prova4.png', jsonPath: null,createdAt: now, updatedAt: now },
     ]);
 
     // ==========================================================
@@ -86,6 +90,9 @@ module.exports = {
       { plate: plateCarC, user: userDriver3Id, park: parkingStationId, gIn: gateStatIn, gOut: gateStatOut, basePrice: 4 },
       { plate: plateTruckD, user: userDriver3Id, park: parkingStationId, gIn: gateStatIn, gOut: gateStatBi, basePrice: 10 },
       { plate: plateCarA, user: userDriver1Id, park: parkingStationId, gIn: gateStatBi, gOut: gateStatOut, basePrice: 4.5 },
+      { plate: plateMotoB, user: userDriver2Id, park: parkingStationId, gIn: gateStatIn, gOut: gateStatOut, basePrice: 2.5 },
+      { plate: plateCarE, user: userDriver1Id, park: parkingDowntownId, gIn: gateDownIn, gOut: gateDownOut, basePrice: 5 },
+      { plate: plateCarF, user: userDriver1Id, park: parkingDowntownId, gIn: gateDownIn, gOut: gateDownOut, basePrice: 5 }
     ];
 
     const statuses = ['paid', 'paid', 'paid', 'unpaid', 'expired']; // Più probabilità di PAID

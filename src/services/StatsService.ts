@@ -10,7 +10,7 @@ class StatsService {
         // 2. Ottieni le fatture (Gestione date pulita)
         const startDate = from || new Date(0); // Epoch se undefined
         const endDate = to || new Date();      // Oggi se undefined
-        const allInvoices = await invoiceDAO.findInDateRange(startDate, endDate);
+        const allInvoices = await invoiceDAO.findInDateRange("dueDate",startDate, endDate);
 
         // 3. Aggregazione in Memoria
         // Usiamo una Mappa che tiene un OGGETTO con entrambi i contatori

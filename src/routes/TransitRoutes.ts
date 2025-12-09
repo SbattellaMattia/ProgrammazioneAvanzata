@@ -5,6 +5,14 @@ import { transitIdSchema, updateTransitSchema } from "../validation/TransitValid
 import { validate } from "../middlewares/Validate";
 import { ensureExists } from "../middlewares/EnsureExist";
 import TransitService  from "../services/TransitService";
+import { AuthMiddleware } from '../middlewares/AuthMiddleware';
+import { AuthService } from '../services/AuthService';
+import { UserDAO } from "../dao/UserDAO";
+
+// Istanzi il servizio (se non è già un singleton esportato)
+const userDAO = new UserDAO();
+const authService = new AuthService(userDAO); 
+export const authMiddleware = new AuthMiddleware(authService);
 
 const router = Router();
 
@@ -28,6 +36,8 @@ router.post(
  */
 router.get("/", TransitController.getAll);
 
+router.get("/history", authMiddleware.authenticateToken ,TransitController.getHistory);
+
 /**
  * Rotta per il recupero di un transito specifico tramite ID
  */
@@ -47,5 +57,8 @@ router.put(
  * Rotta per la cancellazione di un transito specifico tramite ID
  */
 router.delete("/:id", ...requireTransit, TransitController.delete);
+
+
+
 
 export default router;

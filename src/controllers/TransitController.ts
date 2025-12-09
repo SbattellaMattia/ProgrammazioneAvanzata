@@ -3,6 +3,7 @@ import { Request, Response } from "express";
 import { StatusCodes } from "http-status-codes";
 import { asyncHandler } from "../utils/AsyncHandler";
 import TransitService from "../services/TransitService";
+import { TransitFilterDTO } from '../services/TransitService';
 import Transit from "../models/Transit";
 
 class TransitController {
@@ -51,6 +52,35 @@ class TransitController {
     return res
       .status(StatusCodes.OK)
       .json({ message: "Transit eliminato con successo" });
+  });
+
+  getHistory = asyncHandler(async (req: Request, res: Response) => {
+    // 1. Estrai dati dalla Query e dall'Utente (dal middleware auth)
+    const { from, to, plates, format } = req.query;
+    const user = (req as any).user; // Popolato dal middleware JWT
+
+    // 2. Prepara il DTO
+    const filters: TransitFilterDTO = {
+      from: from ? new Date(from as string) : undefined,
+      to: to ? new Date(to as string) : undefined,
+      // Se plates è una stringa singola ("AB123"), la trasformo in array
+      plates: plates ? (Array.isArray(plates) ? plates as string[] : [plates as string]) : undefined,
+      format: format as 'json' | 'pdf',
+      userId: user.id,
+      userRole: user.role // DRIVER o OPE
+    };
+
+    // 3. Chiama Service
+    const result = await TransitService.getTransitHistory(filters);
+
+    // 4. Gestione Risposta (PDF o JSON)
+    if (filters.format === 'pdf') {
+      res.setHeader('Content-Type', 'application/pdf');
+      res.setHeader('Content-Disposition', 'attachment; filename=transiti.pdf');
+      return res.send(result);
+    }
+
+    return res.json(result);
   });
 }
 
