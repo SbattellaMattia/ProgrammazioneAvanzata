@@ -8,6 +8,8 @@ export class Vehicle extends Model<InferAttributes<Vehicle>, InferCreationAttrib
   declare plate: string;
   declare type: VehicleType;
   declare ownerId: string; 
+  declare imagePath: string;
+  declare jsonPath: string | null;
 }
 
 Vehicle.init(
@@ -31,6 +33,14 @@ Vehicle.init(
     ownerId: {
       type: DataTypes.UUID,
       allowNull: false,
+    },
+    imagePath: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
+    jsonPath: {
+      type: DataTypes.STRING,
+      allowNull: true,
     },
   },
   {

@@ -30,10 +30,10 @@ module.exports = {
     const gateStatBi = uuidv4();
 
     // Vehicles
-    const plateCarA = 'AB123CD'; // Owner: Driver1
-    const plateMotoB = 'EF456GH'; // Owner: Driver2
-    const plateCarC = 'IJ789KL'; // Owner: Driver3
-    const plateTruckD = 'MN012OP'; // Owner: Driver3
+    const plateCarA = 'FV181EX'; // Owner: Driver1
+    const plateMotoB = 'ZA22321'; // Owner: Driver2
+    const plateCarC = 'GA129KM'; // Owner: Driver3
+    const plateTruckD = 'DW367BX'; // Owner: Driver3
 
     // ==========================================================
     // 2. INSERIMENTO ENTITÀ BASE
@@ -65,10 +65,10 @@ module.exports = {
 
     console.log('🌱 Seeding Vehicles...');
     await queryInterface.bulkInsert('Vehicles', [
-      { license_plate: plateCarA, vehicle_type: 'car', owner_id: userDriver1Id, createdAt: now, updatedAt: now },
-      { license_plate: plateMotoB, vehicle_type: 'motorcycle', owner_id: userDriver2Id, createdAt: now, updatedAt: now },
-      { license_plate: plateCarC, vehicle_type: 'car', owner_id: userDriver3Id, createdAt: now, updatedAt: now },
-      { license_plate: plateTruckD, vehicle_type: 'truck', owner_id: userDriver3Id, createdAt: now, updatedAt: now }
+      { plate: plateCarA, type: 'car', ownerId: userDriver1Id,imagePath:'src/img/img_prova1.png', jsonPath: null,createdAt: now, updatedAt: now },
+      { plate: plateMotoB, type: 'motorcycle', ownerId: userDriver2Id, imagePath:'src/img/img_prova4.png',jsonPath:null,createdAt: now, updatedAt: now },
+      { plate: plateCarC, type: 'car', ownerId: userDriver3Id,imagePath:'src/img/img_prova2.png', jsonPath: null,createdAt: now, updatedAt: now },
+      { plate: plateTruckD, type: 'truck', ownerId: userDriver3Id,imagePath:'src/img/img_prova3.png', jsonPath: null, createdAt: now, updatedAt: now }
     ]);
 
     // ==========================================================
@@ -119,10 +119,9 @@ module.exports = {
         vehicleId: sc.plate,
         gateId: sc.gIn,
         parkingId: sc.park,
-        transitType: 'entrance',
-        dateTime: entryTime,
-        imagePath: `/images/auto_gen_in_${i}.jpg`,
-        detectedLicensePlate: sc.plate,
+        type: 'in',
+        date: entryTime,
+        detectedPlate: sc.plate,
         createdAt: entryTime,
         updatedAt: entryTime
       });
@@ -132,10 +131,9 @@ module.exports = {
         vehicleId: sc.plate,
         gateId: sc.gOut,
         parkingId: sc.park,
-        transitType: 'exit',
-        dateTime: exitTime,
-        imagePath: `/images/auto_gen_out_${i}.jpg`,
-        detectedLicensePlate: sc.plate,
+        type: 'out',
+        date: exitTime,
+        detectedPlate: sc.plate,
         createdAt: exitTime,
         updatedAt: exitTime
       });
@@ -158,22 +156,6 @@ module.exports = {
         updatedAt: exitTime
       });
     }
-
-    // Aggiungiamo anche un paio di veicoli che sono ANCORA DENTRO (solo entrata, niente fattura)
-    const activeTransitId = uuidv4();
-    transits.push({
-      id: activeTransitId,
-      vehicleId: plateCarC,
-      gateId: gateDownIn,
-      parkingId: parkingDowntownId,
-      transitType: 'entrance',
-      dateTime: new Date(), // Adesso
-      imagePath: '/images/live.jpg',
-      detectedLicensePlate: plateCarC,
-      createdAt: new Date(),
-      updatedAt: new Date()
-    });
-
     // SCRITTURA NEL DB
     await queryInterface.bulkInsert('Transits', transits);
     await queryInterface.bulkInsert('Invoices', invoices);

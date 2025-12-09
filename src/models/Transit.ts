@@ -11,7 +11,6 @@ export class Transit extends Model<InferAttributes<Transit>, InferCreationAttrib
   declare vehicleId: string;
   declare type: TransitType;
   declare date: Date;
-  declare imageData: string | null;
   declare detectedPlate: string | null;
 }
 
@@ -34,7 +33,7 @@ Transit.init(
     },
 
     vehicleId: {
-      type: DataTypes.UUID,
+      type: DataTypes.STRING,
       allowNull: false,
     },
 
@@ -47,12 +46,6 @@ Transit.init(
       type: DataTypes.DATE,
       allowNull: false,
     },
-
-    imageData: {
-      type: DataTypes.TEXT,
-      allowNull: true,
-    },
-
     detectedPlate: {
       type: DataTypes.STRING,
       allowNull: true,

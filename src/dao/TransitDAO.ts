@@ -28,14 +28,14 @@ export class TransitDAO extends DAO<Transit> implements ITransitDAO {
    * Restituisce i transiti filtrati per varco.
    */
   async findByGate(gateId: string): Promise<Transit[]> {
-    return this.findAll({where: { gateId }, order: [["timestamp", "ASC"]],});
+    return this.findAll({where: { gateId }, order: [["date", "ASC"]],});
   }
 
   /** 
    * Restituisce i transiti filtrati per parcheggio.
    */
   async findByParking(parkingId: string): Promise<Transit[]> {
-    return this.findAll({where: { parkingId }, order: [["timestamp", "ASC"]],
+    return this.findAll({where: { parkingId }, order: [["date", "ASC"]],
     });
   }
 
@@ -43,7 +43,7 @@ export class TransitDAO extends DAO<Transit> implements ITransitDAO {
    * Restituisce i transiti filtrati per targa.
    */
   async findByPlate(plate: string): Promise<Transit[]> {
-    return this.findAll({where: { detectedPlate: plate }, order: [["timestamp", "ASC"]],});
+    return this.findAll({where: { detectedPlate: plate }, order: [["date", "ASC"]],});
   }
 
   /** 
@@ -52,11 +52,11 @@ export class TransitDAO extends DAO<Transit> implements ITransitDAO {
   async findByPeriod(from: Date, to: Date): Promise<Transit[]> {
     return this.findAll({
       where: {
-        timestamp: {
+        date: {
           [Op.between]: [from, to],
         },
       },
-      order: [["timestamp", "ASC"]],
+      order: [["date", "ASC"]],
     });
   }
 }

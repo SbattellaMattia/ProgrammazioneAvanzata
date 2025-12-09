@@ -9,34 +9,50 @@ import {
   rateIdSchema 
 } from '../validation/RateValidation';
 
+
 const router = Router();
 
-// --- Rotte senza ID ---
+/**
+ * Rotte per la creazione dei gate
+ */
 router.post(
   '/', 
   validate(createRateSchema, 'body'), 
   RateController.create
 );
 
+/**
+ * Rotte per il recupero di tutte le tariffe
+ */
 router.get('/', RateController.getAll);
-// --- Rotte con ID ---
 
-// Definisco una catena standard per le operazioni su ID:
-// 1. Valido che l'ID sia un numero
-// 2. Controllo che l'entità esista (e la carico)
+/**
+ * Middleware per validare l'ID della tariffa e assicurarsi che esista
+ * prima di procedere con le operazioni che richiedono una tariffa specifica.
+ */
 const requireRate = [
   validate(rateIdSchema, 'params'),
   ensureExists(RateService, 'Tariffa')
 ];
 
+/**
+ * Rotta per il recupero di una tariffa specifica tramite ID
+ */
 router.get('/:id', ...requireRate, RateController.getById);
+
+/**
+ * Rotta per l'aggiornamento di una tariffa specifica tramite ID
+ */
 router.put(
   '/:id', 
-  ...requireRate,                 // Prima controlla esistenza
-  validate(updateRateSchema, 'body'), // Poi valida il body
+  ...requireRate,                 
+  validate(updateRateSchema, 'body'), 
   RateController.update
 );
 
+/** 
+ * Rotta per la cancellazione di una tariffa specifica tramite ID
+ */
 router.delete('/:id', ...requireRate, RateController.delete);
 
 export default router;

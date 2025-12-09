@@ -3,12 +3,12 @@ import { Vehicle } from "../models/Vehicle";
 import { DAO } from "./DAO";
 import { VehicleType } from "../enum/VehicleType";
 
-
 export interface IVehicleDAO {
   findByPlate(plate: string): Promise<Vehicle | null>;
   findByOwner(ownerId: string): Promise<Vehicle[]>;
   existsByPlate(plate: string): Promise<boolean>;
   findByType(type: VehicleType): Promise<Vehicle[]>;
+  findAllVehicles(): Promise<Vehicle[]>;
 }
 
 export class VehicleDAO extends DAO<Vehicle> implements IVehicleDAO {
@@ -20,39 +20,34 @@ export class VehicleDAO extends DAO<Vehicle> implements IVehicleDAO {
    * Trova un veicolo per targa.
    */
   async findByPlate(plate: string): Promise<Vehicle | null> {
-    return this.executeQuery(
-      async () => await this.findOne({ where: { plate } }),
-      "findByPlate"
-    );
+    return this.findOne({ where: { plate } });
   }
 
   /**
    * Restituisce true se la targa esiste nel DB.
    */
-
-  // da capire se usare o no 
   async existsByPlate(plate: string): Promise<boolean> {
-    const v = await this.findByPlate(plate);
-    return v !== null;
+    return (await this.findByPlate(plate)) !== null;
   }
 
   /**
    * Restituisce i veicoli di un proprietario.
    */
   async findByOwner(ownerId: string): Promise<Vehicle[]> {
-    return this.executeQuery(
-      async () => await this.findAll({ where: { ownerId } }),
-      "findByOwner"
-    );
+    return this.findAll({ where: { ownerId } });
   }
 
   /**
    * Trova tutti i veicoli di un certo tipo.
    */
   async findByType(type: VehicleType): Promise<Vehicle[]> {
-    return this.executeQuery(
-      async () => await this.findAll({ where: { type } }),
-      "findByType"
-    );
+    return this.findAll({ where: { type } });
+  }
+
+  /**
+   * Restituisce tutti i veicoli.
+   */
+  async findAllVehicles(): Promise<Vehicle[]> {
+    return this.findAll();
   }
 }

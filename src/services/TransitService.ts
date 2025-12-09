@@ -3,9 +3,7 @@ import { TransitDAO } from "../dao/TransitDAO";
 import { ParkingDAO } from "../dao/ParkingDAO";
 import { GateDAO } from "../dao/GateDAO";
 import { VehicleDAO } from "../dao/VehicleDAO";
-import { TransitType } from "../enum/TransitType";
-import { GateType } from "../enum/GateType";
-import {CreateTransitInput, UpdateTransitInput,} from "../validation/TransitValidation";
+import { UpdateTransitInput } from "../validation/TransitValidation";
 import {
   ValidationError,
   DuplicateTransitError,
@@ -13,81 +11,107 @@ import {
   NotFoundError,
   OperationNotAllowedError,
 } from "../errors/CustomErrors";
+import {
+  getParkingOrThrow,
+  pickRandomVehicle,
+  determineTransitType,
+  ensureCapacityForIn,
+  updateParkingCapacityAfterTransit,
+  detectPlateForGate,
+} from "../utils/TransitUtils";
 
-
-
-export class TransitService {
+class TransitService {
   private transitDAO = new TransitDAO();
   private parkingDAO = new ParkingDAO();
   private gateDAO = new GateDAO();
   private vehicleDAO = new VehicleDAO();
 
   /**
-   * Crea una nuovo transito.
-   * I dati nel body sono già validati da Zod (createTransitSchema).
+   * Crea un transito casuale per un gate specifico.
    */
-  async createTransit(data: CreateTransitInput): Promise<Transit> {
+  async createRandomTransitForGate(gateId: string): Promise<Transit> {
     try {
-      const {
-        parkingId,
-        gateId,
-        vehicleId,
-        type,
-        date,
-        imageData,
-        detectedPlate,
-      } = data;
+      const gate = await this.gateDAO.findById(gateId as any);
+      if (!gate) throw new NotFoundError("Gate", gateId);
 
-      // Verifiche logiche di business
-      await this.checkParking(parkingId);
-      const gate = await this.checkGate(gateId, parkingId);
-      await this.checkVehicleByPlate(vehicleId);
+      const parking = await getParkingOrThrow(this.parkingDAO, gate.parkingId);
+      const vehicle = await pickRandomVehicle(this.vehicleDAO);
 
-      // imageData obbligatoria se gate standard
-      if (gate.type === GateType.STANDARD && !imageData) {
-        throw new ValidationError(
-          "imageData obbligatoria per varchi di tipo STANDARD"
+      const newType = await determineTransitType(
+        this.transitDAO,
+        parking.id,
+        vehicle.plate,
+        gate.direction as "in" | "out" | "bidirectional"
+      );
+
+      ensureCapacityForIn(parking, vehicle, newType);
+
+      const detectedPlate = await detectPlateForGate(gate, vehicle);
+
+      if (vehicle.plate && detectedPlate !== vehicle.plate) {
+        console.warn(
+          `Targa rilevata (${detectedPlate}) diversa da targa veicolo (${vehicle.plate})`
         );
       }
 
-      // parsing della data
-      const parsedDate = this.parseToDate(date);
+      const now = new Date();
 
-      // controllo transiti consecutivi
-      await this.checkTransitSequence(parkingId, vehicleId, type);
-
-      return await this.transitDAO.create({
-        parkingId,
-        gateId,
-        vehicleId,
-        type,
-        date: parsedDate,
-        imageData: imageData ?? null,
-        detectedPlate: detectedPlate ?? null,
+      const created = await this.transitDAO.create({
+        parkingId: parking.id,
+        gateId: gate.id,
+        vehicleId: vehicle.plate,
+        type: newType,
+        date: now,
+        detectedPlate,
       } as any);
 
+      await updateParkingCapacityAfterTransit(
+        this.parkingDAO,
+        parking,
+        vehicle,
+        newType
+      );
+
+      return created;
     } catch (err: any) {
       if (
         err instanceof ValidationError ||
         err instanceof DuplicateTransitError ||
-        err instanceof NotFoundError
+        err instanceof NotFoundError ||
+        err instanceof OperationNotAllowedError
       ) {
         throw err;
       }
-      throw new DatabaseError("Errore durante la creazione del transito", err);
+      throw new DatabaseError(
+        "Errore durante la creazione del transito random per gate",
+        err
+      );
     }
   }
 
-   /**
-   * Cerca una transito per ID.
-   * Necessario per il middleware `ensureExists`.
+  /**
+   * Recupera tutti i transiti. 
    */
-  async getById(id: string): Promise<Transit | null> {
-      return this.transitDAO.findById(id);
+  async getAll(): Promise<Transit[]> {
+    try {
+      return await this.transitDAO.findAll();
+    } catch (error: any) {
+      throw new DatabaseError(
+        "Errore nel recupero di tutti i transiti",
+        error
+      );
     }
+  }
 
   /**
-   * restituisce tutti i transiti di un varco
+   * Recupera un transito per ID.
+   */
+  async getById(id: string): Promise<Transit | null> {
+    return this.transitDAO.findById(id);
+  }
+
+  /**
+   * Recupera i transiti associati a un gate specifico.
    */
   async getTransitsByGate(gateId: string): Promise<Transit[]> {
     const exists = await this.gateDAO.existsById(gateId);
@@ -97,16 +121,9 @@ export class TransitService {
   }
 
   /**
-   * Aggiorna un transito.
-   * I dati nel body sono validati da Zod (updateTransitSchema).
-   *
-   * I controlli sono fatti in rotta, ad esempio:
-   *  - validate(transitIdSchema, "params")
-   *  - ensureExists(TransitService, "Transito")
-   * 
+   * Aggiorna un transito esistente.
    */
   async updateTransit(id: string, data: UpdateTransitInput): Promise<Transit> {
-    // non modificabili
     if ((data as any).parkingId || (data as any).gateId || (data as any).vehicleId) {
       throw new OperationNotAllowedError(
         "updateTransit",
@@ -127,52 +144,17 @@ export class TransitService {
   }
 
   /**
-   * Elimina un transito.
-   *
-   * I controlli sono fatti in rotta, ad esempio: 
-   * - validate(transitIdSchema, "params")
-   * - ensureExists(TransitService, "Transito")
+   * Cancella un transito esistente.
    */
   async deleteTransit(id: string): Promise<void> {
     const ok = await this.transitDAO.delete(id);
     if (!ok) {
-      // caso limite: già eliminato dopo ensureExists
       throw new DatabaseError("Errore eliminazione transito");
     }
   }
 
   /**
-   * Verifica che il parcheggio esista.
-   */
-  private async checkParking(parkingId: string) {
-    const exists = await this.parkingDAO.existsById(parkingId);
-    if (!exists) throw new NotFoundError("Parking", parkingId);
-  }
-
-  /**
-   * Verifica che il gate esista e appartenga al parcheggio.
-   */
-  private async checkGate(gateId: string, parkingId: string) {
-    const gate = await this.gateDAO.findById(gateId as any);
-    if (!gate) throw new NotFoundError("Gate", gateId);
-
-    if (gate.parkingId !== parkingId) {
-      throw new ValidationError("Il gate NON appartiene al parcheggio indicato");
-    }
-
-    return gate;
-  }
-
-  /**
-   * Verifica che il veicolo esista (ricerca per targa).
-   */
-  private async checkVehicleByPlate(plate: string) {
-    const vehicle = await this.vehicleDAO.findByPlate(plate);
-    if (!vehicle) throw new NotFoundError("Veicolo", plate);
-  }
-
-  /**
-   * Parsing del formato DD/MM/YYYY HH:MM:SS
+   * Converte una stringa in formato "dd/mm/yyyy hh:mm:ss" in un oggetto Date.
    */
   private parseToDate(value: string): Date {
     const [date, time] = value.trim().split(" ");
@@ -180,33 +162,6 @@ export class TransitService {
     const [hh, mi, ss] = time.split(":").map(Number);
     return new Date(yyyy, mm - 1, dd, hh, mi, ss);
   }
-
-  /**
-   * Controlla la sequenza logica dei transiti (IN/OUT)
-   * Es: non si può fare OUT se non c'è un IN precedente
-   */
-  private async checkTransitSequence(parkingId: string, vehicleId: string, newType: TransitType) {
-    const all = await this.transitDAO.findByParking(parkingId);
-
-    const filtered = all
-      .filter(t => t.vehicleId === vehicleId)
-      .sort((a, b) => a.date.getTime() - b.date.getTime());
-
-    const last = filtered[filtered.length - 1];
-
-    if (!last) {
-      if (newType === TransitType.OUT) {
-        throw new ValidationError("Non puoi registrare un'uscita senza un ingresso precedente");
-      }
-      return;
-    }
-
-    if (last.type === TransitType.IN && newType === TransitType.IN) {
-      throw new ValidationError("Esiste già un ingresso aperto");
-    }
-
-    if (last.type === TransitType.OUT && newType === TransitType.OUT) {
-      throw new ValidationError("Non puoi registrare due uscite consecutive");
-    }
-  }
 }
+
+export default new TransitService();

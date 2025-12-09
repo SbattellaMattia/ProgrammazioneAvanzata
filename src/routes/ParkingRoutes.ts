@@ -11,34 +11,47 @@ import {
 
 const router = Router();
 
-// --- Rotte senza ID ---
+/**
+ * Rotte per la creazione dei parcheggi
+ */
 router.post(
   '/', 
   validate(createParkingSchema, 'body'), 
   ParkingController.create
 );
 
+/**
+ * Rotte per il recupero di tutti i parcheggi
+ */
 router.get('/', ParkingController.getAll);
 
-// --- Rotte con ID ---
-
-// Definisco una catena standard per le operazioni su ID:
-// 1. Valido che l'ID sia un numero
-// 2. Controllo che l'entità esista (e la carico)
+/**
+ * Middleware per validare l'ID del parcheggio e assicurarsi che esista
+ * prima di procedere con le operazioni che richiedono un parcheggio specifico.
+ */
 const requireParking = [
   validate(parkingIdSchema, 'params'),
   ensureExists(ParkingService, 'Parcheggio')
 ];
 
+/**
+ * Rotta per il recupero di un parcheggio specifico tramite ID
+ */
 router.get('/:id', ...requireParking, ParkingController.getById);
 
+/**
+ * Rotta per l'aggiornamento di un parcheggio specifico tramite ID
+ */
 router.put(
   '/:id', 
-  ...requireParking,                 // Prima controlla esistenza
-  validate(updateParkingSchema, 'body'), // Poi valida il body
+  ...requireParking,                 
+  validate(updateParkingSchema, 'body'), 
   ParkingController.update
 );
 
+/**
+ * Rotta per la cancellazione di un parcheggio specifico tramite ID
+ */
 router.delete('/:id', ...requireParking, ParkingController.delete);
 
 export default router;
