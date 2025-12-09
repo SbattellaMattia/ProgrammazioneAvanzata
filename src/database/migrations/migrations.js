@@ -141,17 +141,17 @@ module.exports = {
 
     // ===== 4. VEHICLES =====
     await queryInterface.createTable('Vehicles', {
-      license_plate: { // Mantengo snake_case qui se è la chiave primaria stringa legacy/standard
+      plate: { // Mantengo snake_case qui se è la chiave primaria stringa legacy/standard
         type: Sequelize.STRING(20),
         primaryKey: true,
         allowNull: false
       },
-      vehicle_type: { // Mantengo snake_case se preferito, altrimenti vehicleType
+      type: { // Mantengo snake_case se preferito, altrimenti vehicleType
         type: Sequelize.STRING(20),
         allowNull: false,
         comment: 'car, motorcycle, truck'
       },
-      owner_id: {
+      ownerId: {
         type: Sequelize.UUID,
         allowNull: true,
         references: {
@@ -160,6 +160,14 @@ module.exports = {
         },
         onUpdate: 'CASCADE',
         onDelete: 'SET NULL'
+      },
+      imagePath: {
+        type: Sequelize.STRING(255),
+        allowNull: false
+      },
+      jsonPath: {
+        type: Sequelize.STRING(255),
+        allowNull: true
       },
       createdAt: {
         type: Sequelize.DATE,
@@ -186,7 +194,7 @@ module.exports = {
         allowNull: false,
         references: {
           model: 'Vehicles',
-          key: 'license_plate'
+          key: 'plate'
         },
         onUpdate: 'CASCADE',
         onDelete: 'CASCADE'
@@ -211,20 +219,16 @@ module.exports = {
         onUpdate: 'CASCADE',
         onDelete: 'CASCADE'
       },
-      transitType: { // CAMBIATO IN CAMELCASE
+      type: { // CAMBIATO IN CAMELCASE
         type: Sequelize.STRING(10),
         allowNull: false,
-        comment: 'entrance, exit'
+        comment: 'in, out'
       },
-      dateTime: { // CAMBIATO IN CAMELCASE
+      date: { // CAMBIATO IN CAMELCASE
         type: Sequelize.DATE,
         allowNull: false
       },
-      imagePath: { // CAMBIATO IN CAMELCASE
-        type: Sequelize.STRING(255),
-        allowNull: true,
-      },
-      detectedLicensePlate: { // CAMBIATO IN CAMELCASE
+      detectedPlate: { // CAMBIATO IN CAMELCASE
         type: Sequelize.STRING(255),
         allowNull: true,
       },
@@ -244,7 +248,7 @@ module.exports = {
     await queryInterface.addIndex('Transits', ['vehicleId'], { name: 'transits_vehicle_id_idx' });
     await queryInterface.addIndex('Transits', ['gateId'], { name: 'transits_gate_id_idx' });
     await queryInterface.addIndex('Transits', ['parkingId'], { name: 'transits_parking_id_idx' });
-    await queryInterface.addIndex('Transits', ['dateTime'], { name: 'transits_date_time_idx' });
+    await queryInterface.addIndex('Transits', ['date'], { name: 'transits_date_time_idx' });
 
     // ===== 6. RATES =====
     await queryInterface.createTable('Rates', {

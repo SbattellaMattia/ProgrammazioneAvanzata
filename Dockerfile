@@ -8,6 +8,8 @@ WORKDIR /usr/src/app
 RUN apt-get update && apt-get install -y \
     netcat-traditional \
     openssl \
+    tesseract-ocr \
+    tesseract-ocr-eng \
     && rm -rf /var/lib/apt/lists/*
 
 # Copia i file package.json e package-lock.json per installare le dipendenze

@@ -6,6 +6,7 @@ export interface IParkingDAO {
   existsById(id: string): Promise<boolean>;
   findAllParking(): Promise<Parking[]>;
   getCapacity(id: string): Promise<{ car: number; motorcycle: number; truck: number } | null>;
+  updateCapacity(id: string, payload: Partial<Pick<Parking, "carCapacity" | "motorcycleCapacity" | "truckCapacity">>): Promise<Parking | null>;
 }
 
 export class ParkingDAO extends DAO<Parking> implements IParkingDAO {
@@ -39,6 +40,13 @@ export class ParkingDAO extends DAO<Parking> implements IParkingDAO {
       motorcycle: parking.motorcycleCapacity,
       truck: parking.truckCapacity,
     };
+  }
+
+  async updateCapacity(
+    id: string,
+    payload: Partial<Pick<Parking, "carCapacity" | "motorcycleCapacity" | "truckCapacity">>
+  ): Promise<Parking | null> {
+    return this.update(id, payload);
   }
 }
 

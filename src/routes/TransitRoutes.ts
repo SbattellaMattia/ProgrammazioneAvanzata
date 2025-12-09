@@ -1,21 +1,51 @@
-import { Router} from 'express';
+import { Router } from "express";
+import TransitController from "../controllers/TransitController";
+import { gateIdSchema } from "../validation/GateValidation";
+import { transitIdSchema, updateTransitSchema } from "../validation/TransitValidation";
+import { validate } from "../middlewares/Validate";
+import { ensureExists } from "../middlewares/EnsureExist";
+import TransitService  from "../services/TransitService";
 
 const router = Router();
 
-/** Middleware per autenticazione e autorizzazione degli operatori
- * @middleware authenticateToken
- * */
-//router.use();
+// Middleware riutilizzabile per qualsiasi route che usa un transitId
+const requireTransit = [
+  validate(transitIdSchema, "params"),
+  ensureExists(TransitService, "Transito"),
+];
 
-//Altri middleware specifici per le rotte di parcheggio
+/**
+ * Rotte per la creazione dei transiti random per varco
+ */
+router.post(
+  "/gates/:id/random",
+  validate(gateIdSchema, "params"),
+  TransitController.createRandomTransitForGate
+);
 
-//router.post('/transit', middleware, TransitController.create);
+/**
+ *  Rotte per il recupero di tutti i parcheggi
+ */
+router.get("/", TransitController.getAll);
 
-//router.get('/transit/:id', middleware, TransitController.getById);
-//router.get('/transits', TransitController.getAll);
+/**
+ * Rotta per il recupero di un transito specifico tramite ID
+ */
+router.get("/:id", ...requireTransit, TransitController.getById);
 
-//router.delete('/transit/:id',middleware, TransitController.delete);
+/**
+ * Rotta per l'aggiornamento transito per ID
+ */
+router.put(
+  "/:id",
+  ...requireTransit,
+  validate(updateTransitSchema, "body"),
+  TransitController.update
+);
 
-//router.put('/transit/:id',middleware ,TransitController.update);
+/**
+ * Rotta per la cancellazione di un transito specifico tramite ID
+ */
+router.delete("/:id", ...requireTransit, TransitController.delete);
 
 export default router;
