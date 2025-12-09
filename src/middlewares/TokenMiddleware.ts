@@ -1,6 +1,6 @@
 // src/middlewares/tokenCredit.middleware.ts
 import { Request, Response, NextFunction } from 'express';
-import { userDAO } from '../dao/UserDAO';
+import  userDAO  from '../dao/UserDAO';
 import { ForbiddenError, InsufficientTokensError, NotFoundError, UnauthorizedError } from '../errors';
 
 /**

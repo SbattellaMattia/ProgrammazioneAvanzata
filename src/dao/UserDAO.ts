@@ -45,4 +45,4 @@ export class UserDAO extends DAO<User> implements IUserDAO {
     }, 'decrementTokens');
   }
 }
-export const userDAO = new UserDAO();
+export default new UserDAO();

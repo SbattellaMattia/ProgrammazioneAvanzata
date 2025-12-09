@@ -1,4 +1,5 @@
 import {Router} from 'express';
+import InvoiceController from '../controllers/InvoiceController';
 
 const router = Router();
 
@@ -10,7 +11,9 @@ const router = Router();
 //Altri middleware specifici per le rotte di fatturazione
 
 //router.get('/invoice/:id', );
-//router.get('/invoices', );
+router.get('/', InvoiceController.getAll);
+
+router.get('/:id/pdf', InvoiceController.downloadPayment);
 
 
 
