@@ -210,7 +210,6 @@ export class PdfGenerator {
       }
       doc.moveDown(1);
 
-      // TRANSITI PER FASCIA ORARIA
       doc
         .fontSize(13)
         .font("Helvetica-Bold")
@@ -229,7 +228,30 @@ export class PdfGenerator {
         });
       }
 
-      doc.end();
+      doc
+        .fontSize(13)
+        .font("Helvetica-Bold")
+        .text("Dettaglio transiti", { underline: true });
+      doc.moveDown(0.5);
+      doc.fontSize(10).font("Helvetica");
+
+      if (!stats.transits.list || stats.transits.list.length === 0) {
+        doc.text("Nessun transito nel periodo.");
+      } else {
+        stats.transits.list.forEach((t: any) => {
+          doc.text(
+            `${t.date.toLocaleString("it-IT")} - veicolo: ${t.vehicleId} - tipo: ${t.type} - gate: ${t.gateId}`
+          );
+          doc.moveDown(0.2);
+
+          if (doc.y > 750) {
+            doc.addPage();
+            doc.moveDown(0.5);
+          }
+        });
+      }
+
+            doc.end();
     });
   }
 }
