@@ -49,8 +49,8 @@ module.exports = {
 
     console.log('🌱 Seeding Parkings...');
     await queryInterface.bulkInsert('Parkings', [
-      { id: parkingDowntownId, name: 'Downtown Parking', address: 'Via Roma 15, Milan', carCapacity: 100, motorcycleCapacity: 20, truckCapacity: 10, createdAt: now, updatedAt: now },
-      { id: parkingStationId, name: 'Station Parking', address: 'Piazza Garibaldi 3, Milan', carCapacity: 150, motorcycleCapacity: 30, truckCapacity: 15, createdAt: now, updatedAt: now }
+      { id: parkingDowntownId, name: 'Downtown Parking', address: 'Via Roma 15, Milan', carCapacity: 3, motorcycleCapacity: 2, truckCapacity: 1, createdAt: now, updatedAt: now },
+      { id: parkingStationId, name: 'Station Parking', address: 'Piazza Garibaldi 3, Milan', carCapacity: 0, motorcycleCapacity: 2, truckCapacity: 0, createdAt: now, updatedAt: now }
     ]);
 
     console.log('🌱 Seeding Gates...');
@@ -65,10 +65,10 @@ module.exports = {
 
     console.log('🌱 Seeding Vehicles...');
     await queryInterface.bulkInsert('Vehicles', [
-      { plate: plateCarA, type: 'car', ownerId: userDriver1Id,imagePath:'src/img/img_prova1.png', jsonPath: null,createdAt: now, updatedAt: now },
-      { plate: plateMotoB, type: 'motorcycle', ownerId: userDriver2Id, imagePath:'src/img/img_prova4.png',jsonPath:null,createdAt: now, updatedAt: now },
-      { plate: plateCarC, type: 'car', ownerId: userDriver3Id,imagePath:'src/img/img_prova2.png', jsonPath: null,createdAt: now, updatedAt: now },
-      { plate: plateTruckD, type: 'truck', ownerId: userDriver3Id,imagePath:'src/img/img_prova3.png', jsonPath: null, createdAt: now, updatedAt: now }
+      { plate: plateCarA, type: 'car', ownerId: userDriver1Id,imagePath:'src/img/img_1.png', jsonPath: 'src/json/json_1.json',createdAt: now, updatedAt: now },
+      { plate: plateMotoB, type: 'motorcycle', ownerId: userDriver2Id, imagePath:'src/img/img_4.png',jsonPath:'src/json/json_4.json',createdAt: now, updatedAt: now },
+      { plate: plateCarC, type: 'car', ownerId: userDriver3Id,imagePath:'src/img/img_2.png', jsonPath: 'src/json/json_2.json',createdAt: now, updatedAt: now },
+      { plate: plateTruckD, type: 'truck', ownerId: userDriver3Id,imagePath:'src/img/img_3.png', jsonPath: 'src/json/json_3.json', createdAt: now, updatedAt: now }
     ]);
 
     // ==========================================================
