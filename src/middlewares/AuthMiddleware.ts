@@ -1,5 +1,5 @@
 import e, { Request, Response, NextFunction } from 'express';
-import { AuthService } from '../services/AuthService';
+import { AuthService } from '../services/authService';
 import jwt from 'jsonwebtoken';
 import { UnauthorizedError, ForbiddenError, InvalidTokenError } from '../errors';
 

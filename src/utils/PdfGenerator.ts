@@ -1,5 +1,7 @@
 import PDFDocument from 'pdfkit';
+import { ParkingStatsDTO } from '../dto/ParkingStatsDTO';
 import { QrCodeGenerator } from './QrCodeGenerator';
+
 
 interface PaymentSlipData {
   userId: string;
@@ -118,6 +120,114 @@ export class PdfGenerator {
         
         doc.moveDown(0.5);
       });
+      doc.end();
+    });
+  }
+
+  static async createParkingStatsReport(stats: ParkingStatsDTO): Promise<Buffer> {
+    return new Promise((resolve) => {
+      const doc = new PDFDocument({ margin: 40 });
+      const buffers: Buffer[] = [];
+
+      doc.on("data", buffers.push.bind(buffers));
+      doc.on("end", () => resolve(Buffer.concat(buffers)));
+
+      // HEADER
+      doc
+        .fontSize(18)
+        .font("Helvetica-Bold")
+        .text("Report Statistiche Parcheggio", { align: "center" });
+      doc.moveDown(0.5);
+
+      doc
+        .fontSize(12)
+        .font("Helvetica")
+        .text(`Parcheggio: ${stats.parkingName} (${stats.parkingId})`, {
+          align: "center",
+        });
+      doc.text(
+        `Periodo: ${stats.from.toLocaleString(
+          "it-IT"
+        )}  ->  ${stats.to.toLocaleString("it-IT")}`,
+        { align: "center" }
+      );
+      doc.moveDown(2);
+
+      // FATTURATO
+      doc
+        .fontSize(14)
+        .font("Helvetica-Bold")
+        .text("Fatturato", { underline: true });
+      doc.moveDown(0.5);
+
+      doc.fontSize(12).font("Helvetica");
+      doc.text(
+        `Totale fatturato (tutte le fatture): € ${stats.totalRevenue.toFixed(2)}`
+      );
+      doc.text(
+        `Totale incassato (fatture PAID):    € ${stats.paidRevenue.toFixed(2)}`
+      );
+      doc.text(`Numero fatture totali:               ${stats.invoiceCount}`);
+      doc.moveDown(0.5);
+
+      doc.text("Dettaglio per stato:");
+      doc.text(`- Pagate (PAID):    ${stats.invoiceCountByStatus.paid}`);
+      doc.text(`- Non pagate:       ${stats.invoiceCountByStatus.unpaid}`);
+      doc.text(`- Scadute (EXPIRED):${stats.invoiceCountByStatus.expired}`);
+      doc.moveDown(1.5);
+
+      // TRANSITI - RIEPILOGO
+      doc
+        .fontSize(14)
+        .font("Helvetica-Bold")
+        .text("Transiti", { underline: true });
+      doc.moveDown(0.5);
+
+      doc.fontSize(12).font("Helvetica");
+      doc.text(
+        `Numero totale transiti nel periodo: ${stats.transits.total}`
+      );
+      doc.text(`- Ingresso (IN):  ${stats.transits.byType.in}`);
+      doc.text(`- Uscita  (OUT): ${stats.transits.byType.out}`);
+      doc.moveDown(1);
+
+      // TRANSITI PER TIPO VEICOLO
+      doc
+        .fontSize(13)
+        .font("Helvetica-Bold")
+        .text("Transiti per tipologia veicolo");
+      doc.moveDown(0.5);
+
+      doc.fontSize(11).font("Helvetica");
+
+      const vehicleTypes = Object.entries(stats.transits.byVehicleType);
+      if (vehicleTypes.length === 0) {
+        doc.text("Nessun dato disponibile.");
+      } else {
+        vehicleTypes.forEach(([type, count]) => {
+          doc.text(`- ${type}: ${count}`);
+        });
+      }
+      doc.moveDown(1);
+
+      // TRANSITI PER FASCIA ORARIA
+      doc
+        .fontSize(13)
+        .font("Helvetica-Bold")
+        .text("Transiti per fascia oraria");
+      doc.moveDown(0.5);
+
+      doc.fontSize(11).font("Helvetica");
+
+      if (stats.transits.bySlot.length === 0) {
+        doc.text("Nessun dato disponibile.");
+      } else {
+        stats.transits.bySlot.forEach((s) => {
+          doc.text(
+            `- Fascia ${s.slot}: Totale ${s.total} (IN: ${s.in}, OUT: ${s.out})`
+          );
+        });
+      }
 
       doc.end();
     });

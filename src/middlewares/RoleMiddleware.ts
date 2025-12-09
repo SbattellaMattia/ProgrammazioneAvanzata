@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import { ForbiddenError, UnauthorizedError } from '../errors';
-import { AuthService } from '../services/AuthService';
+import { AuthService } from '../services/authService';
 import { Role } from '../enum/Role';
 
 

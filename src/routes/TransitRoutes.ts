@@ -6,7 +6,7 @@ import { validate } from "../middlewares/Validate";
 import { ensureExists } from "../middlewares/EnsureExist";
 import TransitService  from "../services/TransitService";
 import { AuthMiddleware } from '../middlewares/AuthMiddleware';
-import { AuthService } from '../services/AuthService';
+import { AuthService } from '../services/authService';
 import { UserDAO } from "../dao/UserDAO";
 
 // Istanzi il servizio (se non è già un singleton esportato)

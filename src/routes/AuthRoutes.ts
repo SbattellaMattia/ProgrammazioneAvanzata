@@ -1,7 +1,7 @@
 import { Router} from 'express';
 import { AuthController } from '../controllers/authController';
 import { UserDAO } from '../dao/UserDAO';
-import { AuthService } from '../services/AuthService';
+import { AuthService } from '../services/authService';
 import { AuthMiddleware } from '../middlewares/AuthMiddleware';
 import { validate } from '../middlewares/Validate';
 import { loginSchema } from '../validation/AuthValidation';

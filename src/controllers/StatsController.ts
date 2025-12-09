@@ -4,6 +4,7 @@ import { asyncHandler } from '../utils/AsyncHandler';
 import StatsService from '../services/StatsService';
 import { StatsQueryDTO } from '../validation/StatsValidator';
 import { Parking } from '../models/Parking';
+import { PdfGenerator } from "../utils/PdfGenerator";
 
 class StatsController {
 
@@ -27,7 +28,7 @@ class StatsController {
   });
 
   getParkingStats = asyncHandler(async (req: Request, res: Response) => {
-    // entity caricato da ensureExists(ParkingService, 'Parcheggio')
+    // entity caricata da ensureExists(ParkingService, 'Parcheggio')
     const parking = res.locals.entity as Parking;
 
     const filters = req.query as unknown as StatsQueryDTO;
@@ -38,13 +39,19 @@ class StatsController {
       filters.to
     );
 
-    if (filters.format === "pdf") {
-      // TODO: generazione PDF vera
-      return res
-        .status(StatusCodes.OK)
-        .json({ message: "PDF generato (mock)", data });
+    if (filters.format === 'pdf') {
+      const pdfBuffer = await PdfGenerator.createParkingStatsReport(data);
+
+      res.setHeader('Content-Type', 'application/pdf');
+      res.setHeader(
+        'Content-Disposition',
+        `attachment; filename=parking-stats-${parking.id}.pdf`
+      );
+
+      return res.status(StatusCodes.OK).send(pdfBuffer);
     }
 
+    // default: JSON
     return res.status(StatusCodes.OK).json(data);
   });
 }
