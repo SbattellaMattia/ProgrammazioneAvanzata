@@ -45,7 +45,7 @@ export async function pickRandomVehicle(vehicleDAO: VehicleDAO) {
 /**
  * Determina IN/OUT in base allo storico per (parkingId, vehicleId).
  */
-export async function determineTransitType(
+export async function determineTransitTypeForGate(
   transitDAO: TransitDAO,
   parkingId: string,
   vehicleId: string,
@@ -57,13 +57,12 @@ export async function determineTransitType(
     .filter((t) => t.vehicleId === vehicleId)
     .sort((a, b) => a.date.getTime() - b.date.getTime());
 
-  const last = filtered[filtered.length - 1] ?? null;
+  const last = filtered[filtered.length - 1];
 
   // ---- GATE SOLO IN ----
-  // Se gate è in:
-  //  - se non c'è storico => IN
-  //  - se ultimo è IN     => ERRORE (è già dentro)
-  //  - se ultimo è OUT    => IN
+  // - se non c'è storico => IN
+  // - se ultimo è IN     => ERRORE (già dentro)
+  // - se ultimo è OUT    => IN
   if (gateDirection === "in") {
     if (!last) {
       return TransitType.IN;
@@ -75,15 +74,13 @@ export async function determineTransitType(
       );
     }
 
-    // ultimo = OUT -> può entrare
     return TransitType.IN;
   }
 
   // ---- GATE SOLO OUT ----
-  // Se gate è out:
-  //  - se non c'è storico => ERRORE (non può uscire)
-  //  - se ultimo è OUT    => ERRORE (già fuori)
-  //  - se ultimo è IN     => OUT
+  // - se non c'è storico => ERRORE
+  // - se ultimo è OUT    => ERRORE (già fuori)
+  // - se ultimo è IN     => OUT
   if (gateDirection === "out") {
     if (!last) {
       throw new ValidationError(
@@ -101,10 +98,9 @@ export async function determineTransitType(
   }
 
   // ---- GATE BIDIRECTIONAL ----
-  // Se gate è bidirectional:
-  //  - se non c'è storico => IN (prima volta entra)
-  //  - se ultimo è OUT    => IN
-  //  - se ultimo è IN     => OUT
+  // - se non c'è storico => IN
+  // - se ultimo è OUT    => IN
+  // - se ultimo è IN     => OUT
   if (!last) {
     return TransitType.IN;
   }

@@ -14,7 +14,7 @@ import {
 import {
   getParkingOrThrow,
   pickRandomVehicle,
-  determineTransitType,
+  determineTransitTypeForGate,
   ensureCapacityForIn,
   updateParkingCapacityAfterTransit,
   detectPlateForGate,
@@ -48,7 +48,7 @@ class TransitService {
       const parking = await getParkingOrThrow(this.parkingDAO, gate.parkingId);
       const vehicle = await pickRandomVehicle(this.vehicleDAO);
 
-      const newType = await determineTransitType(
+      const newType = await determineTransitTypeForGate(
         this.transitDAO,
         parking.id,
         vehicle.plate,

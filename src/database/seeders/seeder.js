@@ -51,8 +51,8 @@ module.exports = {
 
     console.log('🌱 Seeding Parkings...');
     await queryInterface.bulkInsert('Parkings', [
-      { id: parkingDowntownId, name: 'Downtown Parking', address: 'Via Roma 15, Milan', carCapacity: 100, motorcycleCapacity: 20, truckCapacity: 10, createdAt: now, updatedAt: now },
-      { id: parkingStationId, name: 'Station Parking', address: 'Piazza Garibaldi 3, Milan', carCapacity: 150, motorcycleCapacity: 30, truckCapacity: 15, createdAt: now, updatedAt: now }
+      { id: parkingDowntownId, name: 'Downtown Parking', address: 'Via Roma 15, Milan', carCapacity: 3, motorcycleCapacity: 2, truckCapacity: 1, createdAt: now, updatedAt: now },
+      { id: parkingStationId, name: 'Station Parking', address: 'Piazza Garibaldi 3, Milan', carCapacity: 0, motorcycleCapacity: 2, truckCapacity: 0, createdAt: now, updatedAt: now }
     ]);
 
     console.log('🌱 Seeding Gates...');
