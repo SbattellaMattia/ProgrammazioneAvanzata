@@ -3,6 +3,7 @@ import { StatusCodes } from 'http-status-codes';
 import { asyncHandler } from '../utils/AsyncHandler';
 import StatsService from '../services/StatsService';
 import { StatsQueryDTO } from '../validation/StatsValidator';
+import { Parking } from '../models/Parking';
 
 class StatsController {
 
@@ -25,6 +26,27 @@ class StatsController {
     return res.status(StatusCodes.OK).json(data);
   });
 
+  getParkingStats = asyncHandler(async (req: Request, res: Response) => {
+    // entity caricato da ensureExists(ParkingService, 'Parcheggio')
+    const parking = res.locals.entity as Parking;
+
+    const filters = req.query as unknown as StatsQueryDTO;
+
+    const data = await StatsService.getParkingRevenueStats(
+      { id: parking.id, name: parking.name },
+      filters.from,
+      filters.to
+    );
+
+    if (filters.format === "pdf") {
+      // TODO: generazione PDF vera
+      return res
+        .status(StatusCodes.OK)
+        .json({ message: "PDF generato (mock)", data });
+    }
+
+    return res.status(StatusCodes.OK).json(data);
+  });
 }
 
 export default new StatsController();

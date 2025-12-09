@@ -2,6 +2,7 @@
 import Parking from "../models/Parking";
 import { DAO } from "./DAO";
 
+
 export interface IParkingDAO {
   existsById(id: string): Promise<boolean>;
   findAllParking(): Promise<Parking[]>;
@@ -48,6 +49,7 @@ export class ParkingDAO extends DAO<Parking> implements IParkingDAO {
   ): Promise<Parking | null> {
     return this.update(id, payload);
   }
+
 }
 
 export default new ParkingDAO();

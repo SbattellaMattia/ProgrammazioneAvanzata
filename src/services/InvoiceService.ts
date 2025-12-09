@@ -9,7 +9,6 @@ class InvoiceService {
         return await invoiceDAO.findAll();
     }
 
-
     async getAllFrom(from: Date, to: Date, state: string): Promise<any[]> {
         return await invoiceDAO.findInDateRange('dueDate', from, to, { status: state }); //cambiare due date non esiste
     }

@@ -20,8 +20,8 @@ export class VehicleDAO extends DAO<Vehicle> implements IVehicleDAO {
    * Trova un veicolo per targa.
    */
   async findByPlate(plate: string): Promise<Vehicle | null> {
-    return this.findOne({ where: { plate } });
-  }
+    return this.findOne({ plate });  
+}
 
   /**
    * Restituisce true se la targa esiste nel DB.
@@ -51,3 +51,5 @@ export class VehicleDAO extends DAO<Vehicle> implements IVehicleDAO {
     return this.findAll();
   }
 }
+
+export default new VehicleDAO();

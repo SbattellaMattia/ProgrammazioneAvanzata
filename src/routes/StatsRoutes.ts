@@ -2,6 +2,9 @@ import { Router } from 'express';
 import StatsController from '../controllers/StatsController';
 import { validate } from '../middlewares/Validate';
 import { statsQuerySchema } from '../validation/StatsValidator';
+import { parkingIdSchema } from '../validation/ParkingValidator';
+import { ensureExists } from '../middlewares/EnsureExist';
+import ParkingService from '../services/ParkingService';
 
 
 const router = Router();
@@ -10,6 +13,15 @@ router.get(
   '/',
   validate(statsQuerySchema, 'query'),
   StatsController.getGlobalStats
+);
+
+
+router.get(
+  "/:id",
+  validate(parkingIdSchema, "params"),
+  ensureExists(ParkingService, "Parcheggio"),
+  validate(statsQuerySchema, "query"),
+  StatsController.getParkingStats
 );
 
 export default router;
