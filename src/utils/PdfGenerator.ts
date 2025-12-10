@@ -1,23 +1,16 @@
 import PDFDocument from 'pdfkit';
 import { ParkingStatsDTO } from '../dto/ParkingStatsDTO';
 import { QrCodeGenerator } from './QrCodeGenerator';
-
-
-interface PaymentSlipData {
-  userId: string;
-  user: string;
-  invoiceId: string;
-  amount: number;
-  parkingName: string;
-  dueDate: Date;
-}
+import { InvoiceDTO } from '../dto/InvoiceDTO';
+import { TransitFilterDTO } from '../dto/TransitDTO';
+import Transit from '../models/Transit';
 
 export class PdfGenerator {
 
   /**
    * Genera un PDF Bollettino di Pagamento con QR Code.
    */
-  static async createPaymentSlip(data: PaymentSlipData): Promise<Buffer> {
+  static async createPayment(data: InvoiceDTO): Promise<Buffer> {
     return new Promise(async (resolve, reject) => {
       try {
         // 1. Crea il documento PDF
@@ -80,7 +73,7 @@ export class PdfGenerator {
     });
   }
 
-  static async createTransitReport(transits: any[], from?: Date, to?: Date): Promise<Buffer> {
+  static async createTransitReport(transits: Transit[], from?: Date, to?: Date): Promise<Buffer> {
     return new Promise((resolve, reject) => {
       const doc = new PDFDocument({ margin: 30 });
       const buffers: Buffer[] = [];
@@ -90,17 +83,15 @@ export class PdfGenerator {
 
       // Header
       doc.fontSize(18).text('Report Storico Transiti', { align: 'center' });
-      doc.fontSize(10).text(`Periodo: ${from?.toLocaleDateString() || 'Inizio'} - ${to?.toLocaleDateString() || 'Oggi'}`, { align: 'center' });
+      doc.fontSize(10).text(`Periodo: Inizio:${from?.toLocaleDateString() || '-'}\tFine: ${to?.toLocaleDateString() || 'Oggi'}`, { align: 'center' });
       doc.moveDown(2);
 
-      // Table Header (Semplice, senza librerie esterne per tabelle)
       const yStart = doc.y;
       doc.fontSize(10).font('Helvetica-Bold');
       doc.text('Data/Ora', 30, yStart);
-      doc.text('Targa', 130, yStart);
-      doc.text('Tipo', 200, yStart);
-      doc.text('Varco', 280, yStart);
-      doc.text('Img', 450, yStart); // Info extra
+      doc.text('Targa', 150, yStart);
+      doc.text('Tipo', 230, yStart);
+      doc.text('Varco', 300, yStart);
       
       doc.moveTo(30, yStart + 15).lineTo(550, yStart + 15).stroke();
       doc.moveDown();
@@ -108,16 +99,18 @@ export class PdfGenerator {
       // Table Rows
       doc.font('Helvetica');
       transits.forEach((t) => {
-        const y = doc.y;
-        if (y > 750) doc.addPage(); // Nuova pagina se serve
+        let y = doc.y;
+        if (y > 750) {
+          doc.addPage();
+          y = 50;
+        }
 
-        const dateStr = new Date(t.dateTime).toLocaleString('it-IT');
+        const dateStr = new Date(t.date).toLocaleString('it-IT');
         doc.text(dateStr, 30, y);
-        doc.text(t.vehicleId, 130, y);
-        doc.text(t.transitType, 200, y);
-        doc.text(t.gateId.substring(0, 8) + '...', 280, y); // ID Varco accorciato
-        doc.text(t.imagePath ? 'Sì' : 'No', 450, y);
-        
+        doc.text(t.vehicleId, 150, y);
+        doc.text(t.type, 230, y);
+        doc.text(t.gateId, 300, y); 
+    
         doc.moveDown(0.5);
       });
       doc.end();

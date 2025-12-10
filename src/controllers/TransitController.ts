@@ -3,7 +3,7 @@ import { Request, Response } from "express";
 import { StatusCodes } from "http-status-codes";
 import { asyncHandler } from "../utils/AsyncHandler";
 import TransitService from "../services/TransitService";
-import { TransitFilterDTO } from '../services/TransitService';
+import { TransitFilterDTO } from '../dto/TransitDTO';
 import Transit from "../models/Transit";
 
 class TransitController {
@@ -54,6 +54,8 @@ class TransitController {
       .json({ message: "Transit eliminato con successo" });
   });
 
+
+  
   getHistory = asyncHandler(async (req: Request, res: Response) => {
     // 1. Estrai dati dalla Query e dall'Utente (dal middleware auth)
     const { from, to, plates, format } = req.query;
@@ -67,7 +69,7 @@ class TransitController {
       plates: plates ? (Array.isArray(plates) ? plates as string[] : [plates as string]) : undefined,
       format: format as 'json' | 'pdf',
       userId: user.id,
-      userRole: user.role // DRIVER o OPE
+      userRole: user.role
     };
 
     // 3. Chiama Service

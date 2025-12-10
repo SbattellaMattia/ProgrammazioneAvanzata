@@ -40,7 +40,7 @@ class InvoiceService {
             : invoice.amount;
 
         // 4. Genera il PDF usando l'Utility
-        const pdfBuffer = await PdfGenerator.createPaymentSlip({
+        const pdfBuffer = await PdfGenerator.createPayment({
             userId: invoice.userId,
             user: user ? user.name : 'Utente Sconosciuto',
             invoiceId: invoice.id.toString(),
