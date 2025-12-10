@@ -43,7 +43,7 @@ module.exports = {
 
     console.log('🌱 Seeding Users...');
     await queryInterface.bulkInsert('Users', [
-      { id: userDriver1Id, name: 'Mario', surname: 'Rossi', email: 'mario.rossi@email.com', password: hashedPassword, role: 'DRIVER', tokens: 100, createdAt: now, updatedAt: now },
+      { id: userDriver1Id, name: 'Mario', surname: 'Rossi', email: 'mario.rossi@email.com', password: hashedPassword, role: 'DRIVER', tokens: '1', createdAt: now, updatedAt: now },
       { id: userDriver2Id, name: 'Giulia', surname: 'Bianchi', email: 'giulia.bianchi@email.com', password: hashedPassword, role: 'DRIVER', tokens: 100, createdAt: now, updatedAt: now },
       { id: userDriver3Id, name: 'Luca', surname: 'Verdi', email: 'luca.verdi@email.com', password: hashedPassword, role: 'DRIVER', tokens: 100, createdAt: now, updatedAt: now },
       { id: userOperatorId, name: 'Andrea', surname: 'Ferrari', email: 'andrea.ferrari@email.com', password: hashedPassword, role: 'OPERATOR', tokens: 500, createdAt: now, updatedAt: now }

@@ -3,7 +3,7 @@ import { TransitDAO } from "../dao/TransitDAO";
 import { ParkingDAO } from "../dao/ParkingDAO";
 import { GateDAO } from "../dao/GateDAO";
 import { VehicleDAO } from "../dao/VehicleDAO";
-import { TransitFilterDTO } from "../dto/TransitDTO";
+import { TransitFilterDTO, TransitReportDTO } from "../dto/TransitDTO";
 import { UpdateTransitInput } from "../validation/TransitValidation";
 import {
   ValidationError,
@@ -168,83 +168,76 @@ class TransitService {
   /**
    * Recupera lo storico transiti applicando filtri e regole di business.
    */
-  async getTransitHistory(filters: TransitFilterDTO) {
+  async getTransitHistory(filters: TransitFilterDTO): Promise<TransitReportDTO[] | Buffer> {
     const { userId, userRole, from, to, plates, format } = filters;
 
     let allowedPlates: string[] = [];
 
-    // 🔒 Caso DRIVER: può vedere SOLO le sue targhe
+    // DRIVER → può vedere SOLO le sue targhe
     if (userRole === "DRIVER") {
-      const myVehicles = await this.vehicleDAO.findByOwner(userId);
-      const myPlates = myVehicles.map((v) => v.plate); // attenzione: campo giusto del modello
+      const myVehicles = await this.vehicleDAO.findByOwner(userId!);
+      const myPlates = myVehicles.map(v => v.plate);
 
       if (myPlates.length === 0) {
-        // niente veicoli → niente transiti
         return format === "pdf"
           ? await PdfGenerator.createTransitReport([], from, to)
           : [];
       }
 
-      // normalizzo helper
-      const normalizePlate = (p: string) =>
-        p.trim().toUpperCase().replace(/\s+/g, "");
+      const normalize = (p: string) => p.trim().toUpperCase();
 
       if (plates && plates.length > 0) {
-        const requested = plates.map(normalizePlate);
-        const invalid = requested.filter((p) => !myPlates.includes(p));
+        const requested = plates.map(normalize);
+        const invalid = requested.filter(p => !myPlates.includes(p));
 
         if (invalid.length > 0) {
-          throw new ForbiddenError(
-            `Non hai i permessi per visualizzare le seguenti targhe: ${invalid.join(
-              ", "
-            )}`
-          );
+          throw new ForbiddenError(`Non puoi vedere: ${invalid.join(", ")}`);
         }
 
-        // tutte valide → uso solo quelle richieste
         allowedPlates = requested;
       } else {
-        // nessuna targa passata → tutte le targhe dell’utente
         allowedPlates = myPlates;
       }
+
     } else {
-      // 👷‍♂️ Caso OPERATOR: vede tutto oppure filtra per targhe
-      if (plates && plates.length > 0) {
-        const normalizePlate = (p: string) =>
-          p.trim().toUpperCase().replace(/\s+/g, "");
-        allowedPlates = plates.map(normalizePlate);
-      } else {
-        // nessun filtro → nessun vincolo su vehicleId
-        allowedPlates = [];
-      }
+      // OPERATORE
+      allowedPlates = plates?.map(p => p.trim().toUpperCase()) || [];
     }
 
-    // 🧱 Costruisco la whereCondition da passare al DAO generico
-    const whereCondition: any = {};
-
+    // WHERE CLAUSE dinamica
+    const where: any = {};
     if (allowedPlates.length > 0) {
-      whereCondition.vehicleId = { [Op.in]: allowedPlates };
+      where.vehicleId = { [Op.in]: allowedPlates };
     }
 
-    // NB: qui assumo che nel tuo DAO base esista findInDateRange(
-    //   fieldName: string,
-    //   from?: Date,
-    //   to?: Date,
-    //   additionalWhere?: any
-    // )
     const transits = await this.transitDAO.findInDateRange(
       "date",
       from,
       to,
-      whereCondition
+      where
     );
 
-    // 📄 PDF o JSON
-    if (format === "pdf") {
-      return await PdfGenerator.createTransitReport(transits, from, to);
+    // 🆕 Arricchisci con tipo veicolo
+    const reportRows: TransitReportDTO[] = [];
+
+    for (const t of transits) {
+      const vehicle = await this.vehicleDAO.findByPlate(t.vehicleId);
+
+      reportRows.push({
+        date: t.date,
+        vehicleId: t.vehicleId,
+        transitType: t.type,
+        gateId: t.gateId,
+        vehicleType: vehicle?.type ?? "UNKNOWN",
+      });
     }
 
-    return transits;
+    // PDF?
+    if (format === "pdf") {
+      return await PdfGenerator.createTransitReport(reportRows, from, to);
+    }
+
+    return reportRows;
   }
 }
 export default new TransitService();
