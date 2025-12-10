@@ -97,6 +97,38 @@ class InvoiceService {
 
         return pdfBuffer;
     }
+
+    async createInvoiceFromTransits(userId: string,parkingId: string,entryTransitId: string,exitTransitId: string) {
+        // calcolo amount tramite RateCalculator
+        const { amount /*, context */ } = await rateCalculator.calcFromTransits(
+            entryTransitId,
+            exitTransitId
+        );
+
+        // Recupero il transito di uscita
+        const exitTransit = await transitDAO.findById(exitTransitId);
+        if (!exitTransit) {
+            throw new NotFoundError("Transit", exitTransitId);
+        }
+
+        // dueDate = data uscita + 24 ore
+        const dueDate = new Date(exitTransit.date);
+        dueDate.setHours(dueDate.getHours() + 24);
+        
+        // creo la fattura con quell'importo
+        const invoice = await invoiceDAO.create({
+            userId,
+            parkingId,
+            entryTransitId,
+            exitTransitId,
+            amount,              
+            status: "unpaid",
+            dueDate: dueDate,
+            qrPath: null,
+        } as any);
+
+        return invoice;
+        }
 }
 
 export default new InvoiceService();

@@ -2,7 +2,7 @@ import PDFDocument from 'pdfkit';
 import { ParkingStatsDTO } from '../dto/ParkingStatsDTO';
 import { QrCodeGenerator } from './QrCodeGenerator';
 import { InvoiceDTO } from '../dto/InvoiceDTO';
-import { TransitFilterDTO } from '../dto/TransitDTO';
+import { TransitReportDTO } from '../dto/TransitDTO';
 import Transit from '../models/Transit';
 
 export class PdfGenerator {
@@ -73,49 +73,57 @@ export class PdfGenerator {
     });
   }
 
-  static async createTransitReport(transits: Transit[], from?: Date, to?: Date): Promise<Buffer> {
-    return new Promise((resolve, reject) => {
+  static async createTransitReport(rows: TransitReportDTO[], from?: Date, to?: Date): Promise<Buffer> {
+    return new Promise(resolve => {
       const doc = new PDFDocument({ margin: 30 });
       const buffers: Buffer[] = [];
 
-      doc.on('data', buffers.push.bind(buffers));
-      doc.on('end', () => resolve(Buffer.concat(buffers)));
+      doc.on("data", buffers.push.bind(buffers));
+      doc.on("end", () => resolve(Buffer.concat(buffers)));
 
-      // Header
-      doc.fontSize(18).text('Report Storico Transiti', { align: 'center' });
-      doc.fontSize(10).text(`Periodo: Inizio:${from?.toLocaleDateString() || '-'}\tFine: ${to?.toLocaleDateString() || 'Oggi'}`, { align: 'center' });
+      doc.fontSize(18).text("Report Storico Transiti", { align: "center" });
+      const fromLabel = from? from.toLocaleDateString("it-IT"): "Inizio";
+      const toLabel = to? to.toLocaleDateString("it-IT"): "Oggi";
+      doc
+        .fontSize(10)
+        .font("Helvetica")
+        .text(`Periodo: ${fromLabel}  -  ${toLabel}`, { align: "center" });
       doc.moveDown(2);
 
+      // Header
       const yStart = doc.y;
-      doc.fontSize(10).font('Helvetica-Bold');
-      doc.text('Data/Ora', 30, yStart);
-      doc.text('Targa', 150, yStart);
-      doc.text('Tipo', 230, yStart);
-      doc.text('Varco', 300, yStart);
-      
+      doc.fontSize(10).font("Helvetica-Bold");
+      doc.text("Data/Ora", 30, yStart);
+      doc.text("Targa", 150, yStart);
+      doc.text("Tipo", 230, yStart);
+      doc.text("Varco", 300, yStart);
+      doc.text("Tipo Veicolo", 430, yStart);
+
       doc.moveTo(30, yStart + 15).lineTo(550, yStart + 15).stroke();
       doc.moveDown();
 
-      // Table Rows
-      doc.font('Helvetica');
-      transits.forEach((t) => {
+      // Rows
+      doc.font("Helvetica");
+      rows.forEach(r => {
         let y = doc.y;
         if (y > 750) {
           doc.addPage();
           y = 50;
         }
 
-        const dateStr = new Date(t.date).toLocaleString('it-IT');
-        doc.text(dateStr, 30, y);
-        doc.text(t.vehicleId, 150, y);
-        doc.text(t.type, 230, y);
-        doc.text(t.gateId, 300, y); 
-    
+
+        doc.text(new Date(r.date).toLocaleString("it-IT"), 30, y);
+        doc.text(r.vehicleId, 150, y);
+        doc.text(r.transitType, 230, y);
+        doc.text(r.gateId.substring(0, 8) + "...", 300, y);
+        doc.text(r.vehicleType, 430, y);
+
         doc.moveDown(0.5);
       });
+
       doc.end();
     });
-  }
+}
 
 
   static async createParkingStatsReport(stats: ParkingStatsDTO): Promise<Buffer> {

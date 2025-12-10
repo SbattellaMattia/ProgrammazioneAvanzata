@@ -8,6 +8,8 @@ import TransitService  from "../services/TransitService";
 import { AuthMiddleware } from '../middlewares/AuthMiddleware';
 import { AuthService } from '../services/AuthService';
 import { UserDAO } from "../dao/UserDAO";
+import { consumeTokenCredit } from "../middlewares/TokenMiddleware";
+
 
 
 const userDAO = new UserDAO();
@@ -36,8 +38,12 @@ router.post(
  */
 router.get("/", TransitController.getAll);
 
-router.get("/history", authMiddleware.authenticateToken ,TransitController.getHistory);
-
+router.get(
+  "/history",
+  authMiddleware.authenticateToken,  
+  consumeTokenCredit,        // controlla + scala token alla fine
+  TransitController.getHistory       // logica della rotta
+);
 /**
  * Rotta per il recupero di un transito specifico tramite ID
  */
