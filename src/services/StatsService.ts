@@ -58,6 +58,7 @@ class StatsService {
         });
     }
 
+    // Ottieni statistiche di un singolo parcheggio
     async getParkingRevenueStats(
       parking: { id: string; name: string },
       from: Date | undefined,
@@ -89,7 +90,7 @@ class StatsService {
             paidCount++;
           } else if (status === "UNPAID") {
             unpaidCount++;
-          } else if (status === "EXPIRED" || status === "OVERDUE") {
+          } else if (status === "EXPIRED") {
             expiredCount++;
           }
         }

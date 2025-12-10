@@ -117,6 +117,7 @@ export class PdfGenerator {
     });
   }
 
+
   static async createParkingStatsReport(stats: ParkingStatsDTO): Promise<Buffer> {
     return new Promise((resolve) => {
       const doc = new PDFDocument({ margin: 40 });
@@ -164,9 +165,9 @@ export class PdfGenerator {
       doc.moveDown(0.5);
 
       doc.text("Dettaglio per stato:");
-      doc.text(`- Pagate (PAID):    ${stats.invoiceCountByStatus.paid}`);
+      doc.text(`- Pagate:    ${stats.invoiceCountByStatus.paid}`);
       doc.text(`- Non pagate:       ${stats.invoiceCountByStatus.unpaid}`);
-      doc.text(`- Scadute (EXPIRED):${stats.invoiceCountByStatus.expired}`);
+      doc.text(`- Scadute:  ${stats.invoiceCountByStatus.expired}`);
       doc.moveDown(1.5);
 
       // TRANSITI - RIEPILOGO

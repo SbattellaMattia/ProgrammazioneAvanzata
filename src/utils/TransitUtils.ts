@@ -204,18 +204,18 @@ export async function detectPlateForGate(gate: any, vehicle: any): Promise<strin
     }
 
     const fullImagePath = path.resolve(process.cwd(), vehicle.imagePath);
-    console.log("🔎 [OCR] Tentativo lettura immagine:", fullImagePath);
+    console.log("Tentativo lettura immagine:", fullImagePath);
 
-    // 🟡 Logga anche se il file esiste
+    // Logga anche se il file esiste
     if (!fs.existsSync(fullImagePath)) {
-      console.error("❌ [OCR] File NON trovato:", fullImagePath);
+      console.error("File NON trovato:", fullImagePath);
     } else {
-      console.log("✅ [OCR] File trovato. Avvio OCR...");
+      console.log("File trovato. Avvio OCR...");
     }
 
 
     detectedPlate = await ocr(fullImagePath);
-    console.log("📤 [OCR] Risultato OCR:", detectedPlate);
+    console.log("Risultato OCR:", detectedPlate);
   } else if (gate.type === GateType.SMART) {
     if (!vehicle.jsonPath) {
       throw new ValidationError(

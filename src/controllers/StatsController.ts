@@ -26,6 +26,7 @@ class StatsController {
     // 4. Risposta JSON standard
     return res.status(StatusCodes.OK).json(data);
   });
+  
 
   getParkingStats = asyncHandler(async (req: Request, res: Response) => {
     // entity caricata da ensureExists(ParkingService, 'Parcheggio')

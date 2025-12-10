@@ -169,60 +169,82 @@ class TransitService {
    * Recupera lo storico transiti applicando filtri e regole di business.
    */
   async getTransitHistory(filters: TransitFilterDTO) {
-    // 1. Regole di Business basate su Ruolo Utente
+    const { userId, userRole, from, to, plates, format } = filters;
+
     let allowedPlates: string[] = [];
 
-    if (filters.userRole === 'DRIVER') {
-      // Il Driver DEVE vedere solo i suoi veicoli.
-      // Ignoriamo le targhe passate nel filtro se non sono sue, o forziamo solo le sue.
-      const myVehicles = await this.vehicleDAO.findByOwner(filters.userId);
-      const myPlates = myVehicles.map(v => v.plate); // Assumo licensePlate
+    // 🔒 Caso DRIVER: può vedere SOLO le sue targhe
+    if (userRole === "DRIVER") {
+      const myVehicles = await this.vehicleDAO.findByOwner(userId);
+      const myPlates = myVehicles.map((v) => v.plate); // attenzione: campo giusto del modello
 
-      if (filters.plates && filters.plates.length > 0) {
-        // Verifichiamo se TUTTE le targhe richieste appartengono all'utente
-        const invalidPlates = filters.plates.filter(p => !myPlates.includes(p));
+      if (myPlates.length === 0) {
+        // niente veicoli → niente transiti
+        return format === "pdf"
+          ? await PdfGenerator.createTransitReport([], from, to)
+          : [];
+      }
 
-        if (invalidPlates.length > 0) {
-          throw new ForbiddenError(`Non hai i permessi per visualizzare le seguenti targhe: ${invalidPlates.join(', ')}`);
+      // normalizzo helper
+      const normalizePlate = (p: string) =>
+        p.trim().toUpperCase().replace(/\s+/g, "");
+
+      if (plates && plates.length > 0) {
+        const requested = plates.map(normalizePlate);
+        const invalid = requested.filter((p) => !myPlates.includes(p));
+
+        if (invalid.length > 0) {
+          throw new ForbiddenError(
+            `Non hai i permessi per visualizzare le seguenti targhe: ${invalid.join(
+              ", "
+            )}`
+          );
         }
-        // Se non ha veicoli o le targhe richieste non sono sue -> Lista vuota
-        if (allowedPlates.length === 0) { throw new ForbiddenError("Non hai veicoli associati al tuo account."); }
+
+        // tutte valide → uso solo quelle richieste
+        allowedPlates = requested;
       } else {
-        // OPERATORE: Può vedere tutto o filtrare per targhe specifiche
-        allowedPlates = filters.plates || [];
+        // nessuna targa passata → tutte le targhe dell’utente
+        allowedPlates = myPlates;
       }
-
-
-      // 2. Costruzione Query al DAO
-      // Usiamo il metodo findInDateRange del DAO Generico, ma ci serve un 'additionalWhere'
-      // per le targhe.
-      const whereCondition: any = {};
-
-      // Se ci sono targhe da filtrare (sempre vero per Driver, opzionale per Operatore)
-      if (allowedPlates.length > 0) {
-        whereCondition['vehicleId'] = { [Op.in]: allowedPlates };
+    } else {
+      // 👷‍♂️ Caso OPERATOR: vede tutto oppure filtra per targhe
+      if (plates && plates.length > 0) {
+        const normalizePlate = (p: string) =>
+          p.trim().toUpperCase().replace(/\s+/g, "");
+        allowedPlates = plates.map(normalizePlate);
+      } else {
+        // nessun filtro → nessun vincolo su vehicleId
+        allowedPlates = [];
       }
-
-      // 3. Esecuzione Query (Usa il metodo generico  nel DAO)
-      const transits = await this.transitDAO.findInDateRange(
-        'date', // o 'ingress' a seconda del tuo model
-        filters.from,
-        filters.to,
-        whereCondition
-      );
-
-      // 4. Arricchimento Dati (Opzionale, se findInDateRange non fa le include)
-      // Se il DAO non ritorna i nomi dei varchi, dovresti fare un map qui o usare include nel DAO.
-      // Assumiamo che transits abbia già i dati necessari o che il controller li formatti.
-
-      // 5. Output PDF o JSON
-      if (filters.format === 'pdf') {
-        // Chiama una nuova funzione dell'utility PDF (da implementare sotto)
-        return await PdfGenerator.createTransitReport(transits, filters.from, filters.to);
-      }
-
-      return transits;
     }
+
+    // 🧱 Costruisco la whereCondition da passare al DAO generico
+    const whereCondition: any = {};
+
+    if (allowedPlates.length > 0) {
+      whereCondition.vehicleId = { [Op.in]: allowedPlates };
+    }
+
+    // NB: qui assumo che nel tuo DAO base esista findInDateRange(
+    //   fieldName: string,
+    //   from?: Date,
+    //   to?: Date,
+    //   additionalWhere?: any
+    // )
+    const transits = await this.transitDAO.findInDateRange(
+      "date",
+      from,
+      to,
+      whereCondition
+    );
+
+    // 📄 PDF o JSON
+    if (format === "pdf") {
+      return await PdfGenerator.createTransitReport(transits, from, to);
+    }
+
+    return transits;
   }
 }
 export default new TransitService();

@@ -5,10 +5,14 @@ import { StatusCodes } from 'http-status-codes';
 
 class InvoiceController {
 
-    getAll = asyncHandler(async (req: Request, res: Response) => {
-        const parkings = await InvoiceService.getAll();
-        return res.status(StatusCodes.OK).json(parkings);
-      });
+  /**
+   * GET /api/invoices
+   * Recupera tutte le fatture
+   */
+  getAll = asyncHandler(async (req: Request, res: Response) => {
+      const parkings = await InvoiceService.getAll();
+      return res.status(StatusCodes.OK).json(parkings);
+    });
   /**
    * GET /api/invoices/:id/pdf
    * Scarica il bollettino PDF con QR Code
