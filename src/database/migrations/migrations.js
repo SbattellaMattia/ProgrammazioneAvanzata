@@ -30,7 +30,7 @@ module.exports = {
         allowNull: false
       },
       role: {
-        type: Sequelize.ENUM('DRIVER', 'OPERATOR'),
+        type: Sequelize.ENUM('driver', 'operator'),
         allowNull: false
       },
       tokens: {
@@ -310,7 +310,6 @@ module.exports = {
         primaryKey: true,
         allowNull: false
       },
-      // NOTA: Nomi colonne allineati al Model (camelCase)
       userId: { 
         type: Sequelize.UUID,
         allowNull: false,
@@ -361,6 +360,11 @@ module.exports = {
         defaultValue: 'unpaid'
       },
       dueDate: {
+        type: Sequelize.DATE,
+        allowNull: false
+      },
+
+      createdAt: {
         type: Sequelize.DATE,
         allowNull: false
       },

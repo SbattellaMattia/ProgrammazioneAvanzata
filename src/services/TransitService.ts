@@ -218,20 +218,12 @@ class TransitService {
         allowedPlates = [];
       }
     }
-
-    // 🧱 Costruisco la whereCondition da passare al DAO generico
     const whereCondition: any = {};
 
     if (allowedPlates.length > 0) {
       whereCondition.vehicleId = { [Op.in]: allowedPlates };
     }
 
-    // NB: qui assumo che nel tuo DAO base esista findInDateRange(
-    //   fieldName: string,
-    //   from?: Date,
-    //   to?: Date,
-    //   additionalWhere?: any
-    // )
     const transits = await this.transitDAO.findInDateRange(
       "date",
       from,
@@ -239,7 +231,6 @@ class TransitService {
       whereCondition
     );
 
-    // 📄 PDF o JSON
     if (format === "pdf") {
       return await PdfGenerator.createTransitReport(transits, from, to);
     }

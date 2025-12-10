@@ -9,10 +9,10 @@ import { AuthMiddleware } from '../middlewares/AuthMiddleware';
 import { AuthService } from '../services/AuthService';
 import { UserDAO } from "../dao/UserDAO";
 
-// Istanzi il servizio (se non è già un singleton esportato)
+
 const userDAO = new UserDAO();
 const authService = new AuthService(userDAO); 
-export const authMiddleware = new AuthMiddleware(authService);
+const authMiddleware = new AuthMiddleware(authService);
 
 const router = Router();
 

@@ -12,6 +12,7 @@ export class Invoice extends Model<InferAttributes<Invoice>, InferCreationAttrib
   declare exitTransitId: string;
   declare amount: number;
   declare status: InvoiceStatus;
+  declare createdAt: Date;
   declare dueDate: Date;
   declare qrPath: string | null;
 }
@@ -52,6 +53,12 @@ Invoice.init(
     status: {
       type: DataTypes.ENUM(...Object.values(InvoiceStatus)),
       allowNull: false,
+    },
+
+    createdAt: {
+      type: DataTypes.DATE,
+      allowNull: false,
+      defaultValue: DataTypes.NOW,
     },
 
     dueDate: {

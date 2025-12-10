@@ -1,20 +1,66 @@
 import invoiceDAO from '../dao/InvoiceDAO';
 import parkingDAO from '../dao/ParkingDAO';
 import userDAO from '../dao/UserDAO';
+import vehicleDAO from '../dao/VehicleDAO';
 import { PdfGenerator } from '../utils/PdfGenerator';
-import { NotFoundError } from '../errors/CustomErrors'; 
+import { ForbiddenError, NotFoundError } from '../errors/CustomErrors';
+import { WhereOptions } from 'sequelize/types';
+import { Role } from '../enum/Role';
+import Invoice from '../models/Invoice';
+
+
+
 class InvoiceService {
 
-    async getAll(){
-        return await invoiceDAO.findAll();
+
+
+    async getAllFrom(from?: Date, to?: Date, state?: string): Promise<any[]> {
+        return await invoiceDAO.findInDateRange('createdAt', from, to, { status: state });
     }
 
-    async getAllFrom(from: Date, to: Date, state: string): Promise<any[]> {
-        return await invoiceDAO.findInDateRange('dueDate', from, to, { status: state }); //cambiare due date non esiste
+
+    /*async getAll(userId: string, userRole: Role.DRIVER | Role.OPERATOR) {
+        if (userRole === Role.DRIVER) {
+            return await invoiceDAO.findAll({ where: { userId }, order: [['createdAt', 'DESC']] });
+        }
+        return await invoiceDAO.findAll({ order: [['createdAt', 'DESC']] });
+    }*/
+
+    async getById(id: string) {
+        return await invoiceDAO.findById(id);
     }
 
 
+    private async resolveAllowedPlates(userId: string, userRole: Role.DRIVER | Role.OPERATOR, requestedPlates?: string[]) {
+        console.log('Resolving allowed plates for user:', userId, 'role:', userRole, 'requestedPlates:', requestedPlates);
+        if (userRole === Role.OPERATOR) {
+            return requestedPlates || [];
+        }
+        const myVehicles = await vehicleDAO.findByOwner(userId);
+        const myPlates = myVehicles.map(v => v.plate);
+
+        if (requestedPlates && requestedPlates.length > 0) {
+            const invalid = requestedPlates.filter(p => !myPlates.includes(p));
+            if (invalid.length > 0) {
+                throw new ForbiddenError(`Non hai i permessi per le targhe: ${invalid.join(', ')}`);
+            }
+            return requestedPlates;
+        }
+        return myPlates;
+    }
+
+
+    async getAll(userId: string, userRole: Role.DRIVER | Role.OPERATOR, from?: Date, to?: Date, additionalWhere : WhereOptions<any> = {}): Promise<any[]> {
+    const allowedPlates = await this.resolveAllowedPlates(userId, userRole);
     
+    const where: any = { ...additionalWhere };
+
+    userRole === Role.DRIVER? where.userId = userId : null;
+    
+    return await invoiceDAO.findInDateRange('createdAt', from, to, where);
+  }
+
+  
     /**
      * Genera il PDF del bollettino per una specifica fattura.
      * Restituisce il Buffer del PDF.
