@@ -9,6 +9,7 @@ import { TransitDAO } from "../dao/TransitDAO";
 import { ParkingDAO } from "../dao/ParkingDAO";
 import { GateDAO } from "../dao/GateDAO";
 import { VehicleDAO } from "../dao/VehicleDAO";
+import invoiceDAO  from "../dao/InvoiceDAO";
 import { TransitFilterDTO, TransitReportDTO } from "../dto/TransitDTO";
 import { UpdateTransitInput } from "../validation/TransitValidation";
 import { TransitType } from "../enum/TransitType";
@@ -40,7 +41,7 @@ class TransitService {
   /**
    * Crea un transito casuale per un gate specifico.
    */
-  async createFromGateCapture(
+  async createFromGate(
     gateId: string,
     file: Express.Multer.File | null,
     body: any
@@ -167,49 +168,45 @@ class TransitService {
   /**
    * Aggiorna un transito esistente.
    */
-  async updateTransit(id: string, data: UpdateTransitInput): Promise<Transit> {
-    if ((data as any).parkingId || (data as any).gateId || (data as any).vehicleId) {
+  async update(transit: Transit, data: UpdateTransitInput): Promise<Transit> {
+      await this.assertTransitModifiable(transit);
+   
+    const newDate = this.parseToDate(data.date);
+
+    
+    const conflictingOut = await this.transitDAO.findOne({
+      vehicleId: transit.vehicleId,       
+      type: TransitType.OUT,
+      date: {
+        [Op.gte]: newDate,
+      },
+    });
+
+    if (conflictingOut) {
       throw new OperationNotAllowedError(
-        "updateTransit",
-        "parkingId, gateId e vehicleId non sono modificabili"
+        "La nuova data deve essere successiva all'ultimo transito di uscita per questo veicolo"
       );
     }
 
-    const payload: any = { ...data };
-
-    if (data.date) {
-      payload.date = this.parseToDate(data.date);
-    }
-
-    const updated = await this.transitDAO.update(id, payload);
-    if (!updated) throw new DatabaseError("Errore aggiornamento transito");
+    // 5. Aggiorniamo SOLO la data del transito
+    const updated = await transit.update({
+      date: newDate,
+    });
 
     return updated;
-  }
+}
 
   /**
    * Cancella un transito esistente.
    */
-  async deleteTransit(id: string): Promise<void> {
-    const ok = await this.transitDAO.delete(id);
+  async delete(transit: Transit): Promise<void> {
+    await this.assertTransitModifiable(transit);
+    const ok = await this.transitDAO.delete(transit.id);
     if (!ok) {
       throw new DatabaseError("Errore eliminazione transito");
     }
-  }
+}
 
-  /**
-   * Converte una stringa in formato "dd/mm/yyyy hh:mm:ss" in un oggetto Date.
-   */
-  private parseToDate(value: string): Date {
-    const [date, time] = value.trim().split(" ");
-    const [dd, mm, yyyy] = date.split("/").map(Number);
-    const [hh, mi, ss] = time.split(":").map(Number);
-    return new Date(yyyy, mm - 1, dd, hh, mi, ss);
-  }
-
-  /**
-   * Recupera lo storico transiti applicando filtri e regole di business.
-   */
   async getTransitHistory(filters: TransitFilterDTO): Promise<TransitReportDTO[] | Buffer> {
     const { userId, userRole, from, to, plates, format } = filters;
 
@@ -326,5 +323,36 @@ class TransitService {
       `Fattura creata auto: user=${vehicle.ownerId}, parking=${exitTransit.parkingId}, entry=${entryTransit.id}, exit=${exitTransit.id}, amount=${invoice.amount}`
     );
   }
+
+  /**
+   * Converte una stringa in formato "dd/mm/yyyy hh:mm:ss" in un oggetto Date.
+   */
+  private parseToDate(value: string): Date {
+    const [date, time] = value.trim().split(" ");
+    const [dd, mm, yyyy] = date.split("/").map(Number);
+    const [hh, mi, ss] = time.split(":").map(Number);
+    return new Date(yyyy, mm - 1, dd, hh, mi, ss);
+  }
+
+  private async assertTransitModifiable(transit: Transit): Promise<void> {
+  
+    if (transit.type !== TransitType.IN) {
+      throw new OperationNotAllowedError(
+        "Puoi modificare e/o cancellare solo transiti di tipo IN"
+      );
+    }
+
+    // 2. Non deve essere associato a una fattura
+    const existingInvoice = await invoiceDAO.findOne({
+      entryTransitId: transit.id,
+    });
+
+    if (existingInvoice) {
+      throw new OperationNotAllowedError(
+        "Non puoi modificare e/o cancellare un transito IN che è già associato a una fattura"
+      );
+    }
+  }
+  
 }
 export default new TransitService();

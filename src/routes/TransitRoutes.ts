@@ -22,7 +22,7 @@ const upload = multer({storage: multer.memoryStorage()});
 // Middleware riutilizzabile per qualsiasi route che usa un transitId
 const requireTransit = [
   validate(transitIdSchema, "params"),
-  ensureExists(TransitService, "Transito"),
+  ensureExists(TransitService, "Transit"),
 ];
 
 /**
@@ -32,7 +32,7 @@ router.post(
   "/gate/:gateId/new",
   authMiddleware.authenticateToken,
   upload.single("file"),            
-  TransitController.createFromGateCapture
+  TransitController.createFromGate
 );
 
 

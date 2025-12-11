@@ -48,4 +48,5 @@ export class InvoiceDAO extends DAO<Invoice> implements IInvoiceDAO {
     return this.findAll({where: { parkingId, createdAt: { $gte: from, $lte: to } },order: [["createdAt", "DESC"]],});
   }
 }
+
 export default new InvoiceDAO();

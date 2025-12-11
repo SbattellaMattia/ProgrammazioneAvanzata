@@ -7,7 +7,7 @@ export interface ITransitDAO {
   existsById(id: string): Promise<boolean>;
   findByGate(gateId: string): Promise<Transit[]>;
   findByParking(parkingId: string): Promise<Transit[]>;
-  findByPlate(plate: string): Promise<Transit[]>;
+  findByVehicle(plate: string): Promise<Transit[]>;
   findByPeriod(from: Date, to: Date): Promise<Transit[]>;
 }
 
@@ -42,7 +42,7 @@ export class TransitDAO extends DAO<Transit> implements ITransitDAO {
   /** 
    * Restituisce i transiti filtrati per targa.
    */
-  async findByPlate(plate: string): Promise<Transit[]> {
+  async findByVehicle(plate: string): Promise<Transit[]> {
     return this.findAll({where: { detectedPlate: plate }, order: [["date", "ASC"]],});
   }
 

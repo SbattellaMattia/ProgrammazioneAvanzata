@@ -127,9 +127,13 @@ class StatsService {
         const vehicleTypeCounts: VehicleTypeAgg = {};
 
         const getSlot = (d: Date): string => {
-          const h = d.getHours();
-          if (h >= 8 && h < 20) return "08-20";
-          return "20-08";
+          const h = d.getHours(); 
+          const startHour = Math.floor(h / 2) * 2; 
+          const endHour = startHour + 2;           
+
+          const pad = (n: number) => n.toString().padStart(2, "0");
+
+          return `${pad(startHour)}-${pad(endHour)}`;
         };
 
         for (const tr of transitsInRange) {

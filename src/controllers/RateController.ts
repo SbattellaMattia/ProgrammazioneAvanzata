@@ -24,16 +24,18 @@ class RateController {
 
 
   update = asyncHandler(async (req: Request, res: Response) => {
-    const Rate = res.locals.entity as Rate;
-    const updatedRate = await Rate.update(req.body);
-    
-    return res.status(StatusCodes.OK).json(updatedRate);
+    const rate = res.locals.entity as Rate;
+    const updatedRate = await RateService.update(rate.id, req.body);
+    return res.status(StatusCodes.OK).json({
+      message: "Tariffa aggiornata con successo",
+      data: updatedRate,
+    });
   });
 
   delete = asyncHandler(async (req: Request, res: Response) => {
-    const Rate = res.locals.entity as Rate; 
-    await Rate.destroy();
-    return res.status(StatusCodes.OK).json({ message: 'Tariffa eliminata con successo' });
+      const rate = res.locals.entity as Rate;
+      await RateService.delete(rate);
+      return res.status(StatusCodes.OK).json({ message: "Tariffa eliminata con successo" });
   });
 }
 
