@@ -16,6 +16,7 @@ module.exports = {
     const userDriver1Id = uuidv4();
     const userDriver2Id = uuidv4();
     const userDriver3Id = uuidv4();
+    const userDriver4Id = uuidv4();
     const userOperatorId = uuidv4();
 
     const parkingDowntownId = uuidv4();
@@ -43,17 +44,11 @@ module.exports = {
 
     console.log('🌱 Seeding Users...');
     await queryInterface.bulkInsert('Users', [
-<<<<<<< HEAD
+      { id: userOperatorId, name: 'Operatore', surname: 'Operatore', email: 'op@op.com', password: hashedPassword, role: 'operator', tokens: 100, createdAt: now, updatedAt: now },
       { id: userDriver1Id, name: 'Mario', surname: 'Rossi', email: 'mario.rossi@email.com', password: hashedPassword, role: 'driver', tokens: 100, createdAt: now, updatedAt: now },
       { id: userDriver2Id, name: 'Giulia', surname: 'Bianchi', email: 'giulia.bianchi@email.com', password: hashedPassword, role: 'driver', tokens: 100, createdAt: now, updatedAt: now },
       { id: userDriver3Id, name: 'Luca', surname: 'Verdi', email: 'luca.verdi@email.com', password: hashedPassword, role: 'driver', tokens: 100, createdAt: now, updatedAt: now },
-      { id: userOperatorId, name: 'Andrea', surname: 'Ferrari', email: 'andrea.ferrari@email.com', password: hashedPassword, role: 'operator', tokens: 500, createdAt: now, updatedAt: now }
-=======
-      { id: userDriver1Id, name: 'Mario', surname: 'Rossi', email: 'mario.rossi@email.com', password: hashedPassword, role: 'DRIVER', tokens: '1', createdAt: now, updatedAt: now },
-      { id: userDriver2Id, name: 'Giulia', surname: 'Bianchi', email: 'giulia.bianchi@email.com', password: hashedPassword, role: 'DRIVER', tokens: 100, createdAt: now, updatedAt: now },
-      { id: userDriver3Id, name: 'Luca', surname: 'Verdi', email: 'luca.verdi@email.com', password: hashedPassword, role: 'DRIVER', tokens: 100, createdAt: now, updatedAt: now },
-      { id: userOperatorId, name: 'Andrea', surname: 'Ferrari', email: 'andrea.ferrari@email.com', password: hashedPassword, role: 'OPERATOR', tokens: 500, createdAt: now, updatedAt: now }
->>>>>>> a6c5664845fdd19dd703f84e0814a918e113e347
+      { id: userDriver4Id, name: 'Andrea', surname: 'Ferrari', email: 'andrea.ferrari@email.com', password: hashedPassword, role: 'driver', tokens: 100, createdAt: now, updatedAt: now }
     ]);
 
     console.log('🌱 Seeding Parkings...');
@@ -79,7 +74,7 @@ module.exports = {
       { plate: plateCarC, type: 'car', ownerId: userDriver3Id,imagePath:'src/img/img_prova2.png', jsonPath: null,createdAt: now, updatedAt: now },
       { plate: plateTruckD, type: 'truck', ownerId: userDriver3Id,imagePath:'src/img/img_prova3.png', jsonPath: null, createdAt: now, updatedAt: now },
       { plate: plateCarE, type: 'car', ownerId: userDriver1Id,imagePath:'src/img/img_prova1.png', jsonPath: null,createdAt: now, updatedAt: now },
-      { plate: plateCarF, type: 'car', ownerId: userDriver1Id,imagePath:'src/img/img_prova4.png', jsonPath: null,createdAt: now, updatedAt: now },
+      { plate: plateCarF, type: 'car', ownerId: userDriver4Id,imagePath:'src/img/img_prova4.png', jsonPath: null,createdAt: now, updatedAt: now },
     ]);
 
     // ==========================================================

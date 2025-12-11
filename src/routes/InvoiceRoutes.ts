@@ -53,6 +53,6 @@ router.get('/:id/pdf', InvoiceController.downloadPayment);
  * GET /invoices/:id/pay 
  * Si limita a modificare lo stato della fattura a "paid"
 */
-router.get('/:id/pay', InvoiceController.pay);
+router.get('/:id/pay',authMiddleware.authenticateToken, InvoiceController.pay);
 
 export default router;

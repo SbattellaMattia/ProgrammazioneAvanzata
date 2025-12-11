@@ -34,7 +34,7 @@ class InvoiceController {
     if (status) {
       additionalWhere.status = (status as string);
     }
-    
+
     const data = await InvoiceService.getAll(user.id, user.role, fromDate, toDate, additionalWhere);
     return res.json(data);
   });
@@ -61,7 +61,8 @@ class InvoiceController {
   });
 
   pay = asyncHandler(async (req: Request, res: Response) => {
-    //To do: implementare il metodo per pagare la fattura
+    const { id } = req.params;
+    await InvoiceService.pay(id);
   });
 }
 

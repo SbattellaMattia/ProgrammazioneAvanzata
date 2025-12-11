@@ -1,10 +1,11 @@
-// src/dao/InvoiceDAO.ts
-import { Op } from "sequelize";
 import Invoice from "../models/Invoice";
 import { DAO } from "./DAO";
+import { InvoiceStatus } from "../enum/InvoiceStatus";
+import { NotFoundError } from "../errors";
 
 export interface IInvoiceDAO {
   existsById(id: string): Promise<boolean>;
+  pay(id: string): Promise<void>;
   findForUser(userId: string): Promise<Invoice[]>;
   findForParking(parkingId: string, from: Date, to: Date): Promise<Invoice[]>;
 }
@@ -21,6 +22,18 @@ export class InvoiceDAO extends DAO<Invoice> implements IInvoiceDAO {
     const invoice = await this.findById(id);
     return invoice !== null;
   }
+
+  async pay(id: string): Promise<void> {
+    const invoice = await this.findById(id);
+    if (invoice) {
+      await invoice.update({ status: InvoiceStatus.PAID });
+    }
+  }
+
+  /**
+   * Restituisce tutte 
+   * 
+   */
 
   /**
    * Restituisce tutte le fatture associate a un utente 

@@ -2,13 +2,15 @@ import invoiceDAO from '../dao/InvoiceDAO';
 import parkingDAO from '../dao/ParkingDAO';
 import userDAO from '../dao/UserDAO';
 import vehicleDAO from '../dao/VehicleDAO';
-import transitDAO from '../dao/TransitDAO'; 
+import transitDAO from '../dao/TransitDAO';
 import { PdfGenerator } from '../utils/PdfGenerator';
 import { ForbiddenError, NotFoundError } from '../errors/CustomErrors';
 import { WhereOptions } from 'sequelize/types';
 import { Role } from '../enum/Role';
 import rateCalculator from '../utils/Invoice/BillingCalculator';
- 
+import InvoiceDAO from '../dao/InvoiceDAO';
+import { InvoiceStatus } from '../enum/InvoiceStatus';
+
 
 
 
@@ -20,18 +22,12 @@ class InvoiceService {
         return await invoiceDAO.findInDateRange('createdAt', from, to, { status: state });
     }
 
-
     /*async getAll(userId: string, userRole: Role.DRIVER | Role.OPERATOR) {
         if (userRole === Role.DRIVER) {
             return await invoiceDAO.findAll({ where: { userId }, order: [['createdAt', 'DESC']] });
         }
         return await invoiceDAO.findAll({ order: [['createdAt', 'DESC']] });
     }*/
-
-    async getById(id: string) {
-        return await invoiceDAO.findById(id);
-    }
-
 
     private async resolveAllowedPlates(userId: string, userRole: Role.DRIVER | Role.OPERATOR, requestedPlates?: string[]) {
         console.log('Resolving allowed plates for user:', userId, 'role:', userRole, 'requestedPlates:', requestedPlates);
@@ -52,17 +48,32 @@ class InvoiceService {
     }
 
 
-    async getAll(userId: string, userRole: Role.DRIVER | Role.OPERATOR, from?: Date, to?: Date, additionalWhere : WhereOptions<any> = {}): Promise<any[]> {
-    const allowedPlates = await this.resolveAllowedPlates(userId, userRole);
-    
-    const where: any = { ...additionalWhere };
+    async getAll(userId: string, userRole: Role.DRIVER | Role.OPERATOR, from?: Date, to?: Date, additionalWhere: WhereOptions<any> = {}): Promise<any[]> {
+        //const allowedPlates = await this.resolveAllowedPlates(userId, userRole);
+        const where: any = { ...additionalWhere };
+        userRole === Role.DRIVER ? where.userId = userId : null;
+        return await invoiceDAO.findInDateRange('createdAt', from, to, where);
+    }
 
-    userRole === Role.DRIVER? where.userId = userId : null;
-    
-    return await invoiceDAO.findInDateRange('createdAt', from, to, where);
-  }
+    async getById(invoiceId: string) {
+        const invoice = await invoiceDAO.findById(invoiceId);
+        if (!invoice) {
+            throw new NotFoundError(`Fattura con ID ${invoiceId} non trovata`);
+        }
+        const user = await userDAO.findById(invoice.userId);
+        if (!user) { throw new NotFoundError(`Nessun utente associato alla fattura con ID ${invoiceId}`); }
 
-  
+        if (user.role === Role.DRIVER) {
+            const isOwner = await invoiceDAO.exists({ id: invoice.id, userId: user.id, });
+            if (!isOwner) {
+                throw new ForbiddenError('Non sei autorizzato a vedere questa fattura');
+            }
+        }
+        return invoice;
+
+    }
+
+
     /**
      * Genera il PDF del bollettino per una specifica fattura.
      * Restituisce il Buffer del PDF.
@@ -100,7 +111,7 @@ class InvoiceService {
         return pdfBuffer;
     }
 
-    async createInvoiceFromTransits(userId: string,parkingId: string,entryTransitId: string,exitTransitId: string) {
+    async createInvoiceFromTransits(userId: string, parkingId: string, entryTransitId: string, exitTransitId: string) {
         // calcolo amount tramite RateCalculator
         const { amount /*, context */ } = await rateCalculator.calcFromTransits(
             entryTransitId,
@@ -116,21 +127,42 @@ class InvoiceService {
         // dueDate = data uscita + 24 ore
         const dueDate = new Date(exitTransit.date);
         dueDate.setHours(dueDate.getHours() + 24);
-        
+
         // creo la fattura con quell'importo
         const invoice = await invoiceDAO.create({
             userId,
             parkingId,
             entryTransitId,
             exitTransitId,
-            amount,              
+            amount,
             status: "unpaid",
             dueDate: dueDate,
             qrPath: null,
         } as any);
 
         return invoice;
+    }
+
+
+    /**
+     * Cambia solo lo stato, logica di pagamento non implementata
+     * @param id 
+     */
+    async pay(id: string) {
+        const invoice = await this.getById(id);
+
+        // Se è già pagata, niente da fare
+        if (invoice.status === InvoiceStatus.PAID) {
+            throw new ForbiddenError('La fattura risulta già pagata');
         }
+
+        // Controllo scadenza
+        if (invoice.dueDate && invoice.dueDate < new Date()) {
+            throw new ForbiddenError('La fattura è scaduta e non può essere pagata');
+        }
+        invoice.status = InvoiceStatus.PAID ;
+        await invoice.save();
+    }
 }
 
 export default new InvoiceService();

@@ -5,6 +5,18 @@
 * @param fn La funzione asincrona (controller) da avvolgere.
 * @returns Una nuova funzione che gestisce automaticamente gli errori.
 * 
+* @example import { asyncHandler } from '../middleware/AsyncHandler'; 
+
+getUserById = asyncHandler(async (req: Request, res: Response) => {
+    const { id } = req.params;
+    const user = await userDAO.findById(id);
+
+    if (!user) { throw new NotFoundError('Utente', id); }
+
+    return res.status(200).json(user);
+});
+* 
+* 
 * Come funziona:
 * Promise.resolve(fn(req, res, next)).catch(next);
 * fn(req, res, next): Esegue la tua logica (es. il tuo controller getUserById).
@@ -28,18 +40,3 @@ export const asyncHandler = (
     Promise.resolve(fn(req, res, next)).catch(next);
   };
 };
-
-
-/* Usage Example:
-
-import { asyncHandler } from '../middleware/AsyncHandler'; 
-
-getUserById = asyncHandler(async (req: Request, res: Response) => {
-    const { id } = req.params;
-    const user = await userDAO.findById(id);
-
-    if (!user) { throw new NotFoundError('Utente', id); }
-
-    return res.status(200).json(user);
-});
-*/      
