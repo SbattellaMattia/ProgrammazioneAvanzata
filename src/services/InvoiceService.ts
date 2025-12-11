@@ -10,13 +10,8 @@ import { Role } from '../enum/Role';
 import rateCalculator from '../utils/Invoice/BillingCalculator';
 import { InvoiceStatus } from '../enum/InvoiceStatus';
 
-
-
-
 class InvoiceService {
-
-
-
+    
     async getAllFrom(from?: Date, to?: Date, state?: string): Promise<any[]> {
         return await invoiceDAO.findInDateRange('createdAt', from, to, { status: state });
     }

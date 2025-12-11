@@ -6,14 +6,15 @@ import TransitService from "../services/TransitService";
 import { TransitFilterDTO } from '../dto/TransitDTO';
 import Transit from "../models/Transit";
 
+
 class TransitController {
   /**
-   * Crea un transito random per un gate
+   * Crea un transito NEW per un gate
    */
-  createFromGateCapture = asyncHandler(async (req: Request, res: Response) => {
+  createFromGate = asyncHandler(async (req: Request, res: Response) => {
     const { gateId } = req.params;
 
-    const transit = await TransitService.createFromGateCapture(
+    const transit = await TransitService.createFromGate(
       gateId,
       req.file || null,   // immagine se STANDARD
       req.body || {}      // JSON se SMART
@@ -43,19 +44,17 @@ class TransitController {
    */
   update = asyncHandler(async (req: Request, res: Response) => {
     const transit = res.locals.entity as Transit;
-    const updatedTransit = await transit.update(req.body);
+    const updatedTransit = await TransitService.update(transit, req.body);
     return res.status(StatusCodes.OK).json(updatedTransit);
   });
-
+  
   /**
    * Elimina un transito
    */
   delete = asyncHandler(async (req: Request, res: Response) => {
     const transit = res.locals.entity as Transit;
-    await transit.destroy();
-    return res
-      .status(StatusCodes.OK)
-      .json({ message: "Transit eliminato con successo" });
+    await TransitService.delete(transit);
+    return res.status(StatusCodes.OK).json({ message: "Transito eliminato con successo" });
   });
 
 

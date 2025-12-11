@@ -51,61 +51,64 @@ export async function determineTransitTypeForGate(
   vehicleId: string,
   gateDirection: "in" | "out" | "bidirectional"
 ): Promise<TransitType> {
-  const all = await transitDAO.findByParking(parkingId);
+  // 1. Prendo TUTTI i transiti del veicolo (tutti i parcheggi)
+  const allForVehicle = await transitDAO.findByVehicle(vehicleId);
+  const sorted = allForVehicle.sort(
+    (a, b) => a.date.getTime() - b.date.getTime()
+  );
+  const last = sorted[sorted.length - 1];
 
-  const filtered = all
-    .filter((t) => t.vehicleId === vehicleId)
-    .sort((a, b) => a.date.getTime() - b.date.getTime());
-
-  const last = filtered[filtered.length - 1];
-
-  // ---- GATE SOLO IN ----
-  // - se non c'è storico => IN
-  // - se ultimo è IN     => ERRORE (già dentro)
-  // - se ultimo è OUT    => IN
-  if (gateDirection === "in") {
-    if (!last) {
-      return TransitType.IN;
-    }
-
-    if (last.type === TransitType.IN) {
-      throw new ValidationError(
-        "Veicolo già dentro: impossibile registrare un altro ingresso su un gate di ENTRATA"
-      );
-    }
-
-    return TransitType.IN;
-  }
-
-  // ---- GATE SOLO OUT ----
-  // - se non c'è storico => ERRORE
-  // - se ultimo è OUT    => ERRORE (già fuori)
-  // - se ultimo è IN     => OUT
-  if (gateDirection === "out") {
-    if (!last) {
+  // --- CASO: nessun transito per il veicolo ---
+  if (!last) {
+    if (gateDirection === "out") {
+      // non posso fare un'uscita senza mai essere entrato
       throw new ValidationError(
         "Non puoi registrare un'uscita: nessun ingresso precedente per questo veicolo"
       );
     }
 
-    if (last.type === TransitType.OUT) {
-      throw new ValidationError(
-        "Non puoi registrare due uscite consecutive su un gate di USCITA"
-      );
-    }
-
-    return TransitType.OUT;
-  }
-
-  // ---- GATE BIDIRECTIONAL ----
-  // - se non c'è storico => IN
-  // - se ultimo è OUT    => IN
-  // - se ultimo è IN     => OUT
-  if (!last) {
+    // gate "in" o "bidirectional" → primo transito sarà un IN
     return TransitType.IN;
   }
 
-  return last.type === TransitType.OUT ? TransitType.IN : TransitType.OUT;
+  // --- CASO: l'ultimo transito globale è IN → veicolo attualmente DENTRO ---
+  if (last.type === TransitType.IN) {
+    // il veicolo risulta dentro nel parcheggio last.parkingId
+    const insideParkingId = last.parkingId;
+
+    // se sto cercando di lavorare da un altro parking → ERRORE
+    if (insideParkingId !== parkingId) {
+      throw new ValidationError(
+        "Il veicolo risulta già all'interno di un altro parcheggio: può uscire solo da quel parcheggio"
+      );
+    }
+
+    // se il gate è SOLO IN → non posso fare un altro IN
+    if (gateDirection === "in") {
+      throw new ValidationError(
+        "Veicolo già dentro in questo parcheggio: impossibile registrare un altro ingresso"
+      );
+    }
+
+    // se il gate è OUT o BIDIRECTIONAL → deve essere un'uscita
+    return TransitType.OUT;
+  }
+
+  // --- CASO: l'ultimo transito globale è OUT → veicolo attualmente FUORI ---
+  if (last.type === TransitType.OUT) {
+    // se il gate è SOLO OUT → non posso fare due OUT di fila
+    if (gateDirection === "out") {
+      throw new ValidationError(
+        "Non puoi registrare due uscite consecutive per questo veicolo"
+      );
+    }
+
+    // gate "in" o "bidirectional" → prossimo sarà un IN
+    return TransitType.IN;
+  }
+
+  // fallback teorico (non dovrebbe mai arrivarci)
+  throw new ValidationError("Tipo di transito non valido");
 }
 
 /**
