@@ -1,8 +1,6 @@
 // src/validation/TransitValidation.ts
 import { z } from "zod";
-import { TransitType } from "../enum/TransitType";
 
-const plateRegex = /^[A-Z]{2}\d{3}[A-Z]{2}$/;
 const timeRegex =/^([0-2]\d|3[01])\/(0\d|1[0-2])\/\d{2,4} ([01]\d|2[0-3]):[0-5]\d:[0-5]\d$/;
 
 /**

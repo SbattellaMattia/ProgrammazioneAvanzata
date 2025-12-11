@@ -95,14 +95,6 @@ export class RateService {
    * 
    */
   async update(id: string, data: UpdateRateInput): Promise<Rate> {
-    // vietiamo il cambio di parkingId
-    if ((data as any).parkingId) {
-      throw new OperationNotAllowedError(
-        "updateRate",
-        "Non è permesso modificare il parkingId di una tariffa esistente"
-      );
-    }
-
     const updated = await this.rateDAO.update(id, data as any);
     if (!updated) {
       // caso limite: la tariffa è stata cancellata dopo ensureExists
@@ -119,8 +111,8 @@ export class RateService {
    * - validate(rateIdSchema, "params")
    * - ensureExists(rateService, "Tariffa")
    */
-  async delete(id: string): Promise<void> {
-    const ok = await this.rateDAO.delete(id);
+  async delete(rate: Rate): Promise<void> {
+    const ok = await this.rateDAO.delete(rate.id);
     if (!ok) {
       // caso limite: già eliminata dopo ensureExists
       throw new DatabaseError("Errore eliminazione tariffa");

@@ -1,15 +1,16 @@
+// src/validation/RateValidation.ts
 import { z } from "zod";
 import { VehicleType } from "../enum/VehicleType";
 import { DayType } from "../enum/DayType";
 
 /**
- * La stringa deve essere nel formato HH:MM o HH:MM:SS
+ * La stringa deve essere nel formato HH:MM
  */
 const timeStringSchema = z
   .string()
   .regex(
-    /^([01]\d|2[0-3]):[0-5]\d(:[0-5]\d)?$/,
-    "Deve essere nel formato HH:MM o HH:MM:SS"
+    /^([01]\d|2[0-3]):[0-5]\d$/,
+    "L'orario deve essere nel formato HH:MM (es. 09:30)"
   );
 
 /**
@@ -33,32 +34,34 @@ export const createRateSchema = z.object({
 /**
  * Zod schema per update tariffa
  * tutti i campi sono opzionali, ma almeno uno deve essere presente
+ * (price, hourStart, hourEnd)
  */
-export const updateRateSchema = z
+const updateRateBaseSchema = z
   .object({
-    vehicleType: z.nativeEnum(VehicleType).optional(),
-    dayType: z.nativeEnum(DayType).optional(),
     price: z.number().nonnegative("Il prezzo deve essere >= 0").optional(),
     hourStart: timeStringSchema.optional(),
     hourEnd: timeStringSchema.optional(),
   })
-  .refine(
-    (data) =>
-      data.vehicleType !== undefined ||
-      data.dayType !== undefined ||
-      data.price !== undefined ||
-      data.hourStart !== undefined ||
-      data.hourEnd !== undefined,
-    {
-      message: "Deve essere fornito almeno un campo da aggiornare",
-    }
-  );
+  .strict(); 
 
+export const updateRateSchema = updateRateBaseSchema.refine(
+  (data) =>
+    data.price !== undefined ||
+    data.hourStart !== undefined ||
+    data.hourEnd !== undefined,
+  {
+    message: "Deve essere fornito almeno un campo tra price, hourStart e hourEnd",
+  }
+);
+
+/**
+ * Schema per validare l'ID della tariffa (parametro di path)
+ */
 export const rateIdSchema = z.object({
   id: z.string().uuid("L'ID deve essere un UUID valido"),
 });
 
-
+// Tipi TypeScript inferiti dagli schemi
 export type CreateRateInput = z.infer<typeof createRateSchema>;
 export type UpdateRateInput = z.infer<typeof updateRateSchema>;
 export type RateIdParams = z.infer<typeof rateIdSchema>;
