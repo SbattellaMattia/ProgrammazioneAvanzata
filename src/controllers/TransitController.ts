@@ -53,9 +53,7 @@ class TransitController {
   delete = asyncHandler(async (req: Request, res: Response) => {
     const transit = res.locals.entity as Transit;
     await transit.destroy();
-    return res
-      .status(StatusCodes.OK)
-      .json({ message: "Transit eliminato con successo" });
+    return res.status(StatusCodes.OK).json({ message: "Transit eliminato con successo" });
   });
 
 

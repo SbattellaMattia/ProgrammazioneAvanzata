@@ -33,7 +33,7 @@ router.get('/',authMiddleware.authenticateToken, InvoiceController.getAll);
  * Se l'utente è un DRIVER, recupera solo le fatture associate al suo userId.
  * Se l'utente è un OPERATOR, può recuperare tutte le fatture.
  */
-router.get('/:id', InvoiceController.getById);
+router.get('/:id',authMiddleware.authenticateToken, InvoiceController.getById);
 
 
 /**
@@ -44,7 +44,7 @@ router.get('/:id', InvoiceController.getById);
  * Se l'utente è un OPERATOR, può scaricare i bollettini di tutte le fatture.
  */
 
-router.get('/:id/pdf', InvoiceController.downloadPayment);
+router.get('/:id/pdf',authMiddleware.authenticateToken, InvoiceController.downloadPayment);
 
 
 

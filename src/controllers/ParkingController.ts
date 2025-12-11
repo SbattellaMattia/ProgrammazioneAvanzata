@@ -17,7 +17,6 @@ class ParkingController {
     return res.status(StatusCodes.OK).json(parkings);
   });
 
-  // GET: L'entità è già stata trovata dal middleware!
   getById = asyncHandler(async (req: Request, res: Response) => {
     const parking = res.locals.entity as ParkingDAO; 
     return res.status(StatusCodes.OK).json(parking);
@@ -26,14 +25,14 @@ class ParkingController {
 
   update = asyncHandler(async (req: Request, res: Response) => {
     const parking = res.locals.entity as Parking;
-    const updatedParking = await parking.update(req.body);
+    const updatedParking = await ParkingService.update(parking.id, req.body);
     return res.status(StatusCodes.OK).json(updatedParking);
   });
 
   
   delete = asyncHandler(async (req: Request, res: Response) => {
     const parking = res.locals.entity as Parking;
-    await parking.destroy();
+    await ParkingService.delete(parking.id);
     return res.status(StatusCodes.OK).json({ message: 'Parcheggio eliminato con successo' });
   });
 }

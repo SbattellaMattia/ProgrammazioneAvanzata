@@ -48,25 +48,24 @@ class InvoiceService {
 
 
     async getAll(userId: string, userRole: Role.DRIVER | Role.OPERATOR, from?: Date, to?: Date, additionalWhere: WhereOptions<any> = {}): Promise<any[]> {
-        //const allowedPlates = await this.resolveAllowedPlates(userId, userRole);
         const where: any = { ...additionalWhere };
         userRole === Role.DRIVER ? where.userId = userId : null;
         return await invoiceDAO.findInDateRange('createdAt', from, to, where);
     }
 
-    async getById(invoiceId: string) {
+    async getById(invoiceId: string, userId:string) {
         const invoice = await invoiceDAO.findById(invoiceId);
         if (!invoice) {
             throw new NotFoundError(`Fattura con ID ${invoiceId} non trovata`);
         }
-        const user = await userDAO.findById(invoice.userId);
-        if (!user) { throw new NotFoundError(`Nessun utente associato alla fattura con ID ${invoiceId}`); }
 
-        if (user.role === Role.DRIVER) {
-            const isOwner = await invoiceDAO.exists({ id: invoice.id, userId: user.id, });
-            if (!isOwner) {
-                throw new ForbiddenError('Non sei autorizzato a vedere questa fattura');
-            }
+        const user = await userDAO.findById(invoice.userId);
+        const searcher = await userDAO.findById(userId);
+        if (!user) { throw new NotFoundError(`Nessun utente associato alla fattura con ID ${invoiceId}`); }
+        if (!searcher) { throw new NotFoundError(`Utente non trovato`); }
+
+        if (searcher.role === Role.DRIVER && user.id !== searcher.id) {
+            throw new ForbiddenError('Non sei autorizzato a vedere o pagare questa fattura');
         }
         return invoice;
 
@@ -77,10 +76,10 @@ class InvoiceService {
      * Genera il PDF del bollettino per una specifica fattura.
      * Restituisce il Buffer del PDF.
      */
-    async generateInvoicePdf(invoiceId: string): Promise<Buffer> {
+    async generateInvoicePdf(invoiceId: string, userId: string): Promise<Buffer> {
 
         // 1. Recupera la fattura
-        const invoice = await invoiceDAO.findById(invoiceId);
+        const invoice = await this.getById(invoiceId, userId);
         if (!invoice) {
             throw new NotFoundError(`Fattura con ID ${invoiceId} non trovata`);
         }
@@ -147,9 +146,8 @@ class InvoiceService {
      * Cambia solo lo stato, logica di pagamento non implementata
      * @param id 
      */
-    async pay(id: string) {
-        const invoice = await this.getById(id);
-
+    async pay(invoiceId: string, userId:string) {
+        const invoice = await this.getById(invoiceId,userId);
         // Se è già pagata, niente da fare
         if (invoice.status === InvoiceStatus.PAID) {
             throw new ForbiddenError('La fattura risulta già pagata');

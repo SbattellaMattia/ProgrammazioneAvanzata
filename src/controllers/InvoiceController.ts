@@ -18,7 +18,8 @@ class InvoiceController {
 
   getById = asyncHandler(async (req: Request, res: Response) => {
     const { id } = req.params;
-    const invoice = await InvoiceService.getById(id);
+    const user = (req as any).user;
+    const invoice = await InvoiceService.getById(id, user.id);
     return res.status(StatusCodes.OK).json(invoice);
   });
 
@@ -45,10 +46,11 @@ class InvoiceController {
    * Scarica il bollettino PDF con QR Code
    */
   downloadPayment = asyncHandler(async (req: Request, res: Response) => {
+    const user = (req as any).user;
     const { id } = req.params;
 
     // 1. Chiamata al Service (Tutta la logica è lì)
-    const pdfBuffer = await InvoiceService.generateInvoicePdf(id);
+    const pdfBuffer = await InvoiceService.generateInvoicePdf(id, user.id);
 
     // 2. Imposta Headers per il download
     res.setHeader('Content-Type', 'application/pdf');
@@ -61,8 +63,9 @@ class InvoiceController {
   });
 
   pay = asyncHandler(async (req: Request, res: Response) => {
+    const user = (req as any).user;
     const { id } = req.params;
-    await InvoiceService.pay(id);
+    await InvoiceService.pay(id, user.id);
   });
 }
 
