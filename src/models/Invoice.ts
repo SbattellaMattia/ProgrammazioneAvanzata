@@ -14,7 +14,6 @@ export class Invoice extends Model<InferAttributes<Invoice>, InferCreationAttrib
   declare status: InvoiceStatus;
   declare createdAt: Date;
   declare dueDate: Date;
-  declare qrPath: string | null;
 }
 
 Invoice.init(
@@ -64,11 +63,6 @@ Invoice.init(
     dueDate: {
       type: DataTypes.DATE,
       allowNull: false,
-    },
-
-    qrPath: {
-      type: DataTypes.STRING,
-      allowNull: true,
     },
   },
   {

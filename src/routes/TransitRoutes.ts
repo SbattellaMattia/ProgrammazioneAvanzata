@@ -1,6 +1,6 @@
 import { Router } from "express";
 import TransitController from "../controllers/TransitController";
-import { gateIdSchema } from "../validation/GateValidation";
+import multer from "multer";
 import { transitIdSchema, updateTransitSchema } from "../validation/TransitValidation";
 import { validate } from "../middlewares/Validate";
 import { ensureExists } from "../middlewares/EnsureExist";
@@ -17,6 +17,7 @@ const authService = new AuthService(userDAO);
 const authMiddleware = new AuthMiddleware(authService);
 
 const router = Router();
+const upload = multer({storage: multer.memoryStorage()}); 
 
 // Middleware riutilizzabile per qualsiasi route che usa un transitId
 const requireTransit = [
@@ -28,10 +29,12 @@ const requireTransit = [
  * Rotte per la creazione dei transiti random per varco
  */
 router.post(
-  "/gates/:id/random",
-  validate(gateIdSchema, "params"),
-  TransitController.createRandomTransitForGate
+  "/gate/:gateId/new",
+  authMiddleware.authenticateToken,
+  upload.single("file"),            
+  TransitController.createFromGateCapture
 );
+
 
 /**
  *  Rotte per il recupero di tutti i parcheggi

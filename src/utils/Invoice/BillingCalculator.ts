@@ -22,7 +22,7 @@ export class RateCalculator {
   ) {}
 
   /**
-   * API principale: dati due transitId (entry/exit) calcola l'importo totale.
+   *  dati due transitId (entry/exit) calcola l'importo totale.
    */
   async calcFromTransits(
     entryTransitId: string,

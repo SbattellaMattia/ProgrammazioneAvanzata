@@ -161,14 +161,6 @@ module.exports = {
         onUpdate: 'CASCADE',
         onDelete: 'SET NULL'
       },
-      imagePath: {
-        type: Sequelize.STRING(255),
-        allowNull: false
-      },
-      jsonPath: {
-        type: Sequelize.STRING(255),
-        allowNull: true
-      },
       createdAt: {
         type: Sequelize.DATE,
         allowNull: false,
@@ -370,10 +362,6 @@ module.exports = {
       },
       // Aggiungo paymentDate se serve (opzionale ma utile)
       // paymentDate: { type: Sequelize.DATE, allowNull: true },
-      qrPath: {
-        type: Sequelize.STRING(255),
-        allowNull: true
-      },
       createdAt: {
         type: Sequelize.DATE,
         allowNull: false,

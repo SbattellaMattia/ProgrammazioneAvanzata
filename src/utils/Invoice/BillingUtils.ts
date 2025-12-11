@@ -48,6 +48,7 @@ export function isInRange(date: Date, rate: Rate): boolean {
   return t >= start || t < end;
 }
 
+
 export function buildBillingContext(
   entryTransit: Transit,
   exitTransit: Transit,

@@ -59,21 +59,6 @@ export class TransitDAO extends DAO<Transit> implements ITransitDAO {
       order: [["date", "ASC"]],
     });
   }
-
-  async findByParkingAndPeriod(parkingId: string, from: Date, to: Date): Promise<Transit[]> {
-    return this.findAll({
-      where: {
-        parkingId,
-        date: {
-          [Op.between]: [from, to],
-        },
-      },
-      order: [["date", "ASC"]],
-    });
-  }
 }
-
-
-
 
 export default new TransitDAO();

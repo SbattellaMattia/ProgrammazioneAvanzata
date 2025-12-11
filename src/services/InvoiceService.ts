@@ -8,7 +8,6 @@ import { ForbiddenError, NotFoundError } from '../errors/CustomErrors';
 import { WhereOptions } from 'sequelize/types';
 import { Role } from '../enum/Role';
 import rateCalculator from '../utils/Invoice/BillingCalculator';
-import InvoiceDAO from '../dao/InvoiceDAO';
 import { InvoiceStatus } from '../enum/InvoiceStatus';
 
 
@@ -110,6 +109,7 @@ class InvoiceService {
 
         return pdfBuffer;
     }
+    
 
     async createInvoiceFromTransits(userId: string, parkingId: string, entryTransitId: string, exitTransitId: string) {
         // calcolo amount tramite RateCalculator
@@ -137,7 +137,6 @@ class InvoiceService {
             amount,
             status: "unpaid",
             dueDate: dueDate,
-            qrPath: null,
         } as any);
 
         return invoice;

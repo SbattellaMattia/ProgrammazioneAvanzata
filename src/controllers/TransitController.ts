@@ -10,10 +10,14 @@ class TransitController {
   /**
    * Crea un transito random per un gate
    */
-  createRandomTransitForGate = asyncHandler(async (req: Request, res: Response) => {
-    const { id: gateId } = req.params;
+  createFromGateCapture = asyncHandler(async (req: Request, res: Response) => {
+    const { gateId } = req.params;
 
-    const transit = await TransitService.createRandomTransitForGate(gateId);
+    const transit = await TransitService.createFromGateCapture(
+      gateId,
+      req.file || null,   // immagine se STANDARD
+      req.body || {}      // JSON se SMART
+    );
 
     return res.status(StatusCodes.CREATED).json(transit);
   });

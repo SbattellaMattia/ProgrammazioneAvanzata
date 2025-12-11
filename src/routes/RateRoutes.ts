@@ -13,7 +13,7 @@ import {
 const router = Router();
 
 /**
- * Rotte per la creazione dei gate
+ * Rotte per la creazione dei tariffe
  */
 router.post(
   '/', 

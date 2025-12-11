@@ -48,7 +48,7 @@ module.exports = {
       { id: userDriver1Id, name: 'Mario', surname: 'Rossi', email: 'mario.rossi@email.com', password: hashedPassword, role: 'driver', tokens: 100, createdAt: now, updatedAt: now },
       { id: userDriver2Id, name: 'Giulia', surname: 'Bianchi', email: 'giulia.bianchi@email.com', password: hashedPassword, role: 'driver', tokens: 100, createdAt: now, updatedAt: now },
       { id: userDriver3Id, name: 'Luca', surname: 'Verdi', email: 'luca.verdi@email.com', password: hashedPassword, role: 'driver', tokens: 100, createdAt: now, updatedAt: now },
-      { id: userDriver4Id, name: 'Andrea', surname: 'Ferrari', email: 'andrea.ferrari@email.com', password: hashedPassword, role: 'driver', tokens: 100, createdAt: now, updatedAt: now }
+      { id: userOperatorId, name: 'Andrea', surname: 'Ferrari', email: 'andrea.ferrari@email.com', password: hashedPassword, role: 'operator', tokens: 500, createdAt: now, updatedAt: now }
     ]);
 
     console.log('🌱 Seeding Parkings...');
@@ -69,12 +69,12 @@ module.exports = {
 
     console.log('🌱 Seeding Vehicles...');
     await queryInterface.bulkInsert('Vehicles', [
-      { plate: plateCarA, type: 'car', ownerId: userDriver1Id,imagePath:'src/img/img_prova1.png', jsonPath: null,createdAt: now, updatedAt: now },
-      { plate: plateMotoB, type: 'motorcycle', ownerId: userDriver2Id, imagePath:'src/img/img_prova4.png',jsonPath:null,createdAt: now, updatedAt: now },
-      { plate: plateCarC, type: 'car', ownerId: userDriver3Id,imagePath:'src/img/img_prova2.png', jsonPath: null,createdAt: now, updatedAt: now },
-      { plate: plateTruckD, type: 'truck', ownerId: userDriver3Id,imagePath:'src/img/img_prova3.png', jsonPath: null, createdAt: now, updatedAt: now },
-      { plate: plateCarE, type: 'car', ownerId: userDriver1Id,imagePath:'src/img/img_prova1.png', jsonPath: null,createdAt: now, updatedAt: now },
-      { plate: plateCarF, type: 'car', ownerId: userDriver4Id,imagePath:'src/img/img_prova4.png', jsonPath: null,createdAt: now, updatedAt: now },
+      { plate: plateCarA, type: 'car', ownerId: userDriver1Id,createdAt: now, updatedAt: now },
+      { plate: plateMotoB, type: 'motorcycle', ownerId: userDriver2Id, createdAt: now, updatedAt: now },
+      { plate: plateCarC, type: 'car', ownerId: userDriver3Id,createdAt: now, updatedAt: now },
+      { plate: plateTruckD, type: 'truck', ownerId: userDriver3Id, createdAt: now, updatedAt: now },
+      { plate: plateCarE, type: 'car', ownerId: userDriver1Id,createdAt: now, updatedAt: now },
+      { plate: plateCarF, type: 'car', ownerId: userDriver1Id,createdAt: now, updatedAt: now },
     ]);
 
     // ==========================================================
@@ -161,7 +161,6 @@ module.exports = {
         status: statuses[Math.floor(Math.random() * statuses.length)],
         createdAt: exitTime,
         dueDate: dueDate,
-        qrPath: `/invoices/gen_${i}.pdf`,
         createdAt: exitTime, // Creata all'uscita
         updatedAt: exitTime
       });
