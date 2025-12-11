@@ -5,6 +5,7 @@ import vehicleDAO from '../dao/VehicleDAO';
 import { TransitType } from "../enum/TransitType";
 import { VehicleType } from "../enum/VehicleType";
 import { ParkingStatsDTO } from '../dto/ParkingStatsDTO';
+import { InvoiceStatus } from '../enum/InvoiceStatus';
 
 class StatsService {
 
@@ -12,7 +13,7 @@ class StatsService {
         // 1. Ottieni TUTTI i parcheggi
         const allParkings = await parkingDAO.findAllParking();
 
-        // 2. Ottieni le fatture (Gestione date pulita)
+        // 2. Ottieni le fatture
         const startDate = from || new Date(0); // Epoch se undefined
         const endDate = to || new Date();      // Oggi se undefined
         const allInvoices = await invoiceDAO.findInDateRange("dueDate",startDate, endDate);
@@ -30,17 +31,16 @@ class StatsService {
         allInvoices.forEach(invoice => {
             const pId = invoice.parkingId.toString();
 
-            // Se il parcheggio esiste nella mappa (sicurezza)
+            // Se il parcheggio esiste nella mappa
             if (statsMap.has(pId)) {
                 const currentStats = statsMap.get(pId)!;
-                const amount = parseFloat(invoice.amount?.toString() || '0'); // Safety cast per float
+                const amount = parseFloat(invoice.amount?.toString() || '0'); 
 
                 // Aggiorna Totale Fatturato (Tutte le fatture emesse)
                 currentStats.total += amount;
 
                 // Aggiorna Incassato (Solo quelle pagate)
-                // IMPORTANTE: Controlla che lo status matchi il tuo ENUM ('PAID', 'paid', etc.)
-                if (invoice.status.toUpperCase() === 'PAID') {
+                if (invoice.status === InvoiceStatus.PAID) {
                     currentStats.paid += amount;
                 }
             }
@@ -52,7 +52,7 @@ class StatsService {
             return {
                 parkingId: park.id,
                 parkingName: park.name,     
-                totalRevenue: Number(stats.total.toFixed(2)), // Arrotondamento a 2 decimali
+                totalRevenue: Number(stats.total.toFixed(2)),
                 paidRevenue: Number(stats.paid.toFixed(2))
             };
         });

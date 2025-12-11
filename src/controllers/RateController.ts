@@ -17,7 +17,6 @@ class RateController {
     return res.status(StatusCodes.OK).json(Rates);
   });
 
-  // GET: L'entità è già stata trovata dal middleware!
   getById = asyncHandler(async (req: Request, res: Response) => {
     const Rate = res.locals.entity as RateDAO; 
     return res.status(StatusCodes.OK).json(Rate);
@@ -26,19 +25,14 @@ class RateController {
 
   update = asyncHandler(async (req: Request, res: Response) => {
     const Rate = res.locals.entity as Rate;
-    
-    // Metodo di istanza di Sequelize (molto efficiente)
     const updatedRate = await Rate.update(req.body);
     
     return res.status(StatusCodes.OK).json(updatedRate);
   });
 
-  // DELETE: Usiamo l'istanza trovata per distruggerla
   delete = asyncHandler(async (req: Request, res: Response) => {
-    const Rate = res.locals.entity as Rate;
-    
+    const Rate = res.locals.entity as Rate; 
     await Rate.destroy();
-    
     return res.status(StatusCodes.OK).json({ message: 'Tariffa eliminata con successo' });
   });
 }

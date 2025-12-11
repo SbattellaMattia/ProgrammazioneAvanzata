@@ -1,36 +1,11 @@
-// src/services/AuthService.ts
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { UserDAO } from '../dao/UserDAO';
 import { privateKey, publicKey} from '../secrets/keys';
 import { InvalidCredentialsError } from '../errors';
 import { Role } from '../enum/Role';
+import { JwtPayloadDTO, LoginResponseDTO } from '../dto/AuthDTO';
 
-
-interface LoginResponse {
-  token: string;
-  user: {
-    id: string;
-    email: string;
-    role: Role;
-    name: string | null;
-    surname: string | null;
-    tokens: number;
-  };
-}
-
-/**
- * Interface per il payload del token JWT
- */
-interface JwtPayload {
-  id: string;
-  email: string;
-  role: Role;
-  iat?: number;
-  exp?: number;
-  iss?: string;
-  sub?: string;
-}
 
 /**
  * Service per la gestione dell'autenticazione
@@ -60,15 +35,12 @@ export class AuthService {
    * const result = await authService.login('mario@email.com', 'password123');
    * console.log(result.token); // eyJhbGci...
    */
-  login = async (email: string, password: string): Promise<LoginResponse> => {
+  login = async (email: string, password: string): Promise<LoginResponseDTO> => {
     // Trova l'utente per email
     const user = await this.userDAO.findByEmail(email);
-    console.log('User found:', user?.password);
     if (!user) {
       throw new InvalidCredentialsError();
     }
-
-    console.log('User found:', user.password);
     const isPasswordValid = await bcrypt.compare(password, user.password);
     if (!isPasswordValid) {
       throw new InvalidCredentialsError();
@@ -123,11 +95,7 @@ export class AuthService {
       }
     );
   };
-
-
-  //RIVEDEREEEEEEEEEEEEEEEEEEEEEEEEEEE
-  refreshToken = (id: string): string => {return 'rivedere'}
-    
+ 
   /**
    * Verifica e decodifica un token JWT
    * 
@@ -144,12 +112,12 @@ export class AuthService {
    *   console.error('Token non valido');
    * }
    */
-  verifyToken = (token: string): JwtPayload => {
+  verifyToken = (token: string): JwtPayloadDTO => {
     try {
       const decoded = jwt.verify(token, publicKey, { 
         algorithms: ['RS256'],
         issuer: 'parking-system',
-      }) as JwtPayload;
+      }) as JwtPayloadDTO;
       return decoded;
     } catch (error) {
       

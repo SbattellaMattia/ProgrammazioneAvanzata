@@ -26,19 +26,14 @@ class ParkingController {
 
   update = asyncHandler(async (req: Request, res: Response) => {
     const parking = res.locals.entity as Parking;
-    
-    // Metodo di istanza di Sequelize (molto efficiente)
     const updatedParking = await parking.update(req.body);
-    
     return res.status(StatusCodes.OK).json(updatedParking);
   });
 
-  // DELETE: Usiamo l'istanza trovata per distruggerla
+  
   delete = asyncHandler(async (req: Request, res: Response) => {
     const parking = res.locals.entity as Parking;
-    
     await parking.destroy();
-    
     return res.status(StatusCodes.OK).json({ message: 'Parcheggio eliminato con successo' });
   });
 }

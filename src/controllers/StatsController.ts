@@ -9,11 +9,7 @@ import { PdfGenerator } from "../utils/PdfGenerator";
 class StatsController {
 
   getGlobalStats = asyncHandler(async (req: Request, res: Response) => {
-    // 1. I dati sono già validati da Zod nel middleware e si trovano in req.query
-    // Facciamo un cast sicuro grazie all'inferenza di Zod
     const filters = req.query as unknown as StatsQueryDTO;
-
-    // 2. Chiamata al Service
     const data = await StatsService.getGlobalRevenueStats(filters.from, filters.to);
 
     // 3. Gestione risposta PDF (Pseudo-codice)

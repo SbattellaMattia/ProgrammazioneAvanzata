@@ -48,7 +48,7 @@ module.exports = {
       { id: userDriver1Id, name: 'Mario', surname: 'Rossi', email: 'mario.rossi@email.com', password: hashedPassword, role: 'driver', tokens: 100, createdAt: now, updatedAt: now },
       { id: userDriver2Id, name: 'Giulia', surname: 'Bianchi', email: 'giulia.bianchi@email.com', password: hashedPassword, role: 'driver', tokens: 100, createdAt: now, updatedAt: now },
       { id: userDriver3Id, name: 'Luca', surname: 'Verdi', email: 'luca.verdi@email.com', password: hashedPassword, role: 'driver', tokens: 100, createdAt: now, updatedAt: now },
-      { id: userOperatorId, name: 'Andrea', surname: 'Ferrari', email: 'andrea.ferrari@email.com', password: hashedPassword, role: 'operator', tokens: 500, createdAt: now, updatedAt: now }
+      { id: userDriver4Id, name: 'Andrea', surname: 'Ferrari', email: 'andrea.ferrari@email.com', password: hashedPassword, role: 'driver', tokens: 500, createdAt: now, updatedAt: now }
     ]);
 
     console.log('🌱 Seeding Parkings...');
