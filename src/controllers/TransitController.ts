@@ -12,10 +12,10 @@ class TransitController {
    * Crea un transito NEW per un gate
    */
   createFromGate = asyncHandler(async (req: Request, res: Response) => {
-    const { gateId } = req.params;
+    const { id } = req.params;
 
     const transit = await TransitService.createFromGate(
-      gateId,
+      id,
       req.file || null,   // immagine se STANDARD
       req.body || {}      // JSON se SMART
     );

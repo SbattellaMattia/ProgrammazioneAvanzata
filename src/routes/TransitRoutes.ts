@@ -10,7 +10,7 @@ import { AuthService } from '../services/AuthService';
 import { UserDAO } from "../dao/UserDAO";
 import { consumeTokenCredit } from "../middlewares/TokenMiddleware";
 import GateService from "../services/GateService";
-
+import { gateIdSchema } from "../validation/GateValidation";
 
 
 const userDAO = new UserDAO();
@@ -30,8 +30,10 @@ const requireTransit = [
  * Rotte per la creazione dei transiti random per varco
  */
 router.post(
-  "/gate/:gateId/new",
+  "/gate/:id/new",
   authMiddleware.authenticateToken,
+  validate(gateIdSchema, "params"),
+  ensureExists(GateService, "Gate"),
   upload.single("file"),            
   TransitController.createFromGate
 );
