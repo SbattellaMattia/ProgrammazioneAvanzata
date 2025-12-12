@@ -19,7 +19,7 @@ class InvoiceController {
   getById = asyncHandler(async (req: Request, res: Response) => {
     const { id } = req.params;
     const user = (req as any).user;
-    const invoice = await InvoiceService.getById(id, user.id);
+    const invoice = await InvoiceService.getByUserId(id, user.id);
     return res.status(StatusCodes.OK).json(invoice);
   });
 
@@ -42,7 +42,7 @@ class InvoiceController {
 
 
   /**
-   * GET /api/invoices/:id/pdf
+   * GET /invoice/:id/pdf
    * Scarica il bollettino PDF con QR Code
    */
   downloadPayment = asyncHandler(async (req: Request, res: Response) => {
@@ -62,6 +62,10 @@ class InvoiceController {
     return res.send(pdfBuffer);
   });
 
+  /**
+   * GET /invoice/:id/pay
+   * Paga il bollettino
+   */
   pay = asyncHandler(async (req: Request, res: Response) => {
     const user = (req as any).user;
     const { id } = req.params;

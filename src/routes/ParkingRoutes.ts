@@ -7,7 +7,7 @@ import {
   createParkingSchema, 
   updateParkingSchema, 
   parkingIdSchema 
-} from '../validation/ParkingValidator';
+} from '../validation/ParkingValidation';
 
 const router = Router();
 

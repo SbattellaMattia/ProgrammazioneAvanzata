@@ -1,8 +1,8 @@
 import { Router } from 'express';
 import StatsController from '../controllers/StatsController';
 import { validate } from '../middlewares/Validate';
-import { statsQuerySchema } from '../validation/StatsValidator';
-import { parkingIdSchema } from '../validation/ParkingValidator';
+import { statsQuerySchema } from '../validation/StatsValidation';
+import { parkingIdSchema } from '../validation/ParkingValidation';
 import { ensureExists } from '../middlewares/EnsureExist';
 import ParkingService from '../services/ParkingService';
 

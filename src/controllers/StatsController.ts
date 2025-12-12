@@ -2,7 +2,7 @@ import { Request, Response } from 'express';
 import { StatusCodes } from 'http-status-codes';
 import { asyncHandler } from '../utils/AsyncHandler';
 import StatsService from '../services/StatsService';
-import { StatsQueryDTO } from '../validation/StatsValidator';
+import { StatsQueryDTO } from '../validation/StatsValidation';
 import { Parking } from '../models/Parking';
 import { PdfGenerator } from "../utils/PdfGenerator";
 

@@ -1,6 +1,6 @@
 // src/services/ParkingService.ts
 import { ParkingDAO } from '../dao/ParkingDAO';
-import { CreateParkingDTO, UpdateParkingDTO } from '../validation/ParkingValidator';
+import { CreateParkingDTO, UpdateParkingDTO } from '../validation/ParkingValidation';
 
 // Essendo stateless (o quasi), possiamo usarlo come singleton o istanziarlo qui.
 const parkingDAO = new ParkingDAO();

@@ -1,11 +1,15 @@
-import {Router} from 'express';
+import { Router } from 'express';
 import InvoiceController from '../controllers/InvoiceController';
 import { AuthMiddleware } from '../middlewares/AuthMiddleware';
 import { AuthService } from '../services/AuthService';
 import { UserDAO } from '../dao/UserDAO';
+import { ensureExists } from '../middlewares/EnsureExist';
+import { validate } from '../middlewares/Validate';
+import { invoiceIdSchema } from '../validation/InvoiceValidation';
+import InvoiceService from '../services/InvoiceService';
 
 const userDAO = new UserDAO();
-const authService = new AuthService(userDAO); 
+const authService = new AuthService(userDAO);
 const authMiddleware = new AuthMiddleware(authService);
 
 const router = Router();
@@ -15,6 +19,11 @@ const router = Router();
  * */
 //router.use();
 
+const requireInvoice = [
+    authMiddleware.authenticateToken,
+    validate(invoiceIdSchema, 'params'),
+    ensureExists(InvoiceService, 'Invoice')
+];
 
 /**
  * Rotta per trovare tutte le fatture
@@ -23,7 +32,7 @@ const router = Router();
  * Se l'utente è un DRIVER, recupera solo le fatture associate al suo userId.
  * Se l'utente è un OPERATOR, recupera tutte le fatture.
  */
-router.get('/',authMiddleware.authenticateToken, InvoiceController.getAll);
+router.get('/', authMiddleware.authenticateToken, InvoiceController.getAll);
 
 
 /**
@@ -33,7 +42,7 @@ router.get('/',authMiddleware.authenticateToken, InvoiceController.getAll);
  * Se l'utente è un DRIVER, recupera solo le fatture associate al suo userId.
  * Se l'utente è un OPERATOR, può recuperare tutte le fatture.
  */
-router.get('/:id',authMiddleware.authenticateToken, InvoiceController.getById);
+router.get('/:id', ...requireInvoice , InvoiceController.getById);
 
 
 /**
@@ -44,7 +53,7 @@ router.get('/:id',authMiddleware.authenticateToken, InvoiceController.getById);
  * Se l'utente è un OPERATOR, può scaricare i bollettini di tutte le fatture.
  */
 
-router.get('/:id/pdf',authMiddleware.authenticateToken, InvoiceController.downloadPayment);
+router.get('/:id/pdf', ...requireInvoice, InvoiceController.downloadPayment);
 
 
 
@@ -53,6 +62,9 @@ router.get('/:id/pdf',authMiddleware.authenticateToken, InvoiceController.downlo
  * GET /invoices/:id/pay 
  * Si limita a modificare lo stato della fattura a "paid"
 */
-router.get('/:id/pay',authMiddleware.authenticateToken, InvoiceController.pay);
+router.get('/:id/pay', ...requireInvoice, InvoiceController.pay);
+
+
+
 
 export default router;

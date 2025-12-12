@@ -52,8 +52,8 @@ router.get('/:id', ...requireGate, GateController.getById);
  */
 router.put(
   '/:id', 
-  ...requireGate,                 // Prima controlla esistenza
-  validate(updateGateSchema, 'body'), // Poi valida il body
+  ...requireGate,                 
+  validate(updateGateSchema, 'body'), 
   GateController.update
 );
 

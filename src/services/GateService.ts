@@ -50,7 +50,7 @@ export class GateService {
    * Necessario per il middleware `ensureExists`.
    */
   async getById(id: string): Promise<Gate | null> {
-    return this.gateDAO.findById(id);
+    return await this.gateDAO.findById(id);
   }
 
   /**

@@ -12,8 +12,6 @@ import { InvoiceStatus } from '../enum/InvoiceStatus';
 
 class InvoiceService {
     
-    
-
     private async resolveAllowedPlates(userId: string, userRole: Role.DRIVER | Role.OPERATOR, requestedPlates?: string[]) {
         console.log('Resolving allowed plates for user:', userId, 'role:', userRole, 'requestedPlates:', requestedPlates);
         if (userRole === Role.OPERATOR) {
@@ -39,7 +37,11 @@ class InvoiceService {
         return await invoiceDAO.findInDateRange('createdAt', from, to, where);
     }
 
-    async getById(invoiceId: string, userId:string) {
+    async getById(id: string) {
+        return await invoiceDAO.findById(id);
+    }
+
+    async getByUserId(invoiceId: string, userId:string) {
         const invoice = await invoiceDAO.findById(invoiceId);
         if (!invoice) {
             throw new NotFoundError(`Fattura con ID ${invoiceId} non trovata`);
@@ -65,7 +67,7 @@ class InvoiceService {
     async generateInvoicePdf(invoiceId: string, userId: string): Promise<Buffer> {
 
         // 1. Recupera la fattura
-        const invoice = await this.getById(invoiceId, userId);
+        const invoice = await this.getByUserId(invoiceId, userId);
         if (!invoice) {
             throw new NotFoundError(`Fattura con ID ${invoiceId} non trovata`);
         }
@@ -133,7 +135,7 @@ class InvoiceService {
      * @param id 
      */
     async pay(invoiceId: string, userId:string) {
-        const invoice = await this.getById(invoiceId,userId);
+        const invoice = await this.getByUserId(invoiceId,userId);
         // Se è già pagata, niente da fare
         if (invoice.status === InvoiceStatus.PAID) {
             throw new ForbiddenError('La fattura risulta già pagata');
