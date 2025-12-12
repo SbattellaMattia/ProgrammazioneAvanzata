@@ -26,7 +26,7 @@ export class UserDAO extends DAO<User> implements IUserDAO {
     return this.executeQuery(async () => {
       const user = await this.findById(id);
     
-      if (!user) throw new NotFoundError('Utente non trovato');
+      if (!user) throw new NotFoundError('Utente', id);
       return user.tokens < 1 ?  false :  true;
       
     }, 'checkTokens');

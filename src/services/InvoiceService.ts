@@ -44,13 +44,13 @@ class InvoiceService {
     async getByUserId(invoiceId: string, userId:string) {
         const invoice = await invoiceDAO.findById(invoiceId);
         if (!invoice) {
-            throw new NotFoundError(`Fattura con ID ${invoiceId} non trovata`);
+            throw new NotFoundError("Fattura", invoiceId);
         }
 
         const user = await userDAO.findById(invoice.userId);
         const searcher = await userDAO.findById(userId);
         if (!user) { throw new NotFoundError(`Nessun utente associato alla fattura con ID ${invoiceId}`); }
-        if (!searcher) { throw new NotFoundError(`Utente non trovato`); }
+        if (!searcher) { throw new NotFoundError("Utente", userId); }
 
         if (searcher.role === Role.DRIVER && user.id !== searcher.id) {
             throw new ForbiddenError('Non sei autorizzato a vedere o pagare questa fattura');
@@ -69,7 +69,7 @@ class InvoiceService {
         // 1. Recupera la fattura
         const invoice = await this.getByUserId(invoiceId, userId);
         if (!invoice) {
-            throw new NotFoundError(`Fattura con ID ${invoiceId} non trovata`);
+            throw new NotFoundError("Fattura", invoiceId);
         }
 
         // 2. Recupera Info Parcheggio (Serve il nome per il PDF)

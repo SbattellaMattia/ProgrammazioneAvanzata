@@ -37,9 +37,7 @@ export class ForbiddenError extends AppError {
  */
 export class NotFoundError extends AppError {
   constructor(resource: string = 'Risorsa', identifier?: string | number) {
-    const message = identifier 
-      ? `${resource} con identificativo '${identifier}' non trovato`
-      : `${resource} non trovato`;
+    const message = identifier ? (`${resource} con identificativo ${identifier} non trovato`): (`${resource} non trovato`);
     super(message, StatusCodes.NOT_FOUND);
   }
 }

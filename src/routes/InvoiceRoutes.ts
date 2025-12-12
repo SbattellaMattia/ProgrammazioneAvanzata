@@ -11,14 +11,11 @@ import InvoiceService from '../services/InvoiceService';
 const userDAO = new UserDAO();
 const authService = new AuthService(userDAO);
 const authMiddleware = new AuthMiddleware(authService);
-
 const router = Router();
 
 /** Middleware per autenticazione e autorizzazione degli operatori
  * @middleware authenticateToken
  * */
-//router.use();
-
 const requireInvoice = [
     authMiddleware.authenticateToken,
     validate(invoiceIdSchema, 'params'),

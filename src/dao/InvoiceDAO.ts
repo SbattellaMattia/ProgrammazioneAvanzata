@@ -1,7 +1,6 @@
 import Invoice from "../models/Invoice";
 import { DAO } from "./DAO";
 import { InvoiceStatus } from "../enum/InvoiceStatus";
-import { NotFoundError } from "../errors";
 
 export interface IInvoiceDAO {
   existsById(id: string): Promise<boolean>;

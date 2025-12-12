@@ -13,7 +13,7 @@ export const consumeTokenCredit = async (req: Request, res: Response, next: Next
     // Recupera l'utente dal database
     const user = await userDAO.findById(req.user.id);
     if (!user) {
-      throw new NotFoundError("Utente non trovato");
+      throw new NotFoundError("Utente",req.user.id);
     }
 
     // Controlla credito token, se zero lancia errore
