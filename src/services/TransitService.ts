@@ -9,7 +9,7 @@ import { TransitDAO } from "../dao/TransitDAO";
 import { ParkingDAO } from "../dao/ParkingDAO";
 import { GateDAO } from "../dao/GateDAO";
 import { VehicleDAO } from "../dao/VehicleDAO";
-import invoiceDAO  from "../dao/InvoiceDAO";
+import invoiceDAO from "../dao/InvoiceDAO";
 import { TransitFilterDTO, TransitReportDTO } from "../dto/TransitDTO";
 import { UpdateTransitInput } from "../validation/TransitValidation";
 import { TransitType } from "../enum/TransitType";
@@ -30,6 +30,7 @@ import {
   ensureCapacityForIn,
   updateParkingCapacityAfterTransit,
 } from "../utils/TransitUtils";
+import { Role } from "../enum/Role";
 
 
 class TransitService {
@@ -66,14 +67,14 @@ class TransitService {
         throw new ValidationError("Il file deve essere un'immagine");
       }
 
-      
+
       const tmpPath = path.join(
         os.tmpdir(),
         `gate_${gateId}_${Date.now()}.png`
       );
       await fs.promises.writeFile(tmpPath, file.buffer);
 
-      detectedPlate = await ocr(tmpPath); 
+      detectedPlate = await ocr(tmpPath);
 
       console.log("OCR plate:", detectedPlate);
     } else if (gate.type === GateType.SMART) {
@@ -141,7 +142,6 @@ class TransitService {
 
     // 6) se è un'uscita provo a creare fattura
     await this.tryCreateInvoiceForExit(created, vehicle);
-
     return created;
   }
 
@@ -159,9 +159,6 @@ class TransitService {
    * Recupera i transiti associati a un gate specifico.
    */
   async getTransitsByGate(gateId: string): Promise<Transit[]> {
-    const exists = await this.gateDAO.existsById(gateId);
-    if (!exists) throw new NotFoundError("Gate", gateId);
-
     return this.transitDAO.findByGate(gateId);
   }
 
@@ -169,13 +166,13 @@ class TransitService {
    * Aggiorna un transito esistente.
    */
   async update(transit: Transit, data: UpdateTransitInput): Promise<Transit> {
-      await this.assertTransitModifiable(transit);
-   
+    await this.assertTransitModifiable(transit);
+
     const newDate = this.parseToDate(data.date);
 
-    
+
     const conflictingOut = await this.transitDAO.findOne({
-      vehicleId: transit.vehicleId,       
+      vehicleId: transit.vehicleId,
       type: TransitType.OUT,
       date: {
         [Op.gte]: newDate,
@@ -194,7 +191,7 @@ class TransitService {
     });
 
     return updated;
-}
+  }
 
   /**
    * Cancella un transito esistente.
@@ -205,7 +202,7 @@ class TransitService {
     if (!ok) {
       throw new DatabaseError("Errore eliminazione transito");
     }
-}
+  }
 
   async getTransitHistory(filters: TransitFilterDTO): Promise<TransitReportDTO[] | Buffer> {
     const { userId, userRole, from, to, plates, format } = filters;
@@ -213,7 +210,7 @@ class TransitService {
     let allowedPlates: string[] = [];
 
     // DRIVER → può vedere SOLO le sue targhe
-    if (userRole === "DRIVER") {
+    if (userRole === Role.DRIVER) {
       const myVehicles = await this.vehicleDAO.findByOwner(userId!);
       const myPlates = myVehicles.map(v => v.plate);
 
@@ -278,8 +275,8 @@ class TransitService {
     return reportRows;
   }
 
-  private async tryCreateInvoiceForExit(exitTransit: Transit,vehicle: Vehicle): Promise<void> {
-  // Se non è un'uscita, non faccio nulla
+  private async tryCreateInvoiceForExit(exitTransit: Transit, vehicle: Vehicle): Promise<void> {
+    // Se non è un'uscita, non faccio nulla
     if (exitTransit.type !== TransitType.OUT) return;
 
     // 1) prendo TUTTI i transiti di quel parcheggio
@@ -309,7 +306,7 @@ class TransitService {
 
     const entryTransit = candidateEntries[0];
 
-    
+
 
     // 5) crea fattura usando il tuo InvoiceService
     const invoice = await InvoiceService.createInvoiceFromTransits(
@@ -335,7 +332,7 @@ class TransitService {
   }
 
   private async assertTransitModifiable(transit: Transit): Promise<void> {
-  
+
     if (transit.type !== TransitType.IN) {
       throw new OperationNotAllowedError(
         "Puoi modificare e/o cancellare solo transiti di tipo IN"
@@ -353,6 +350,6 @@ class TransitService {
       );
     }
   }
-  
+
 }
 export default new TransitService();

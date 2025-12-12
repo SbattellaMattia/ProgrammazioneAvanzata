@@ -12,16 +12,7 @@ import { InvoiceStatus } from '../enum/InvoiceStatus';
 
 class InvoiceService {
     
-    async getAllFrom(from?: Date, to?: Date, state?: string): Promise<any[]> {
-        return await invoiceDAO.findInDateRange('createdAt', from, to, { status: state });
-    }
-
-    /*async getAll(userId: string, userRole: Role.DRIVER | Role.OPERATOR) {
-        if (userRole === Role.DRIVER) {
-            return await invoiceDAO.findAll({ where: { userId }, order: [['createdAt', 'DESC']] });
-        }
-        return await invoiceDAO.findAll({ order: [['createdAt', 'DESC']] });
-    }*/
+    
 
     private async resolveAllowedPlates(userId: string, userRole: Role.DRIVER | Role.OPERATOR, requestedPlates?: string[]) {
         console.log('Resolving allowed plates for user:', userId, 'role:', userRole, 'requestedPlates:', requestedPlates);

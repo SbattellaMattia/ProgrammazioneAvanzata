@@ -4,6 +4,16 @@ import GateService from '../services/GateService';
 import { validate } from '../middlewares/Validate';
 import { ensureExists } from '../middlewares/EnsureExist';
 import { createGateSchema, updateGateSchema, gateIdSchema } from '../validation/GateValidation';
+import { AuthMiddleware } from '../middlewares/AuthMiddleware';
+import { AuthService } from '../services/AuthService';
+import { UserDAO } from "../dao/UserDAO";
+import { RoleMiddleware } from '../middlewares/RoleMiddleware';
+
+
+const userDAO = new UserDAO();
+const authService = new AuthService(userDAO); 
+const authMiddleware = new AuthMiddleware(authService);
+const roleMiddleware = new RoleMiddleware(authService);
 
 const router = Router();
 
@@ -31,6 +41,7 @@ const requireGate = [
   ensureExists(GateService, 'Gate')
 ];
 
+router.get("/:id/transits", authMiddleware.authenticateToken, roleMiddleware.isOperator, ...requireGate, GateController.getTransitByGate)
 /**
  * Rotta per il recupero di un gate specifico tramite ID
  */

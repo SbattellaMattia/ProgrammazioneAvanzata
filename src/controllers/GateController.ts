@@ -4,6 +4,7 @@ import { asyncHandler } from '../utils/AsyncHandler';
 import GateService from '../services/GateService';
 import Gate from '../models/Gate';
 import { GateDAO } from '../dao/GateDAO';
+import TransitService from '../services/TransitService';
 
 class GateController {
 
@@ -20,6 +21,11 @@ class GateController {
   getById = asyncHandler(async (req: Request, res: Response) => {
     const Gate = res.locals.entity as GateDAO; 
     return res.status(StatusCodes.OK).json(Gate);
+  });
+
+  getTransitByGate = asyncHandler(async (req: Request, res: Response) => {
+    const Transits = await TransitService.getTransitsByGate(res.locals.entity.id)
+    return res.status(StatusCodes.OK).json(Transits);
   });
 
   update = asyncHandler(async (req: Request, res: Response) => {

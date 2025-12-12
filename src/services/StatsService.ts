@@ -16,7 +16,7 @@ class StatsService {
         // 2. Ottieni le fatture
         const startDate = from || new Date(0); // Epoch se undefined
         const endDate = to || new Date();      // Oggi se undefined
-        const allInvoices = await invoiceDAO.findInDateRange("dueDate",startDate, endDate);
+        const allInvoices = await invoiceDAO.findInDateRange("createdAt",startDate, endDate);
 
         // 3. Aggregazione in Memoria
         // Usiamo una Mappa che tiene un OGGETTO con entrambi i contatori
@@ -69,8 +69,7 @@ class StatsService {
         const startDate = from || new Date(0);
         const endDate = to || new Date();
 
-        const allInvoices = await invoiceDAO.findInDateRange("dueDate",startDate,endDate);
-
+        const allInvoices = await invoiceDAO.findInDateRange("createdAt",startDate,endDate);
         const parkingInvoices = allInvoices.filter((inv) => inv.parkingId === parkingId);
 
         let total = 0;
@@ -83,14 +82,12 @@ class StatsService {
           const amount = Number(inv.amount ?? 0);
           total += amount;
 
-          const status = (inv.status || "").toUpperCase();
-
-          if (status === "PAID") {
+          if (inv.status === InvoiceStatus.PAID) {
             paidAmount += amount;
             paidCount++;
-          } else if (status === "UNPAID") {
+          } else if (inv.status === InvoiceStatus.UNPAID) {
             unpaidCount++;
-          } else if (status === "EXPIRED") {
+          } else if (inv.status === InvoiceStatus.EXPIRED) {
             expiredCount++;
           }
         }
@@ -120,11 +117,8 @@ class StatsService {
         let inCount = 0;
         let outCount = 0;
 
-        type SlotAgg = { total: number; in: number; out: number };
-        const slotMap = new Map<string, SlotAgg>();
-
-        type VehicleTypeAgg = Record<string, number>;
-        const vehicleTypeCounts: VehicleTypeAgg = {};
+        const slotMap = new Map<string, { total: number; in: number; out: number }>();
+        const vehicleTypeCounts: Record<string, number> = {};
 
         const getSlot = (d: Date): string => {
           const h = d.getHours(); 

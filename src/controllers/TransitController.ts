@@ -47,7 +47,7 @@ class TransitController {
     const updatedTransit = await TransitService.update(transit, req.body);
     return res.status(StatusCodes.OK).json(updatedTransit);
   });
-  
+
   /**
    * Elimina un transito
    */
@@ -58,7 +58,7 @@ class TransitController {
   });
 
 
-  
+
   getHistory = asyncHandler(async (req: Request, res: Response) => {
     // 1. Estrai dati dalla Query e dall'Utente (dal middleware auth)
     const { from, to, plates, format } = req.query;
@@ -87,6 +87,8 @@ class TransitController {
 
     return res.json(result);
   });
-}
 
+
+ 
+}
 export default new TransitController();

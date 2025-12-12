@@ -9,6 +9,7 @@ import { AuthMiddleware } from '../middlewares/AuthMiddleware';
 import { AuthService } from '../services/AuthService';
 import { UserDAO } from "../dao/UserDAO";
 import { consumeTokenCredit } from "../middlewares/TokenMiddleware";
+import GateService from "../services/GateService";
 
 
 
@@ -35,7 +36,6 @@ router.post(
   TransitController.createFromGate
 );
 
-
 /**
  *  Rotte per il recupero di tutti i parcheggi
  */
@@ -61,6 +61,9 @@ router.put(
   validate(updateTransitSchema, "body"),
   TransitController.update
 );
+
+
+
 
 /**
  * Rotta per la cancellazione di un transito specifico tramite ID
