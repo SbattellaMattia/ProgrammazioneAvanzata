@@ -1,7 +1,7 @@
 import { Router } from "express";
 import TransitController from "../controllers/TransitController";
 import multer from "multer";
-import { transitIdSchema, updateTransitSchema } from "../validation/TransitValidation";
+import { transitIdSchema, updateTransitSchema, transitHistorySchema } from "../validation/TransitValidation";
 import { validate } from "../middlewares/Validate";
 import { ensureExists } from "../middlewares/EnsureExist";
 import TransitService  from "../services/TransitService";
@@ -57,7 +57,7 @@ router.post("/gate/:id/new", ...requireAuth, ...requireGate, upload.single("file
 /**
  * Rotta per il recupero della cronologia transiti dell'utente autenticato
  */
-router.get("/history", authMiddleware.authenticateToken, consumeTokenCredit, TransitController.getHistory);
+router.get("/history", authMiddleware.authenticateToken, consumeTokenCredit, validate(transitHistorySchema, 'query'),TransitController.getHistory);
 
 /**
  *  Rotte per il recupero di tutti i transti
