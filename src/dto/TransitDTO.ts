@@ -5,7 +5,6 @@ export interface TransitFilterDTO {
   to?: Date;
   userId?: string;
   userRole?: string;       // "DRIVER" | "OPERATOR"
-  type?: string;           // filtro per tipo veicolo (car, motorcycle, truck, ...)
   format?: "json" | "pdf";
 }
 

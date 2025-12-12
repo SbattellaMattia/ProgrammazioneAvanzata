@@ -5,7 +5,7 @@ import { AuthService } from '../services/AuthService';
 import { UserDAO } from '../dao/UserDAO';
 import { ensureExists } from '../middlewares/EnsureExist';
 import { validate } from '../middlewares/Validate';
-import { invoiceIdSchema } from '../validation/InvoiceValidation';
+import { invoiceIdSchema, invoiceQuerySchema } from '../validation/InvoiceValidation';
 import InvoiceService from '../services/InvoiceService';
 
 const userDAO = new UserDAO();
@@ -29,7 +29,7 @@ const requireInvoice = [
  * Se l'utente è un DRIVER, recupera solo le fatture associate al suo userId.
  * Se l'utente è un OPERATOR, recupera tutte le fatture.
  */
-router.get('/', authMiddleware.authenticateToken, InvoiceController.getAll);
+router.get('/', authMiddleware.authenticateToken, validate(invoiceQuerySchema,'query'), InvoiceController.getAll);
 
 
 /**

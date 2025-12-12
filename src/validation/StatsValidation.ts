@@ -12,6 +12,10 @@ export const statsQuerySchema = z.object({
   format: z.enum(['json', 'pdf'], {
     errorMap: () => ({ message: "Il formato deve essere 'json' o 'pdf'" })
   }).optional().default('json'),
+})
+.refine((data) => !(data.from && data.to) || data.from <= data.to, {
+    message: "La data di inizio deve essere precedente o uguale alla data di fine",
+    path: ["to"],
 });
 
 export type StatsQueryDTO = z.infer<typeof statsQuerySchema>;

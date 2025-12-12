@@ -29,30 +29,20 @@ export const createRateSchema = z.object({
     .nonnegative("Il prezzo deve essere >= 0"),
   hourStart: timeStringSchema,
   hourEnd: timeStringSchema,
-});
+}).strict();
 
 /**
  * Zod schema per update tariffa
  * tutti i campi sono opzionali, ma almeno uno deve essere presente
  * (price, hourStart, hourEnd)
  */
-const updateRateBaseSchema = z
+export const updateRateSchema = z
   .object({
     price: z.number().nonnegative("Il prezzo deve essere >= 0").optional(),
     hourStart: timeStringSchema.optional(),
     hourEnd: timeStringSchema.optional(),
-  })
-  .strict(); 
+  }).strict(); 
 
-export const updateRateSchema = updateRateBaseSchema.refine(
-  (data) =>
-    data.price !== undefined ||
-    data.hourStart !== undefined ||
-    data.hourEnd !== undefined,
-  {
-    message: "Deve essere fornito almeno un campo tra price, hourStart e hourEnd",
-  }
-);
 
 /**
  * Schema per validare l'ID della tariffa (parametro di path)
