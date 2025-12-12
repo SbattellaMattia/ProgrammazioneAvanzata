@@ -30,8 +30,9 @@ const requireTransit = [
  * Rotte per la creazione dei transiti random per varco
  */
 router.post(
-  "/gate/:gateId/new",
+  "/gate/:id/new",
   authMiddleware.authenticateToken,
+  validate(gateIdSchema, "params"),
   upload.single("file"),            
   TransitController.createFromGate
 );
