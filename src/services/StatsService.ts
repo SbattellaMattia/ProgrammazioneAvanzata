@@ -6,57 +6,68 @@ import { TransitType } from "../enum/TransitType";
 import { VehicleType } from "../enum/VehicleType";
 import { ParkingStatsDTO } from '../dto/ParkingStatsDTO';
 import { InvoiceStatus } from '../enum/InvoiceStatus';
+import { calculateAvgFreeSlotsTotal } from '../utils/HelperAvgSlot';
 
 class StatsService {
 
-    async getGlobalRevenueStats(from: Date | undefined, to: Date | undefined) {
-        // 1. Ottieni TUTTI i parcheggi
-        const allParkings = await parkingDAO.findAllParking();
+    async getGlobalParkingStats(from: Date | undefined, to: Date | undefined) {
+      const startDate = from || new Date(0);
+      const endDate = to || new Date();
+      const allParkings = await parkingDAO.findAllParking();
+      const allInvoices = await invoiceDAO.findInDateRange("createdAt", startDate, endDate);
+      const results = [];
 
-        // 2. Ottieni le fatture
-        const startDate = from || new Date(0); // Epoch se undefined
-        const endDate = to || new Date();      // Oggi se undefined
-        const allInvoices = await invoiceDAO.findInDateRange("createdAt",startDate, endDate);
+      for (const park of allParkings) {
+        const parkingId = park.id.toString();
 
-        // 3. Aggregazione in Memoria
-        // Usiamo una Mappa che tiene un OGGETTO con entrambi i contatori
-        const statsMap = new Map<string, { total: number; paid: number }>();
+        const parkingInvoices = allInvoices.filter(inv => inv.parkingId.toString() === parkingId);
 
-        // Inizializza tutto a 0
-        allParkings.forEach(p => {
-            statsMap.set(p.id.toString(), { total: 0, paid: 0 });
+        let totalRevenue = 0;
+        let paidRevenue = 0;
+
+        for (const inv of parkingInvoices) {
+          const amount = Number(inv.amount ?? 0);
+          totalRevenue += amount;
+          if (inv.status === InvoiceStatus.PAID) paidRevenue += amount;
+        }
+
+        const totalCapacity =
+          Number(park.carCapacity ?? 0) +
+          Number(park.motorcycleCapacity ?? 0) +
+          Number(park.truckCapacity ?? 0);
+
+        const allTransitsForParking = await transitDAO.findByParking(parkingId);
+
+        const transitsInRange = allTransitsForParking.filter(t => {
+          const d = t.date;
+          return d >= startDate && d <= endDate;
         });
 
-        // Ciclo unico di accumulo
-        allInvoices.forEach(invoice => {
-            const pId = invoice.parkingId.toString();
-
-            // Se il parcheggio esiste nella mappa
-            if (statsMap.has(pId)) {
-                const currentStats = statsMap.get(pId)!;
-                const amount = parseFloat(invoice.amount?.toString() || '0'); 
-
-                // Aggiorna Totale Fatturato (Tutte le fatture emesse)
-                currentStats.total += amount;
-
-                // Aggiorna Incassato (Solo quelle pagate)
-                if (invoice.status === InvoiceStatus.PAID) {
-                    currentStats.paid += amount;
-                }
-            }
+        // --- AVG FREE SLOTS (TOT) per slot ---
+        const avgFreeSlots = calculateAvgFreeSlotsTotal({
+          transits: transitsInRange.map(t => ({
+            date: t.date,
+            type: t.type === TransitType.IN ? "in" : "out",
+          })),
+          totalCapacity,
+          startDate,
+          endDate,
         });
 
-        // 4. Costruisci il risultato finale
-        return allParkings.map(park => {
-            const stats = statsMap.get(park.id.toString())!;
-            return {
-                parkingId: park.id,
-                parkingName: park.name,     
-                totalRevenue: Number(stats.total.toFixed(2)),
-                paidRevenue: Number(stats.paid.toFixed(2))
-            };
+        results.push({
+          parkingId: park.id,
+          parkingName: park.name,
+          from: startDate,
+          to: endDate,
+          totalRevenue: Number(totalRevenue.toFixed(2)),
+          paidRevenue: Number(paidRevenue.toFixed(2)),
+          capacity: { total: totalCapacity },
+          avgFreeSlots, // { overall, bySlot }
         });
-    }
+      }
+
+      return results;
+}
 
     // Ottieni statistiche di un singolo parcheggio
     async getParkingRevenueStats(

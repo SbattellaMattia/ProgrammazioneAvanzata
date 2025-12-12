@@ -9,19 +9,16 @@ import { PdfGenerator } from "../utils/PdfGenerator";
 class StatsController {
 
   getGlobalStats = asyncHandler(async (req: Request, res: Response) => {
-    const filters = req.query as unknown as StatsQueryDTO;
-    const data = await StatsService.getGlobalRevenueStats(filters.from, filters.to);
+  const filters = req.query as unknown as StatsQueryDTO;
 
-    // 3. Gestione risposta PDF (Pseudo-codice)
-    if ((data as any).isPdf) {
-       // res.setHeader('Content-Type', 'application/pdf');
-       // return res.send(data.pdfBuffer);
-       return res.status(StatusCodes.OK).json({ message: "PDF generato (mock)" });
-    }
+  const data = await StatsService.getGlobalParkingStats(filters.from, filters.to);
 
-    // 4. Risposta JSON standard
-    return res.status(StatusCodes.OK).json(data);
-  });
+  if (filters.format === "pdf") {
+    return res.status(StatusCodes.OK).json({ message: "PDF generato (mock)" });
+  }
+
+  return res.status(StatusCodes.OK).json(data);
+});
   
 
   getParkingStats = asyncHandler(async (req: Request, res: Response) => {

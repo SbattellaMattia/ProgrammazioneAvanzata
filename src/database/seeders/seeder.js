@@ -53,8 +53,8 @@ module.exports = {
 
     console.log('🌱 Seeding Parkings...');
     await queryInterface.bulkInsert('Parkings', [
-      { id: parkingDowntownId, name: 'Downtown Parking', address: 'Via Roma 15, Milan', carCapacity: 3, motorcycleCapacity: 2, truckCapacity: 1, createdAt: now, updatedAt: now },
-      { id: parkingStationId, name: 'Station Parking', address: 'Piazza Garibaldi 3, Milan', carCapacity: 0, motorcycleCapacity: 2, truckCapacity: 0, createdAt: now, updatedAt: now }
+      { id: parkingDowntownId, name: 'Downtown Parking', address: 'Via Roma 15, Milan', carCapacity: 5, motorcycleCapacity: 5, truckCapacity: 2, createdAt: now, updatedAt: now },
+      { id: parkingStationId, name: 'Station Parking', address: 'Piazza Garibaldi 3, Milan', carCapacity: 10, motorcycleCapacity: 2, truckCapacity: 0, createdAt: now, updatedAt: now }
     ]);
 
     console.log('🌱 Seeding Gates...');
@@ -99,30 +99,84 @@ module.exports = {
 
     const statuses = ['paid', 'paid', 'paid', 'unpaid', 'expired']; // Più probabilità di PAID
 
-    // Generiamo 50 eventi negli ultimi 30 giorni
-    for (let i = 0; i < 50; i++) {
-      // 1. Scegli scenario random
-      const sc = scenarios[Math.floor(Math.random() * scenarios.length)];
-      
-      // 2. Scegli data random negli ultimi 30 giorni
-      const daysBack = Math.floor(Math.random() * 30);
-      const entryTime = new Date(now);
-      entryTime.setDate(entryTime.getDate() - daysBack);
-      entryTime.setHours(8 + Math.floor(Math.random() * 10), Math.floor(Math.random() * 60)); // Tra le 8:00 e le 18:00
+    // --- capacity note: prese dai tuoi bulkInsert Parkings (senza query DB)
+    const parkingCaps = {
+      [parkingDowntownId]: { car: 5, motorcycle: 5, truck: 2 },
+      [parkingStationId]: { car: 10, motorcycle: 2, truck: 0 },
+    };
 
-      // 3. Genera uscita (tra 1 e 5 ore dopo)
-      const durationHours = 1 + Math.floor(Math.random() * 4);
-      const exitTime = new Date(entryTime);
-      exitTime.setHours(exitTime.getHours() + durationHours);
+    // mappa targa -> tipo (presa dai Vehicles che hai inserito sopra)
+    const plateType = {
+      [plateCarA]: "car",
+      [plateMotoB]: "motorcycle",
+      [plateCarC]: "car",
+      [plateTruckD]: "truck",
+      [plateCarE]: "car",
+      [plateCarF]: "car",
+    };
 
-      // 4. Crea ID Transiti
+    // sessioni accettate per verificare sovrapposizioni (occupazione nel tempo)
+    const sessions = []; 
+    // { parkingId, vehicleType, entryTime, exitTime }
+
+    function overlaps(aStart, aEnd, bStart, bEnd) {
+      return aStart < bEnd && bStart < aEnd; // [start, end)
+    }
+
+    function canSchedule(parkingId, vehicleType, entryTime, exitTime) {
+      const cap = (parkingCaps[parkingId] && parkingCaps[parkingId][vehicleType]) ?? 0;
+      if (cap <= 0) return false;
+
+      const used = sessions.filter(s =>
+        s.parkingId === parkingId &&
+        s.vehicleType === vehicleType &&
+        overlaps(entryTime, exitTime, s.entryTime, s.exitTime)
+      ).length;
+
+      return used < cap;
+    }
+    for (let i = 0; i < 5000; i++) {
+      let sc, entryTime, exitTime, durationHours;
+
+      // riprova finché trovi una sessione valida rispetto alla capienza
+      for (let attempt = 0; attempt < 300; attempt++) {
+        sc = scenarios[Math.floor(Math.random() * scenarios.length)];
+
+        const vehicleType = plateType[sc.plate];
+        if (!vehicleType) continue;
+
+        // data random ultimi 30 giorni
+        const daysBack = Math.floor(Math.random() * 30);
+        entryTime = new Date(now);
+        entryTime.setDate(entryTime.getDate() - daysBack);
+        entryTime.setHours(Math.floor(Math.random() * 24), Math.floor(Math.random() * 60), 0, 0);
+        // durata 1–4 ore
+        durationHours = 1 + Math.floor(Math.random() * 4);
+        exitTime = new Date(entryTime);
+        exitTime.setHours(exitTime.getHours() + durationHours);
+
+        // se non c'è capienza (es. truckCapacity=0 a Station), scarta e riprova
+        if (!canSchedule(sc.park, vehicleType, entryTime, exitTime)) {
+          if (attempt === 299) {
+            throw new Error(
+              `Impossibile schedulare transito coerente (parking=${sc.park}, type=${vehicleType}). Aumenta capacity o riduci volume.`
+            );
+          }
+          continue;
+        }
+
+        // accetta sessione (occupa uno slot in quell'intervallo)
+        sessions.push({ parkingId: sc.park, vehicleType, entryTime, exitTime });
+        break;
+      }
+
+      // === QUI SOTTO è uguale a prima ===
+
       const tInId = uuidv4();
       const tOutId = uuidv4();
 
-      // 5. Calcola importo (prezzo base * ore + random centesimi)
       const amount = parseFloat((sc.basePrice * durationHours + Math.random()).toFixed(2));
 
-      // 6. Push Transiti
       transits.push({
         id: tInId,
         vehicleId: sc.plate,
@@ -147,9 +201,8 @@ module.exports = {
         updatedAt: exitTime
       });
 
-      // 7. Push Fattura
       const dueDate = new Date(exitTime);
-      dueDate.setDate(dueDate.getDate() + 1); // Scadenza 1 giorno dopo
+      dueDate.setDate(dueDate.getDate() + 1);
 
       invoices.push({
         id: uuidv4(),
@@ -159,12 +212,12 @@ module.exports = {
         exitTransitId: tOutId,
         amount: amount,
         status: statuses[Math.floor(Math.random() * statuses.length)],
-        createdAt: exitTime,
         dueDate: dueDate,
-        createdAt: exitTime, // Creata all'uscita
+        createdAt: exitTime,
         updatedAt: exitTime
       });
     }
+
     // SCRITTURA NEL DB
     await queryInterface.bulkInsert('Transits', transits);
     await queryInterface.bulkInsert('Invoices', invoices);
