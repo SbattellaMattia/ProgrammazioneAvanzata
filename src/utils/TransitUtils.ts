@@ -1,10 +1,5 @@
-import path from "path";
-import fs from "fs";
-
 import { TransitType } from "../enum/TransitType";
-import { GateType } from "../enum/GateType";
 import { VehicleType } from "../enum/VehicleType";
-import { ocr } from "../utils/Ocr/OcrService";
 import {
   ValidationError,
   NotFoundError,
