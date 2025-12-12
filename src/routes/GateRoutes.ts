@@ -8,29 +8,23 @@ import { AuthMiddleware } from '../middlewares/AuthMiddleware';
 import { AuthService } from '../services/AuthService';
 import { UserDAO } from "../dao/UserDAO";
 import { RoleMiddleware } from '../middlewares/RoleMiddleware';
+import { consumeTokenCredit } from "../middlewares/TokenMiddleware";
 
-
+const router = Router();
 const userDAO = new UserDAO();
 const authService = new AuthService(userDAO); 
 const authMiddleware = new AuthMiddleware(authService);
 const roleMiddleware = new RoleMiddleware(authService);
 
-const router = Router();
-
 /**
- * Rotte per la creazione dei gate
+ * Middleware per richiedere l'autenticazione e il ruolo di operatore
+ * prima di accedere alle rotte protette.
  */
-router.post(
-  '/', 
-  validate(createGateSchema, 'body'), 
-  GateController.create
-);
-
-/**
- * Rotte per il recupero di tutti gate
- */
-router.get('/', GateController.getAll);
-
+const requireAuth = [
+  authMiddleware.authenticateToken,
+  consumeTokenCredit,
+  roleMiddleware.isOperator
+];
 
 /**
  * Middleware per validare l'ID del gate e assicurarsi che esista
@@ -41,25 +35,34 @@ const requireGate = [
   ensureExists(GateService, 'Gate')
 ];
 
-router.get("/:id/transits", authMiddleware.authenticateToken, roleMiddleware.isOperator, ...requireGate, GateController.getTransitByGate)
+/**
+ * Rotte per la creazione dei gate
+ */
+router.post('/', ...requireAuth, validate(createGateSchema, 'body'), GateController.create);
+
+/**
+ * Rotte per il recupero di tutti gate
+ */
+router.get('/', ...requireAuth, GateController.getAll);
+
+/**
+ * Rotta per il recupero dei transiti di un gate specifico tramite ID
+ */
+router.get("/:id/transits", ...requireAuth, ...requireGate, GateController.getTransitByGate)
+
 /**
  * Rotta per il recupero di un gate specifico tramite ID
  */
-router.get('/:id', ...requireGate, GateController.getById);
+router.get('/:id', ...requireAuth, ...requireGate, GateController.getById);
 
 /**
  * Rotta per l'aggiornamento di un gate specifico tramite ID
  */
-router.put(
-  '/:id', 
-  ...requireGate,                 
-  validate(updateGateSchema, 'body'), 
-  GateController.update
-);
+router.put('/:id', ...requireAuth, ...requireGate, validate(updateGateSchema, 'body'), GateController.update);
 
 /**
  * Rotta per la cancellazione di un gate specifico tramite ID
  */
-router.delete('/:id', ...requireGate, GateController.delete);
+router.delete('/:id', ...requireAuth, ...requireGate, GateController.delete);
 
 export default router;

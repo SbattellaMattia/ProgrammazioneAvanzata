@@ -1,29 +1,30 @@
 import { Router } from 'express';
 import ParkingController from '../controllers/ParkingController';
-import ParkingService from '../services/ParkingService'; // Necessario per il middleware
+import ParkingService from '../services/ParkingService'; 
 import { validate } from '../middlewares/Validate';
 import { ensureExists } from '../middlewares/EnsureExist';
-import { 
-  createParkingSchema, 
-  updateParkingSchema, 
-  parkingIdSchema 
-} from '../validation/ParkingValidation';
+import { AuthMiddleware } from '../middlewares/AuthMiddleware';
+import { AuthService } from '../services/AuthService';
+import { RoleMiddleware } from '../middlewares/RoleMiddleware';
+import { UserDAO } from "../dao/UserDAO";
+import { consumeTokenCredit } from "../middlewares/TokenMiddleware";
+import { createParkingSchema, updateParkingSchema, parkingIdSchema } from '../validation/ParkingValidation';
 
 const router = Router();
+const userDAO = new UserDAO();
+const authService = new AuthService(userDAO); 
+const authMiddleware = new AuthMiddleware(authService);
+const roleMiddleware = new RoleMiddleware(authService);
 
 /**
- * Rotte per la creazione dei parcheggi
+ * Middleware per richiedere l'autenticazione e il ruolo di operatore
+ * prima di accedere alle rotte protette.
  */
-router.post(
-  '/', 
-  validate(createParkingSchema, 'body'), 
-  ParkingController.create
-);
-
-/**
- * Rotte per il recupero di tutti i parcheggi
- */
-router.get('/', ParkingController.getAll);
+const requireAuth = [
+  authMiddleware.authenticateToken,
+  consumeTokenCredit,
+  roleMiddleware.isOperator
+];
 
 /**
  * Middleware per validare l'ID del parcheggio e assicurarsi che esista
@@ -35,23 +36,28 @@ const requireParking = [
 ];
 
 /**
+ * Rotte per la creazione dei parcheggi
+ */
+router.post('/', ...requireAuth, validate(createParkingSchema, 'body'), ParkingController.create);
+
+/**
+ * Rotte per il recupero di tutti i parcheggi
+ */
+router.get('/', ...requireAuth, ParkingController.getAll);
+
+/**
  * Rotta per il recupero di un parcheggio specifico tramite ID
  */
-router.get('/:id', ...requireParking, ParkingController.getById);
+router.get('/:id', ...requireAuth, ...requireParking, ParkingController.getById);
 
 /**
  * Rotta per l'aggiornamento di un parcheggio specifico tramite ID
  */
-router.put(
-  '/:id', 
-  ...requireParking,                 
-  validate(updateParkingSchema, 'body'), 
-  ParkingController.update
-);
+router.put('/:id', ...requireAuth, ...requireParking, validate(updateParkingSchema, 'body'), ParkingController.update);
 
 /**
  * Rotta per la cancellazione di un parcheggio specifico tramite ID
  */
-router.delete('/:id', ...requireParking, ParkingController.delete);
+router.delete('/:id', ...requireAuth, ...requireParking, ParkingController.delete);
 
 export default router;

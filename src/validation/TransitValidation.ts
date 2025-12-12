@@ -12,8 +12,7 @@ export const updateTransitSchema = z
     date: z
       .string()
       .regex(timeRegex, "timestamp deve essere nel formato DD/MM/YYYY HH:MM:SS"),
-  })
-  .strict(); // vieta qualsiasi altro campo (type, plate, ecc.)
+  }).strict(); // vieta qualsiasi altro campo (type, plate, ecc.)
   
 export const transitIdSchema = z.object({
   id: z.string().uuid("L'ID deve essere un UUID valido"),

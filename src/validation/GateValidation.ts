@@ -16,7 +16,7 @@ export const createGateSchema = z.object({
   direction: z.nativeEnum(GateDirection, {
     errorMap: () => ({ message: "direction non valido" }),
   }),
-});
+}).strict();
 
 /**
  * Schema Zod per l’update di un Gate
@@ -27,13 +27,7 @@ export const updateGateSchema = z
   .object({
     type: z.nativeEnum(GateType).optional(),
     direction: z.nativeEnum(GateDirection).optional(),
-  })
-  .refine(
-    (data) => data.type !== undefined || data.direction !== undefined,
-    {
-      message: "Deve essere fornito almeno un campo da aggiornare",
-    }
-  );
+  }).strict();
 
 /**
  * Validazione parametro :id nella rotta
