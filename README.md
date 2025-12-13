@@ -1,4 +1,4 @@
-# Sviluppo di un sistema backend per la gestione di parcheggi
+# Sviluppo di un sistema backend per la gestione di parcheggi e transiti
 <div align="center">
   <img src="https://www.eltrasistemi.com/images/cms/skins/eltra/images/cms/pages/entry-pay-exit.svg" alt="Logo del progetto" width="400"/>
 </div>
@@ -37,7 +37,11 @@ Il presente progetto è stato realizzato per l’esame di Programmazione Avanzat
 
 
 # Obiettivi di progetto
+L’obiettivo del progetto è realizzare un sistema backend, sviluppato in TypeScript, per la gestione completa dei parcheggi e dei relativi transiti veicolari, basato su Node.js, Express, Sequelize e Postgres coome RDBMS esterno. Il sistema deve calcolare il costo dei parcheggi a partire dai passaggi dei veicoli tra varchi di ingresso e uscita, tenendo conto di tipologia di veicolo, fasce orarie e giorno della settimana (festivo/feriale).​
 
+Il backend deve consentire la gestione dei parcheggi, dei varchi (standard con upload immagine + OCR, e smart con JSON), delle tariffe e dei transiti tramite operazioni CRUD esposte via API REST autenticate con JWT. In fase di inserimento di un transito deve essere verificata la capacità residua del parcheggio e, se necessario, generata automaticamente la fattura associata all’utente, che potrà essere successivamente pagata tramite apposita rotta.​
+
+Sono inoltre richieste rotte per consultare lo stato dei transiti per una o più targhe in un intervallo temporale, con output in formato JSON o PDF, nel rispetto dei vincoli di visibilità tra operatore e automobilista. Devono essere fornite statistiche di utilizzo e fatturato per parcheggio, anche filtrate per intervallo temporale e fascia oraria, e funzionalità per verificare e scaricare le fatture (incluso un PDF con QR code). 
   
 # Struttura del progetto
 Di seguito è riportata la struttura delle directory del progetto:
@@ -164,7 +168,7 @@ class DatabaseConnection {
 }
 ```
 
-## Async Handler (Wrapper)
+## Wrapper (Async Handler)
 
 Per evitare boilerplate con `try/catch` ripetuti in tutti i controller è stato introdotto un **wrapper per gli handler asincroni** (`asyncHandler`), che rappresenta un piccolo **pattern di Higher-Order Function** applicato ai middleware Express.
 
@@ -222,60 +226,1335 @@ Nel progetto la catena viene utilizzata per gestire step ortogonali sulla richie
 
 - **InvalidRouteMiddleware**: si occupa di controllare se la richiesta matcha con una rotta esistente.
 
-- **TokenMiddleware**: scala esattamente un token per richiesta (modificabile). Anche se il sistema dovesse generare un errore il token viene scalato.
-
-- **ErrorsMiddleware**: cattura qualsiasi eccezione e la trasforma in risposta HTTP, usando le `AppError` generate dalla factory.
-
 - **EnsureExist**: si occupa di vedere se l'`id` che viene passato nella richiesta esista davvero. In ingresso prende il `Service` corrispondente. Grazie a questo middleware il `Controller` ha già l'id della richiesta e (nel caso di richieste semplici come la Get di un singolo oggetto), può restituirlo direttamente senza ripetere la pipeline di ricerca.
+
+``` typescript  
+interface ReadService<T> {
+  getById(id: string): Promise<T | null>;
+}
+
+/**
+ * Middleware Factory per verificare l'esistenza di una risorsa.
+ * Se esiste, la salva in res.locals.entity
+ * Se non esiste, lancia NotFoundError
+ */
+export const ensureExists = (service: ReadService<any>, resourceName: string) => {
+  return asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
+    const id = req.params.id;
+    const entity = await service.getById(id);
+    if (!entity) {
+      throw new NotFoundError(resourceName, id);
+    }
+
+    // Salviamo l'entità trovata in res.locals per passarla al controller
+    // "entity" è un nome generico, nel controller lo recupereremo da qui
+    res.locals.entity = entity;
+    
+    next();
+  });
+};
+```
+
+```typescript 
+/**
+ * Parking ripreso dalla richiesta
+ */
+getById = asyncHandler(async (req: Request, res: Response) => {
+    const parking = res.locals.entity as ParkingDAO; 
+    return res.status(StatusCodes.OK).json(parking);
+  });
+```
 
 - **Validate**: si occupa di validare in modo centralizzato la richiesta e i suoi parametri, garantendo che arrivino al service già nel formato e nel dominio atteso. In questo modo si eliminano gran parte dei controlli “manuali” nei service e si semplificano le operazioni di creazione (POST) e aggiornamento (PUT) degli oggetti, permettendo anche payload più ricchi rispetto al minimo richiesto dalle specifiche.​ **Zod** viene utilizzato per definire schemi riutilizzabili (DTO di input) che descrivono forma, tipo e vincoli dei dati; per ogni schema è possibile marcare campi come opzionali, obbligatori o vietati, ad esempio impedendo che l’id venga passato o modificato dall’utente.
 
 
+``` typescript  
+/**
+ * Schema di validazione per il login
+ */
+export const loginSchema = z.object({
+  email: z
+    .string({ required_error: 'Email richiesta' })
+    .email('Formato email non valido'),
+  
+  password: z
+    .string({ required_error: 'Password richiesta' }),
+});
+
+export type LoginInput = z.infer<typeof loginSchema>;
+```
+
+
+- **TokenMiddleware**: scala esattamente un token per richiesta (modificabile). Anche se il sistema dovesse generare un errore il token viene scalato.
+
+- **ErrorsMiddleware**: cattura qualsiasi eccezione e la trasforma in risposta HTTP, usando le `AppError` generate dalla factory.
+
+
 
 # Diagrammi UML
-# Diagramma dei casi d'uso
+## Diagramma dei casi d'uso
 
 
-# Diagramma E-R
+## Diagramma E-R
 
 
-# Diagrammi delle sequenze
+## Diagrammi delle sequenze
 ## NE BASTANO 4 PRINCIPALI
 
+
 # API Routes
-| Verbo HTTP | Endpoint | Descrzione | Autenticazione JWT |
-|:----------:|:--------:|:-----------:|:------------------:|
-| POST| `/login`|Autenticazione dell'utente tramite email e password. | ❌ |
-| GET| `/parking`| Recupero di tutti i parcheggi. | ✅ |
-| GET| `/parking:id`| Recupero dello specifico parcheggio. | ✅ |
+
+| Verbo HTTP | Endpoint                                             | Descrizione                                                   | Autenticazione JWT |
+|------------|------------------------------------------------------|---------------------------------------------------------------|--------------------|
+| POST       | /login                                               | Login utente driver, restituisce JWT                          | ❌                 |
+| POST       | /login                                               | Login operatore, restituisce JWT                              | ❌                 |
+| GET        | /parking/                                            | Elenco di tutti i parcheggi                                   | ✅                 |
+| GET        | /parking/{parkingId}                                 | Dettaglio di un singolo parcheggio                            | ✅                 |
+| POST       | /parking                                             | Creazione di un nuovo parcheggio                              | ✅                 |
+| PUT        | /parking/{parkingId}                                 | Aggiornamento dati di un parcheggio                           | ✅                 |
+| DELETE     | /parking/{parkingId}                                 | Eliminazione di un parcheggio                                 | ✅                 |
+| GET        | /gate/                                               | Elenco di tutti i varchi                                      | ✅                 |
+| GET        | /gate/{gateId}                                       | Dettaglio di un singolo varco                                 | ✅                 |
+| POST       | /gate/                                               | Creazione di un nuovo varco                                   | ✅                 |
+| PUT        | /gate/{gateId}                                       | Aggiornamento dati di un varco                                | ✅                 |
+| DELETE     | /gate/{gateId}                                       | Eliminazione di un varco                                      | ✅                 |
+| GET        | /gate/{gateId}/transits                              | Elenco transiti associati a un varco (TransitByGate)          | ✅                 |
+| GET        | /transit/                                            | Elenco di tutti i transiti                                    | ✅                 |
+| GET        | /transit/{transitId}                                 | Dettaglio di un singolo transito                              | ✅                 |
+| POST       | /transit/gate/{gateId}/new                           | Creazione transito da varco standard (upload immagine targa)  | ✅                 |
+| PUT        | /transit/{transitId}                                 | Aggiornamento dati di un transito                             | ✅                 |
+| DELETE     | /transit                                             | Eliminazione di un transito                                   | ✅                 |
+| GET        | /transit/history?plates=&format=&from=&to=           | Storico transiti (filtri per targa, periodo, formato JSON/PDF)| ✅                 |
+| GET        | /rate/{rateId}                                       | Dettaglio di una tariffa                                      | ✅                 |
+| GET        | /rate                                                | Elenco di tutte le tariffe                                    | ✅                 |
+| POST       | /rate                                                | Creazione di una nuova tariffa                                | ✅                 |
+| PUT        | /rate/{rateId}                                       | Aggiornamento di una tariffa                                  | ✅                 |
+| DELETE     | /rate/{rateId}                                       | Eliminazione di una tariffa                                   | ✅                 |
+| GET        | /stats/                                              | Statistiche globali per tutti i parcheggi                     | ✅                 |
+| GET        | /stats/{parkingId}?format=pdf\|json                  | Statistiche per singolo parcheggio in formato JSON/PDF        | ✅                 |
+| GET        | /invoice                                             | Elenco delle fatture dell’utente                              | ✅                 |
+| GET        | /invoice/{invoiceId}                                 | Dettaglio di una fattura                                      | ✅                 |
+| GET        | /invoice/{invoiceId}/pdf                             | Download PDF/bollettino fattura (InvoiceGetPdf)               | ✅                 |
+| GET        | /invoice/{invoiceId}/pay                             | Simulazione pagamento fattura (InvoicePay)                    | ✅                 |
+
+
 
 
 # POST /login
+
 **Parametri**
-| Posizione | Nome    | Tipo     | Descrizione  |Obbligatorio  |
-|:---------:|:-------:|:--------:|:------------:|:------------:|
-|Richiesta nel body|  `email`| `string`|Indirizzo email dell'utente| ✅ |
-|Richiesta nel body|  `password`| `string`|Password dell'utente| ✅ |
+
+| Posizione          | Nome       | Tipo     | Descrizione                    | Obbligatorio |
+|:------------------:|:----------:|:--------:|:------------------------------:|:------------:|
+| Body (JSON)        | `email`    | `string` | Indirizzo email dell’utente    | ✅           |
+| Body (JSON)        | `password` | `string` | Password dell’utente           | ✅           |
 
 **Esempio di richiesta**
 
-```http
-GET /login HTTP/1.1
+``` json
+
+POST /login HTTP/1.1
 Content-Type: application/json
+Authorization: Bearer <JWT opzionale>
+
 ```
-```json
+
+``` json
+
 {
-  "email": "luigi@example.com",
-  "password": "luigi"
+"email": "mario.rossi@email.com",
+"password": "password123"
 }
+
 ```
+
 **Esempio di risposta**
-```json
+
+``` json
+
 {
-  "token":  "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImMwMzlhMGI3LTk2ZTktNGYyNC04YmQwLWU3ZmVlOWZlNmYyNSIsInJvbGUiOiJvcGVyYXRvcmUiLCJpYXQiOjE3NDkzMTAwOTUsImV4cCI6MTc0OTMxMzY5NX0.lU2POutp8peqHHCHTQEO90Fcu3bmurHJmki_fbjhiyb4c3vpycbnQmmKtTrSPQAwco4z0xyf5G8sOzwLWgspx81NCLCgxkuTpvQyhE76TcRrSHIH5BhDFv2pDvUKkWy1Q7oZ4o_0bKc0r0gRyTbOhDYw_wVkdrXZJkUpu0hGgUnlaNubrdHi7qoCOVPkaEfgOr5EvHdxCFGseZa-RMva17YhR0o85W54aJSvuBgyye-Fd7-MP8shXOzqBgrBoMSLRHSSAtk-m00b_dLNQYu_1Lbk2LJTbbHZo1LBsIF7lldMKtPPLqkaVZKpPOCwCrIKFyOvv5K0uCHeRmvQ15VqqiyQKyH7pYwaYPfiuyKvqzOAkOW3Kwf2LqOepWlk5iyk3ZlF6ZGKb6HVrR6dw2mxYB39YSDIXITBe1YVMQmq2bPJS7-kcRfY2m3Cm6mdtgC4SQjcSezqC27EsbyqgCQckrm7wr2ENbFZNCtVzsKVsTDTdTiHdK8oKDrcWjGZX6Oyv_j4zJZgZNrTe2L1l4p2Yt0d1Z6ZI3gLzhfJja3un8feERHwcgozrTGsKSrMLemN17U6oGhj2k-pK4PUJsC_GAaX_98hAjkxSsLSpQZ4_6-907bU1jwn0B-SOnkqA2kyRRCxlXMdtBfa5vcIRJP9R5zRR14RSBCHPBdeSt_-GSk",
-  "message": "Login successful"
+    "success": true,
+    "message": "Login effettuato con successo",
+    "data": {
+        "token": "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjFkODJjZmI1LTRiMDgtNDkwNC1iYTkwLTg3ZjRlMGZhOTZiMiIsImVtYWlsIjoibWFyaW8ucm9zc2lAZW1haWwuY29tIiwicm9sZSI6ImRyaXZlciIsImlhdCI6MTc2NTY0NjQ0OSwiZXhwIjoxNzY1NzMyODQ5LCJpc3MiOiJwYXJraW5nLXN5c3RlbSIsInN1YiI6IjFkODJjZmI1LTRiMDgtNDkwNC1iYTkwLTg3ZjRlMGZhOTZiMiJ9.ZWzEvBPnLdVI9juOJaHUxgq57WxNkZDYL7ztNApMZls0hysWQkmdC6UF75qdIN6UdZDQeSy8esCPl5TIYNXrWKSpi6O02bTbFlDeJxX77m_nUicuJ_x2T-K3a7MEHddzamvvmmAHrcf1IUmdK-LfOo6qhnDpQ5kgMMw6PsCcYwoDIF98cLVtM7aiSPFM79YXqgYMkQMqs7MqigJfptq-WI9C92tdtIimshg-aPQj9E68Wfn-12htKhi_bi_MrYG-opNQPRPxPodiEDYogJDy8G8FNfYvHOLGY-naGqgFo0IKO2yP7tkt66IzJCrZrSEAB6d5T6RqIFPkK-ckSuU_9EWulkjQr1BL13AJhMnAu5cSc1ayLG74KrhSvIQGO7cjYhbMCBh-8zLJX9h9ulUCqe2HFEVnNUJVseebnxKM3Rh_nVnmTqgP5fn2Qi-6Er9gTsLwcMhDzVY45RfI3Rd8jLBwt08wNBHBrtTS3SSrvX7pwEGE8Ovkp2tuNt-naMet8WrHa_CJhRABg3NQUphgGMKIxafCr56rKJrl4i1tKVE4kR66gbprDxAwj1AzmkgH3sys-4fPTtCpOlJHJVLCsR7cHBBx7BIuB9_UXcMgS1Jm7GdzgwyFTsci6OtWtZUi7vVAHV_nxECi3pMzDTLe7LDCdNHnRqVIK1REl7V1Cyk",
+        "user": {
+            "id": "1d82cfb5-4b08-4904-ba90-87f4e0fa96b2",
+            "email": "mario.rossi@email.com",
+            "role": "driver",
+            "name": "Mario",
+            "surname": "Rossi",
+            "tokens": 99
+        }
+    }
+}
+
+```
+
+---
+
+# GET /parking/
+
+**Parametri**
+
+| Posizione   | Nome | Tipo | Descrizione                          | Obbligatorio |
+|:-----------:|:----:|:----:|:------------------------------------:|:------------:|
+| Header      | `Authorization` | `string` | Token JWT operatore | ✅ |
+
+**Esempio di richiesta**
+
+```
+
+GET /parking/ HTTP/1.1
+Authorization: Bearer <JWT>
+
+```
+
+``` typescript
+
+// nessun body richiesto
+
+```
+
+**Esempio di risposta**
+
+``` json
+
+[
+    {
+        "id": "aee42b3c-6d9e-49d8-ac18-0c9c627a2cc8",
+        "name": "Downtown Parking",
+        "address": "Via Roma 15, Milan",
+        "carCapacity": 1,
+        "motorcycleCapacity": 2,
+        "truckCapacity": 1,
+        "createdAt": "2025-12-12T16:34:57.396Z",
+        "updatedAt": "2025-12-12T17:30:26.190Z"
+    },
+    {
+        "id": "457e1a07-cdeb-43ea-b30d-7672fb73d06e",
+        "name": "Station Parking",
+        "address": "Piazza Garibaldi 3, Milan",
+        "carCapacity": 4,
+        "motorcycleCapacity": 2,
+        "truckCapacity": 6,
+        "createdAt": "2025-12-12T16:34:57.396Z",
+        "updatedAt": "2025-12-12T16:34:57.396Z"
+    }
+
+```
+
+---
+
+# GET /parking/{parkingId}
+
+**Parametri**
+
+| Posizione   | Nome         | Tipo     | Descrizione                   | Obbligatorio |
+|:-----------:|:------------:|:--------:|:-----------------------------:|:------------:|
+| Header      | `Authorization` | `string` | Token JWT operatore        | ✅           |
+| Path        | `parkingId`  | `string` | UUID del parcheggio           | ✅           |
+
+**Esempio di richiesta**
+
+``` html
+
+GET /parking/aee42b3c-6d9e-49d8-ac18-0c9c627a2cc8 HTTP/1.1
+Authorization: Bearer <JWT>
+
+```
+
+``` typescript
+
+// nessun body richiesto
+
+```
+
+**Esempio di risposta**
+
+``` json
+
+{
+    "id": "aee42b3c-6d9e-49d8-ac18-0c9c627a2cc8",
+    "name": "Downtown Parking",
+    "address": "Via Roma 15, Milan",
+    "carCapacity": 1,
+    "motorcycleCapacity": 2,
+    "truckCapacity": 1,
+    "createdAt": "2025-12-12T16:34:57.396Z",
+    "updatedAt": "2025-12-12T17:30:26.190Z"
+}
+
+```
+
+---
+
+# POST /parking
+
+**Parametri**
+
+| Posizione   | Nome                  | Tipo      | Descrizione                          | Obbligatorio |
+|:-----------:|:---------------------:|:---------:|:------------------------------------:|:------------:|
+| Header      | `Authorization`       | `string`  | Token JWT operatore                  | ✅           |
+| Body (JSON) | `name`                | `string`  | Nome del parcheggio                  | ✅           |
+| Body (JSON) | `address`             | `string`  | Indirizzo del parcheggio             | ✅           |
+| Body (JSON) | `carCapacity`         | `number`  | Capacità auto                        | ✅           |
+| Body (JSON) | `motorcycleCapacity`  | `number`  | Capacità moto                        | ✅           |
+| Body (JSON) | `truckCapacity`       | `number`  | Capacità camion                      | ✅           |
+
+**Esempio di richiesta**
+
+```
+
+POST /parking HTTP/1.1
+Content-Type: application/json
+Authorization: Bearer <JWT>
+
+```
+
+``` json
+
+{
+"name": "Big Mega Ultra Parcheggio Enorme",
+"address": "Via delle meraviglie",
+"carCapacity": 999,
+"motorcycleCapacity": 999,
+"truckCapacity": 999
+}
+
+```
+
+**Esempio di risposta**
+
+``` json
+
+{
+    "id": "10b41556-9bf2-46fc-9a59-363412a7b53f",
+    "name": "Big Mega Ultra Parcheggio Enorme",
+    "address": "Via delle meraviglie",
+    "carCapacity": 999,
+    "motorcycleCapacity": 999,
+    "truckCapacity": 999,
+    "updatedAt": "2025-12-13T17:34:57.443Z",
+    "createdAt": "2025-12-13T17:34:57.443Z"
+}
+
+```
+
+---
+
+# PUT /parking/{parkingId}
+
+**Parametri**
+
+| Posizione   | Nome         | Tipo     | Descrizione                         | Obbligatorio |
+|:-----------:|:------------:|:--------:|:-----------------------------------:|:------------:|
+| Header      | `Authorization` | `string` | Token JWT operatore               | ✅           |
+| Path        | `parkingId`  | `string` | UUID del parcheggio                  | ✅           |
+| Body (JSON) | `name`       | `string` | Nuovo nome (o altri campi aggiornabili) | ✅/parziale |
+
+**Esempio di richiesta**
+
+```
+
+PUT /parking/aee42b3c-6d9e-49d8-ac18-0c9c627a2cc8 HTTP/1.1
+Content-Type: application/json
+Authorization: Bearer <JWT>
+
+```
+
+``` json
+
+{
+"name": "Parcheggio Fighissimo"
+}
+
+```
+
+**Esempio di risposta**
+
+``` json
+
+{
+    "id": "aee42b3c-6d9e-49d8-ac18-0c9c627a2cc8",
+    "name": "Parcheggio Fighissimo",
+    "address": "Via Roma 15, Milan",
+    "carCapacity": 1,
+    "motorcycleCapacity": 2,
+    "truckCapacity": 1,
+    "createdAt": "2025-12-12T16:34:57.396Z",
+    "updatedAt": "2025-12-13T17:36:18.177Z"
+}
+
+```
+
+---
+
+# DELETE /parking/{parkingId}
+
+**Parametri**
+
+| Posizione   | Nome         | Tipo     | Descrizione           | Obbligatorio |
+|:-----------:|:------------:|:--------:|:---------------------:|:------------:|
+| Header      | `Authorization` | `string` | Token JWT operatore | ✅           |
+| Path        | `parkingId`  | `string` | UUID del parcheggio   | ✅           |
+
+**Esempio di richiesta**
+
+```
+
+DELETE /parking/aee42b3c-6d9e-49d8-ac18-0c9c627a2cc8 HTTP/1.1
+Authorization: Bearer <JWT>
+
+```
+
+``` typescript
+
+// nessun body richiesto
+
+```
+
+**Esempio di risposta**
+
+``` json
+
+{
+    "message": "Parcheggio eliminato con successo"
+}
+
+```
+
+---
+
+# GET /gate/
+
+**Parametri**
+
+| Posizione   | Nome           | Tipo     | Descrizione           | Obbligatorio |
+|:-----------:|:--------------:|:--------:|:---------------------:|:------------:|
+| Header      | `Authorization` | `string` | Token JWT operatore | ✅           |
+
+**Esempio di richiesta**
+
+```
+
+GET /gate/ HTTP/1.1
+Authorization: Bearer <JWT>
+
+```
+
+``` typescript
+
+// nessun body richiesto
+
+```
+
+**Esempio di risposta**
+
+``` json
+
+[
+    {
+        "id": "c8ebf662-ec73-4a9b-8889-49f738034825",
+        "parkingId": "aee42b3c-6d9e-49d8-ac18-0c9c627a2cc8",
+        "type": "standard",
+        "direction": "in",
+        "createdAt": "2025-12-12T16:34:57.396Z",
+        "updatedAt": "2025-12-12T16:34:57.396Z"
+    },
+    {
+        "id": "7a0ad62a-26d1-41e3-8936-f9a076605830",
+        "parkingId": "aee42b3c-6d9e-49d8-ac18-0c9c627a2cc8",
+        "type": "standard",
+        "direction": "out",
+        "createdAt": "2025-12-12T16:34:57.396Z",
+        "updatedAt": "2025-12-12T16:34:57.396Z"
+    },
+
+    ...
+
+```
+
+---
+
+# GET /gate/{gateId}
+
+**Parametri**
+
+| Posizione   | Nome    | Tipo     | Descrizione           | Obbligatorio |
+|:-----------:|:-------:|:--------:|:---------------------:|:------------:|
+| Header      | `Authorization` | `string` | Token JWT operatore | ✅           |
+| Path        | `gateId`| `string` | UUID del varco        | ✅           |
+
+**Esempio di richiesta**
+
+```
+
+GET /gate/6e819899-1e3e-4656-a512-3032ffc8df4a HTTP/1.1
+Authorization: Bearer <JWT>
+
+```
+
+``` typescript
+
+// nessun body richiesto
+
+```
+
+**Esempio di risposta**
+
+``` json
+
+{
+    "id": "c8ebf662-ec73-4a9b-8889-49f738034825",
+    "parkingId": "aee42b3c-6d9e-49d8-ac18-0c9c627a2cc8",
+    "type": "standard",
+    "direction": "in",
+    "createdAt": "2025-12-12T16:34:57.396Z",
+    "updatedAt": "2025-12-12T16:34:57.396Z"
+}
+
+```
+
+---
+
+# POST /gate/
+
+**Parametri**
+
+| Posizione   | Nome        | Tipo      | Descrizione                           | Obbligatorio |
+|:-----------:|:-----------:|:---------:|:-------------------------------------:|:------------:|
+| Header      | `Authorization` | `string` | Token JWT operatore                 | ✅           |
+| Body (JSON) | `parkingId` | `string`  | UUID del parcheggio                   | ✅           |
+| Body (JSON) | `type`      | `string`  | Tipo varco (`standard` \| `smart`)    | ✅           |
+| Body (JSON) | `direction` | `string`  | Direzione (`in`, `out`, `bidirectional`)       | ✅           |
+
+**Esempio di richiesta**
+
+```
+
+POST /gate/ HTTP/1.1
+Content-Type: application/json
+Authorization: Bearer <JWT>
+
+```
+
+``` json
+
+{
+"parkingId": "aee42b3c-6d9e-49d8-ac18-0c9c627a2cc8",
+"type": "smart",
+"direction": "in"
+}
+
+```
+
+**Esempio di risposta**
+
+Con id esistente:
+``` json
+
+{
+    "id": "40001b67-c394-41f2-9d21-9340f29b7b93",
+    "parkingId": "aee42b3c-6d9e-49d8-ac18-0c9c627a2cc8",
+    "type": "smart",
+    "direction": "in",
+    "updatedAt": "2025-12-13T17:50:01.883Z",
+    "createdAt": "2025-12-13T17:50:01.883Z"
 }
 ```
+
+Con id inesistente dal middleware EnsureExist:
+``` json
+
+{
+    "success": false,
+    "statusCode": 404,
+    "message": "Parking con identificativo 6fd5f327-82d3-4d48-8bc4-e68cb09ddb75 non trovato"
+}
+
+```
+
+---
+
+# PUT /gate/{gateId}
+
+**Parametri**
+
+| Posizione   | Nome    | Tipo      | Descrizione                         | Obbligatorio |
+|:-----------:|:-------:|:---------:|:-----------------------------------:|:------------:|
+| Header      | `Authorization` | `string` | Token JWT operatore             | ✅           |
+| Path        | `gateId`| `string`  | UUID del varco                      | ✅           |
+| Body (JSON) | `type`  | `string`  | Nuovo tipo varco                    | ✅/parziale  |
+
+**Esempio di richiesta**
+
+```
+
+PUT /gate/40001b67-c394-41f2-9d21-9340f29b7b93 HTTP/1.1
+Content-Type: application/json
+Authorization: Bearer <JWT>
+
+```
+
+``` json
+
+{
+"type": "standard"
+}
+
+```
+
+**Esempio di risposta**
+
+``` json
+
+{
+    "id": "40001b67-c394-41f2-9d21-9340f29b7b93",
+    "parkingId": "aee42b3c-6d9e-49d8-ac18-0c9c627a2cc8",
+    "type": "standard",
+    "direction": "in",
+    "createdAt": "2025-12-13T17:50:01.883Z",
+    "updatedAt": "2025-12-13T17:53:46.808Z"
+}
+
+```
+
+---
+
+# DELETE /gate/{gateId}
+
+**Parametri**
+
+| Posizione   | Nome    | Tipo     | Descrizione           | Obbligatorio |
+|:-----------:|:-------:|:--------:|:---------------------:|:------------:|
+| Header      | `Authorization` | `string` | Token JWT operatore | ✅           |
+| Path        | `gateId`| `string` | UUID del varco        | ✅           |
+
+Il funzionamento è analogo alle delete precedenti.
+
+---
+
+# GET /gate/{gateId}/transits
+
+
+
+**Parametri**
+
+| Posizione   | Nome    | Tipo     | Descrizione               | Obbligatorio |
+|:-----------:|:-------:|:--------:|:-------------------------:|:------------:|
+| Header      | `Authorization` | `string` | Token JWT operatore | ✅           |
+| Path        | `gateId`| `string` | UUID del varco            | ✅           |
+
+**Esempio di richiesta**
+
+```
+
+GET /gate/7a0ad62a-26d1-41e3-8936-f9a076605830/transits HTTP/1.1
+Authorization: Bearer <JWT>
+
+```
+
+``` typescript
+
+// nessun body richiesto
+
+```
+
+**Esempio di risposta**
+
+``` json
+
+[
+    {
+        "id": "3676c23b-79c5-4a3b-ba55-3fc0921bb62a",
+        "parkingId": "aee42b3c-6d9e-49d8-ac18-0c9c627a2cc8",
+        "gateId": "7a0ad62a-26d1-41e3-8936-f9a076605830",
+        "vehicleId": "FV181EX",
+        "type": "out",
+        "date": "2025-11-13T20:18:57.396Z",
+        "detectedPlate": "FV181EX",
+        "createdAt": "2025-11-13T20:18:57.396Z",
+        "updatedAt": "2025-11-13T20:18:57.396Z"
+    },
+    {
+        "id": "bbc3cdd2-a92b-41e4-be40-490992eb980f",
+        "parkingId": "aee42b3c-6d9e-49d8-ac18-0c9c627a2cc8",
+        "gateId": "7a0ad62a-26d1-41e3-8936-f9a076605830",
+        "vehicleId": "AA000AA",
+        "type": "out",
+        "date": "2025-11-15T14:30:57.396Z",
+        "detectedPlate": "AA000AA",
+        "createdAt": "2025-11-15T14:30:57.396Z",
+        "updatedAt": "2025-11-15T14:30:57.396Z"
+    },
+
+    ...
+```
+
+> Nota: gateId è sempre lo stesso
+
+---
+
+# GET /transit/
+
+**Parametri**
+
+| Posizione   | Nome           | Tipo     | Descrizione           | Obbligatorio |
+|:-----------:|:--------------:|:--------:|:---------------------:|:------------:|
+| Header      | `Authorization`| `string` | Token JWT operatore   | ✅           |
+
+**Esempio di richiesta**
+
+```
+
+GET /transit/ HTTP/1.1
+Authorization: Bearer <JWT>
+
+```
+
+``` typescript
+
+// nessun body richiesto
+
+```
+
+**Esempio di risposta**
+
+``` json
+
+[
+    {
+        "id": "eb4e2ca3-e069-4dfc-96d0-f8c62623fa08",
+        "parkingId": "aee42b3c-6d9e-49d8-ac18-0c9c627a2cc8",
+        "gateId": "e77cbc6c-2f85-4d44-a4c8-fe59d01a9b57",
+        "vehicleId": "GA129KM",
+        "type": "in",
+        "date": "2025-12-12T23:23:23.000Z",
+        "detectedPlate": "GA129KM",
+        "createdAt": "2025-12-12T17:30:26.188Z",
+        "updatedAt": "2025-12-12T17:32:17.194Z"
+    },
+    {
+        "id": "f2939cbb-15ea-4b7f-be08-1f6a7c4d624d",
+        "parkingId": "aee42b3c-6d9e-49d8-ac18-0c9c627a2cc8",
+        "gateId": "e77cbc6c-2f85-4d44-a4c8-fe59d01a9b57",
+        "vehicleId": "GA129KM",
+        "type": "out",
+        "date": "2025-12-12T17:30:24.056Z",
+        "detectedPlate": "GA129KM",
+        "createdAt": "2025-12-12T17:30:24.056Z",
+        "updatedAt": "2025-12-12T17:30:24.056Z"
+    },
+
+    ...
+
+```
+
+---
+
+# GET /transit/{transitId}
+
+**Parametri**
+
+| Posizione   | Nome       | Tipo     | Descrizione          | Obbligatorio |
+|:-----------:|:----------:|:--------:|:--------------------:|:------------:|
+| Header      | `Authorization` | `string` | Token JWT operatore | ✅         |
+| Path        | `transitId`| `string` | UUID del transito    | ✅           |
+
+Analogo alle get precedenti.
+
+---
+
+# POST /transit/gate/{gateId}/new
+
+*(TransitCreateStandard – varco standard con upload immagine targa)*
+
+**Parametri**
+
+| Posizione   | Nome    | Tipo    | Descrizione                               | Obbligatorio |
+|:-----------:|:-------:|:-------:|:-----------------------------------------:|:------------:|
+| Header      | `Authorization` | `string` | Token JWT operatore/varco           | ✅           |
+| Path        | `gateId`| `string`| UUID del varco                             | ✅           |
+| Body (form-data) | `file` | `file`  | Immagine contenente la targa del veicolo | ✅           |
+
+**Esempio di richiesta**
+
+```
+
+POST /transit/gate/7a0ad62a-26d1-41e3-8936-f9a076605830/new HTTP/1.1
+Authorization: Bearer <JWT>
+Content-Type: multipart/form-data; 
+
+```
+
+``` typescript
+
+form-data con campo "file"
+
+```
+![Targa utilizzata](./src\img\img_1.png)
+L'OCR gestirà automaticamente il riconoscimento dei caratteri nella targa.
+
+**Esempio di risposta**
+
+Nel caso il gate sia standard:
+``` json
+
+{
+    "id": "1b786f60-2dc3-47bb-87f0-1a9e62ae981c",
+    "parkingId": "aee42b3c-6d9e-49d8-ac18-0c9c627a2cc8",
+    "gateId": "7a0ad62a-26d1-41e3-8936-f9a076605830",
+    "vehicleId": "FV181EX",
+    "type": "out",
+    "date": "2025-12-13T18:07:37.831Z",
+    "detectedPlate": "FV181EX",
+    "updatedAt": "2025-12-13T18:07:37.831Z",
+    "createdAt": "2025-12-13T18:07:37.831Z"
+}
+
+```
+
+Nel caso provassimo ad immettere un varco smart come identificativo ci verrà notificato:
+
+``` json
+
+{
+    "success": false,
+    "statusCode": 422,
+    "message": "Per gate SMART è richiesto un JSON con la targa (plate)"
+}
+
+```
+
+In questo caso è stato generato un transito in uscita poichè il veicolo risultava già nel parcheggio e perchè il tipo di gate permetteva solo transiti di tipo out. Nel caso si riprovasse a generarne un'altro:
+
+``` json
+
+{
+    "success": false,
+    "statusCode": 422,
+    "message": "Non puoi registrare due uscite consecutive per questo veicolo"
+}
+
+```
+
+ In caso provassimo a fare un nuovo transit con l'id di un varco standard bidirezionale o in in verrà generato un nuovo transito in ingresso.
+
+``` json
+
+{
+    "id": "74d1bc67-412f-4327-9a28-28b4de6724fb",
+    "parkingId": "457e1a07-cdeb-43ea-b30d-7672fb73d06e",
+    "gateId": "50437974-a130-43aa-b08e-64c366196247",
+    "vehicleId": "FV181EX",
+    "type": "in",
+    "date": "2025-12-13T18:36:58.777Z",
+    "detectedPlate": "FV181EX",
+    "updatedAt": "2025-12-13T18:36:58.777Z",
+    "createdAt": "2025-12-13T18:36:58.777Z"
+}
+
+```
+
+Nel caso ci sia un transito in in un altro parcheggio:
+``` json
+
+{
+    "success": false,
+    "statusCode": 422,
+    "message": "Il veicolo risulta già all'interno di un altro parcheggio: può uscire solo da quel parcheggio"
+}
+
+```
+
+
+---
+
+# PUT /transit/{transitId}
+
+**Parametri**
+
+| Posizione   | Nome       | Tipo      | Descrizione                    | Obbligatorio |
+|:-----------:|:----------:|:---------:|:------------------------------:|:------------:|
+| Header      | `Authorization` | `string` | Token JWT operatore        | ✅           |
+| Path        | `transitId`| `string`  | UUID del transito              | ✅           |
+| Body (JSON) | `date`     | `string`  | Nuova data/ora transito        | ✅/parziale  |
+
+**Esempio di richiesta**
+
+```
+
+PUT /transit/eb4e2ca3-e069-4dfc-96d0-f8c62623fa08 HTTP/1.1
+Content-Type: application/json
+Authorization: Bearer <JWT>
+
+```
+
+``` json
+
+{
+"date": "2025-12-12T23:23:23"
+}
+
+```
+
+> Nota: è possibile modificare solo transiti che sono in ingresso e non hanno il corrispettivo transito in uscita. La scelta è stata fatta per motivi di praticità poichè non richiesto nelle specifiche di progetto e perchè avrebbe complicato la logica successiva. In ogni modo lo si lascia per sviluppi futuri. Vedi *delete* per l'esempio.
+
+---
+
+# DELETE /transit/{transitId}
+
+**Parametri**
+
+| Posizione   | Nome           | Tipo     | Descrizione                         | Obbligatorio |
+|:-----------:|:--------------:|:--------:|:-----------------------------------:|:------------:|
+| Header      | `Authorization`| `string` | Token JWT operatore                 | ✅           |
+| Body (JSON) |  `transitId`    | `string` | Identificativo del transito da cancellare | ✅ |
+
+L'unica eccezione dalle precedenti è che si può cancellare unicamente un transito di tipo IN, come riportato in *update*.
+
+``` json
+
+{
+    "success": false,
+    "statusCode": 403,
+    "message": "Puoi modificare e/o cancellare solo transiti di tipo IN"
+}
+
+
+```
+
+---
+
+# GET /transit/history
+
+**Parametri**
+
+| Posizione   | Nome     | Tipo     | Descrizione                                          | Obbligatorio |
+|:-----------:|:--------:|:--------:|:----------------------------------------------------:|:------------:|
+| Header      | `Authorization` | `string` | Token JWT operatore o driver              | ✅           |
+| Query       | `plates` | `string` | Una o più targhe (ripetibile)                        | ❌           |
+| Query       | `format` | `string` | Formato output (`json` \| `pdf`)                     | ✅           |
+| Query       | `from`   | `string` | Data inizio intervallo (ISO o yyyy-mm-dd)            | ✅           |
+| Query       | `to`     | `string` | Data fine intervallo                                 | ✅           |
+
+**Esempio di richiesta**
+
+```
+
+GET /transit/history?format=pdf\&from=2025-12-01\&to=2025-12-09 HTTP/1.1
+Authorization: Bearer <JWT>
+
+```
+
+```
+
+// nessun body richiesto
+
+```
+
+**Esempio di risposta**
+
+```
+
+// TODO
+
+```
+
+---
+
+# GET /rate/{rateId}
+
+**Parametri**
+
+| Posizione   | Nome    | Tipo     | Descrizione        | Obbligatorio |
+|:-----------:|:-------:|:--------:|:------------------:|:------------:|
+| Header      | `Authorization` | `string` | Token JWT operatore | ✅       |
+| Path        | `rateId`| `string` | UUID della tariffa | ✅           |
+
+**Esempio di richiesta**
+
+```
+
+GET /rate/a7c3eac9-64ba-4b8e-b5a4-611f306f7c59 HTTP/1.1
+Authorization: Bearer <JWT>
+
+```
+
+```
+
+// nessun body richiesto
+
+```
+
+**Esempio di risposta**
+
+```
+
+// TODO
+
+```
+
+---
+
+# GET /rate
+
+**Parametri**
+
+| Posizione   | Nome           | Tipo     | Descrizione           | Obbligatorio |
+|:-----------:|:--------------:|:--------:|:---------------------:|:------------:|
+| Header      | `Authorization`| `string` | Token JWT operatore   | ✅           |
+
+**Esempio di richiesta**
+
+```
+
+GET /rate HTTP/1.1
+Authorization: Bearer <JWT>
+
+```
+
+```
+
+// nessun body richiesto
+
+```
+
+**Esempio di risposta**
+
+```
+
+// TODO
+
+```
+
+---
+
+# POST /rate
+
+**Parametri**
+
+| Posizione   | Nome          | Tipo      | Descrizione                          | Obbligatorio |
+|:-----------:|:-------------:|:---------:|:------------------------------------:|:------------:|
+| Header      | `Authorization` | `string` | Token JWT operatore                | ✅           |
+| Body (JSON) | `vehicleType` | `string`  | Tipo veicolo (es. `car`, `moto`)     | ✅           |
+| Body (JSON) | `parkingId`   | `string`  | UUID parcheggio                      | ✅           |
+| Body (JSON) | `dayType`     | `string`  | Tipologia giorno (`weekday`, `weekend`, ...) | ✅ |
+| Body (JSON) | `price`       | `number`  | Prezzo orario/unitario               | ✅           |
+| Body (JSON) | `hourStart`   | `string`  | Ora inizio fascia (HH:mm)           | ✅           |
+| Body (JSON) | `hourEnd`     | `string`  | Ora fine fascia (HH:mm)             | ✅           |
+
+**Esempio di richiesta**
+
+```
+
+POST /rate HTTP/1.1
+Content-Type: application/json
+Authorization: Bearer <JWT>
+
+```
+
+```
+
+{
+"vehicleType": "car",
+"parkingId": "aee42b3c-6d9e-49d8-ac18-0c9c627a2cc8",
+"dayType": "weekend",
+"price": 5,
+"hourStart": "04:03",
+"hourEnd": "20:00"
+}
+
+```
+
+**Esempio di risposta**
+
+```
+
+// TODO
+
+```
+
+---
+
+# PUT /rate/{rateId}
+
+**Parametri**
+
+| Posizione   | Nome    | Tipo      | Descrizione                   | Obbligatorio |
+|:-----------:|:-------:|:---------:|:-----------------------------:|:------------:|
+| Header      | `Authorization` | `string` | Token JWT operatore      | ✅           |
+| Path        | `rateId`| `string`  | UUID della tariffa            | ✅           |
+| Body (JSON) | (vari campi aggiornabili) | `mixed` | Campi tariffa da aggiornare | ✅/parziale  |
+
+**Esempio di richiesta**
+
+```
+
+PUT /rate/a7c3eac9-64ba-4b8e-b5a4-611f306f7c59 HTTP/1.1
+Content-Type: application/json
+Authorization: Bearer <JWT>
+
+```
+
+```
+
+// esempio di payload aggiornamento
+
+```
+
+**Esempio di risposta**
+
+```
+
+// TODO
+
+```
+
+---
+
+# DELETE /rate/{rateId}
+
+**Parametri**
+
+| Posizione   | Nome    | Tipo     | Descrizione        | Obbligatorio |
+|:-----------:|:-------:|:--------:|:------------------:|:------------:|
+| Header      | `Authorization` | `string` | Token JWT operatore | ✅       |
+| Path        | `rateId`| `string` | UUID della tariffa | ✅           |
+
+**Esempio di richiesta**
+
+```
+
+DELETE /rate/a7c3eac9-64ba-4b8e-b5a4-611f306f7c59 HTTP/1.1
+Authorization: Bearer <JWT>
+
+```
+
+```
+
+// nessun body richiesto
+
+```
+
+**Esempio di risposta**
+
+```
+
+// TODO
+
+```
+
+---
+
+# GET /stats/
+
+**Parametri**
+
+| Posizione   | Nome           | Tipo     | Descrizione             | Obbligatorio |
+|:-----------:|:--------------:|:--------:|:-----------------------:|:------------:|
+| Header      | `Authorization`| `string` | Token JWT operatore     | ✅           |
+
+**Esempio di richiesta**
+
+```
+
+GET /stats/ HTTP/1.1
+Authorization: Bearer <JWT>
+
+```
+
+```
+
+// nessun body richiesto
+
+```
+
+**Esempio di risposta**
+
+```
+
+// TODO
+
+```
+
+---
+
+# GET /stats/{parkingId}
+
+**Parametri**
+
+| Posizione   | Nome        | Tipo     | Descrizione                             | Obbligatorio |
+|:-----------:|:-----------:|:--------:|:---------------------------------------:|:------------:|
+| Header      | `Authorization` | `string` | Token JWT operatore                 | ✅           |
+| Path        | `parkingId` | `string` | UUID del parcheggio                     | ✅           |
+| Query       | `format`    | `string` | Formato output (`json` \| `pdf`)        | ✅           |
+
+**Esempio di richiesta**
+
+```
+
+GET /stats/6bbec4cf-d723-4bc1-9712-2b4eab3ea88b?format=pdf HTTP/1.1
+Authorization: Bearer <JWT>
+
+```
+
+```
+
+// nessun body richiesto
+
+```
+
+**Esempio di risposta**
+
+```
+
+// TODO
+
+```
+
+---
+
+# GET /invoice
+
+**Parametri**
+
+| Posizione   | Nome           | Tipo     | Descrizione                      | Obbligatorio |
+|:-----------:|:--------------:|:--------:|:--------------------------------:|:------------:|
+| Header      | `Authorization`| `string` | Token JWT utente (driver/op)     | ✅           |
+| Query (es.) | `status`       | `string` | Filtro per stato pagamento       | ❌           |
+
+**Esempio di richiesta**
+
+```
+
+GET /invoice HTTP/1.1
+Authorization: Bearer <JWT>
+
+```
+
+```
+
+// nessun body richiesto
+
+```
+
+**Esempio di risposta**
+
+```
+
+// TODO
+
+```
+
+---
+
+# GET /invoice/{invoiceId}
+
+**Parametri**
+
+| Posizione   | Nome       | Tipo     | Descrizione         | Obbligatorio |
+|:-----------:|:----------:|:--------:|:-------------------:|:------------:|
+| Header      | `Authorization` | `string` | Token JWT utente | ✅         |
+| Path        | `invoiceId`| `string` | UUID della fattura  | ✅           |
+
+**Esempio di richiesta**
+
+```
+
+GET /invoice/{invoiceId} HTTP/1.1
+Authorization: Bearer <JWT>
+
+```
+
+```
+
+// nessun body richiesto
+
+```
+
+**Esempio di risposta**
+
+```
+
+// TODO
+
+```
+
+---
+
+# GET /invoice/{invoiceId}/pdf
+
+*(InvoiceGetPdf – download bollettino/QR code)*
+
+**Parametri**
+
+| Posizione   | Nome       | Tipo     | Descrizione         | Obbligatorio |
+|:-----------:|:----------:|:--------:|:-------------------:|:------------:|
+| Header      | `Authorization` | `string` | Token JWT utente | ✅         |
+| Path        | `invoiceId`| `string` | UUID della fattura  | ✅           |
+
+**Esempio di richiesta**
+
+```
+
+GET /invoice/{invoiceId}/pdf HTTP/1.1
+Authorization: Bearer <JWT>
+
+```
+
+```
+
+// nessun body richiesto
+
+```
+
+**Esempio di risposta**
+
+```
+
+// TODO
+
+```
+
+---
+
+# GET /invoice/{invoiceId}/pay
+
+*(InvoicePay – simulazione pagamento)*
+
+**Parametri**
+
+| Posizione   | Nome       | Tipo     | Descrizione         | Obbligatorio |
+|:-----------:|:----------:|:--------:|:-------------------:|:------------:|
+| Header      | `Authorization` | `string` | Token JWT utente | ✅         |
+| Path        | `invoiceId`| `string` | UUID della fattura  | ✅           |
+
+**Esempio di richiesta**
+
+```
+
+GET /invoice/{invoiceId}/pay HTTP/1.1
+Authorization: Bearer <JWT>
+
+```
+
+```
+
+// nessun body richiesto
+
+```
+
+**Esempio di risposta**
+
+```
+
+// TODO
+
+```
+
+
+
 
 
 # Configurazione e uso
