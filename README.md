@@ -736,7 +736,6 @@ Authorization: Bearer <JWT>
 **Esempio di risposta**
 
 ``` json
-
 [
     {
         "id": "c8ebf662-ec73-4a9b-8889-49f738034825",
@@ -754,8 +753,6 @@ Authorization: Bearer <JWT>
         "createdAt": "2025-12-12T16:34:57.396Z",
         "updatedAt": "2025-12-12T16:34:57.396Z"
     },
-
-    ...
 
 ```
 
@@ -788,7 +785,6 @@ Authorization: Bearer <JWT>
 **Esempio di risposta**
 
 ``` json
-
 {
     "id": "c8ebf662-ec73-4a9b-8889-49f738034825",
     "parkingId": "aee42b3c-6d9e-49d8-ac18-0c9c627a2cc8",
@@ -797,7 +793,6 @@ Authorization: Bearer <JWT>
     "createdAt": "2025-12-12T16:34:57.396Z",
     "updatedAt": "2025-12-12T16:34:57.396Z"
 }
-
 ```
 
 ---
@@ -824,20 +819,17 @@ Authorization: Bearer <JWT>
 ```
 
 ``` json
-
 {
 "parkingId": "aee42b3c-6d9e-49d8-ac18-0c9c627a2cc8",
 "type": "smart",
 "direction": "in"
 }
-
 ```
 
 **Esempio di risposta**
 
 Con id esistente:
 ``` json
-
 {
     "id": "40001b67-c394-41f2-9d21-9340f29b7b93",
     "parkingId": "aee42b3c-6d9e-49d8-ac18-0c9c627a2cc8",
@@ -850,13 +842,11 @@ Con id esistente:
 
 Con id inesistente dal middleware EnsureExist:
 ``` json
-
 {
     "success": false,
     "statusCode": 404,
     "message": "Parking con identificativo 6fd5f327-82d3-4d48-8bc4-e68cb09ddb75 non trovato"
 }
-
 ```
 
 ---
@@ -882,17 +872,14 @@ Authorization: Bearer <JWT>
 ```
 
 ``` json
-
 {
 "type": "standard"
 }
-
 ```
 
 **Esempio di risposta**
 
 ``` json
-
 {
     "id": "40001b67-c394-41f2-9d21-9340f29b7b93",
     "parkingId": "aee42b3c-6d9e-49d8-ac18-0c9c627a2cc8",
@@ -901,7 +888,6 @@ Authorization: Bearer <JWT>
     "createdAt": "2025-12-13T17:50:01.883Z",
     "updatedAt": "2025-12-13T17:53:46.808Z"
 }
-
 ```
 
 ---
@@ -948,7 +934,6 @@ Authorization: Bearer <JWT>
 **Esempio di risposta**
 
 ``` json
-
 [
     {
         "id": "3676c23b-79c5-4a3b-ba55-3fc0921bb62a",
@@ -972,8 +957,6 @@ Authorization: Bearer <JWT>
         "createdAt": "2025-11-15T14:30:57.396Z",
         "updatedAt": "2025-11-15T14:30:57.396Z"
     },
-
-    ...
 ```
 
 > Nota: gateId è sempre lo stesso
@@ -1030,9 +1013,6 @@ Authorization: Bearer <JWT>
         "createdAt": "2025-12-12T17:30:24.056Z",
         "updatedAt": "2025-12-12T17:30:24.056Z"
     },
-
-    ...
-
 ```
 
 ---
@@ -1077,14 +1057,14 @@ Content-Type: multipart/form-data;
 form-data con campo "file"
 
 ```
-![Targa utilizzata](./src\img\img_1.png)
+<img width="795" height="252" alt="image" src="https://github.com/user-attachments/assets/ba966732-1882-4849-af54-7b5e6ca8a057" />
+
 L'OCR gestirà automaticamente il riconoscimento dei caratteri nella targa.
 
 **Esempio di risposta**
 
 Nel caso il gate sia standard:
 ``` json
-
 {
     "id": "1b786f60-2dc3-47bb-87f0-1a9e62ae981c",
     "parkingId": "aee42b3c-6d9e-49d8-ac18-0c9c627a2cc8",
@@ -1096,37 +1076,31 @@ Nel caso il gate sia standard:
     "updatedAt": "2025-12-13T18:07:37.831Z",
     "createdAt": "2025-12-13T18:07:37.831Z"
 }
-
 ```
 
 Nel caso provassimo ad immettere un varco smart come identificativo ci verrà notificato:
 
 ``` json
-
 {
     "success": false,
     "statusCode": 422,
     "message": "Per gate SMART è richiesto un JSON con la targa (plate)"
 }
-
 ```
 
 In questo caso è stato generato un transito in uscita poichè il veicolo risultava già nel parcheggio e perchè il tipo di gate permetteva solo transiti di tipo out. Nel caso si riprovasse a generarne un'altro:
 
 ``` json
-
 {
     "success": false,
     "statusCode": 422,
     "message": "Non puoi registrare due uscite consecutive per questo veicolo"
 }
-
 ```
 
  In caso provassimo a fare un nuovo transit con l'id di un varco standard bidirezionale o in in verrà generato un nuovo transito in ingresso.
 
 ``` json
-
 {
     "id": "74d1bc67-412f-4327-9a28-28b4de6724fb",
     "parkingId": "457e1a07-cdeb-43ea-b30d-7672fb73d06e",
@@ -1138,12 +1112,10 @@ In questo caso è stato generato un transito in uscita poichè il veicolo risult
     "updatedAt": "2025-12-13T18:36:58.777Z",
     "createdAt": "2025-12-13T18:36:58.777Z"
 }
-
 ```
 
 Nel caso ci sia un transito in in un altro parcheggio:
 ``` json
-
 {
     "success": false,
     "statusCode": 422,
@@ -1176,11 +1148,9 @@ Authorization: Bearer <JWT>
 ```
 
 ``` json
-
 {
 "date": "2025-12-12T23:23:23"
 }
-
 ```
 
 > Nota: è possibile modificare solo transiti che sono in ingresso e non hanno il corrispettivo transito in uscita. La scelta è stata fatta per motivi di praticità poichè non richiesto nelle specifiche di progetto e perchè avrebbe complicato la logica successiva. In ogni modo lo si lascia per sviluppi futuri. Vedi *delete* per l'esempio.
@@ -1199,14 +1169,11 @@ Authorization: Bearer <JWT>
 L'unica eccezione dalle precedenti è che si può cancellare unicamente un transito di tipo IN, come riportato in *update*.
 
 ``` json
-
 {
     "success": false,
     "statusCode": 403,
     "message": "Puoi modificare e/o cancellare solo transiti di tipo IN"
 }
-
-
 ```
 
 ---
@@ -1219,9 +1186,9 @@ L'unica eccezione dalle precedenti è che si può cancellare unicamente un trans
 |:-----------:|:--------:|:--------:|:----------------------------------------------------:|:------------:|
 | Header      | `Authorization` | `string` | Token JWT operatore o driver                  | ✅           |
 | Query       | `plates` | `string` | Una o più targhe (ripetibile)                        | ❌           |
-| Query       | `format` | `string` | Formato output (`json` \| `pdf`)                     | ✅           |
-| Query       | `from`   | `string` | Data inizio intervallo (ISO o yyyy-mm-dd)            | ✅           |
-| Query       | `to`     | `string` | Data fine intervallo                                 | ✅           |
+| Query       | `format` | `string` | Formato output (`json` \| `pdf`)                     | ❌           |
+| Query       | `from`   | `string` | Data inizio intervallo (ISO o yyyy-mm-dd)            | ❌           |
+| Query       | `to`     | `string` | Data fine intervallo                                 | ❌           |
 
 **Esempio di richiesta**
 
@@ -1319,6 +1286,12 @@ GET /rate/a7c3eac9-64ba-4b8e-b5a4-611f306f7c59 HTTP/1.1
 Authorization: Bearer <JWT>
 
 ```
+
+```
+//TODO
+
+```
+
 # POST /rate
 
 **Parametri**
@@ -1417,6 +1390,8 @@ Authorization: Bearer <JWT>
 | Header      | `Authorization` | `string` | Token JWT operatore | ✅       |
 | Path        | `rateId`| `string` | UUID della tariffa | ✅           |
 
+Funzionamento uguale alle precedenti delete.
+
 ---
 
 # GET /stats/
@@ -1480,7 +1455,6 @@ Authorization: Bearer <JWT>
 **Esempio di risposta**
 
 ``` json
-
 {
     "parkingId": "aee42b3c-6d9e-49d8-ac18-0c9c627a2cc8",
     "parkingName": "Parcheggio Fighissimo",
@@ -1535,13 +1509,11 @@ Authorization: Bearer <JWT>
                 "createdAt": "2025-12-12T17:14:41.957Z",
                 "updatedAt": "2025-12-12T17:14:41.957Z"
             },
-
-            ...
-
 ```
 
 Oppure in formato pdf:
-INSERIRE IMMAGINE PDF
+<img width="942" height="862" alt="image" src="https://github.com/user-attachments/assets/3b8538ac-7efb-4228-8f79-3dd76bb062aa" />
+
 
 ---
 
@@ -1672,9 +1644,7 @@ La richiesta è simile alle precedenti.
 | Header      | `Authorization` | `string` | Token JWT utente | ✅         |
 | Path        | `invoiceId`| `string` | UUID della fattura  | ✅           |
 
-**Esempio di richiesta**
-
-
+<img width="894" height="851" alt="image" src="https://github.com/user-attachments/assets/6de796e0-bc50-470b-ade5-3be891cd9bc3" />
 
 ---
 
@@ -1820,4 +1790,4 @@ Un ulteriore sviluppo futuro potrebbe essere aggiungere un vero sistema di pagam
 | Immagine | Cognome e nome | E-mail istituzionale |
 |:----------:|:---------:|:-----------:|
 |[<img src="https://github.com/SbattellaMattia.png" width="48" height="48" style="border-radius:50/%;" alt="Mattia Sbattella" />](https://github.com/SbattellaMattia)       | [Mattia Sbattella](https://github.com/SbattellaMattia) | s1120571@studenti.univpm.it     |
-| [<img src="https://github.com/diba01.png" width="48" height="48" style="border-radius:50/%;" alt="Simone Di Battista" />](https://github.com/diba01)| [Simone Di Battista](https://github.com/diba01)  | altro     |
+| [<img src="https://github.com/diba01.png" width="48" height="48" style="border-radius:50/%;" alt="Simone Di Battista" />](https://github.com/diba01)| [Simone Di Battista](https://github.com/diba01)  | s1120038@studenti.univpm.it     |
