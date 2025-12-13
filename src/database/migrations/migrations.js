@@ -83,6 +83,18 @@ module.exports = {
         type: Sequelize.INTEGER,
         allowNull: false
       },
+      carCapacityRemain: {
+        type: Sequelize.INTEGER,
+        allowNull: false
+      },
+      motorcycleCapacityRemain: {
+        type: Sequelize.INTEGER,
+        allowNull: false
+      },
+      truckCapacityRemain: {
+        type: Sequelize.INTEGER,
+        allowNull: false
+      },
       createdAt: {
         type: Sequelize.DATE,
         allowNull: false,

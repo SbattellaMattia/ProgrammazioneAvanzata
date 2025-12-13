@@ -11,6 +11,9 @@ export class Parking extends Model<InferAttributes<Parking>, InferCreationAttrib
   declare carCapacity: number;
   declare motorcycleCapacity: number;
   declare truckCapacity: number;
+  declare carCapacityRemain: number;
+  declare motorcycleCapacityRemain: number;
+  declare truckCapacityRemain: number;
 }
 
 Parking.init(
@@ -42,6 +45,18 @@ Parking.init(
     },
 
     truckCapacity: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+    },
+    carCapacityRemain: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+    },
+    motorcycleCapacityRemain: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+    },
+    truckCapacityRemain: {
       type: DataTypes.INTEGER,
       allowNull: false,
     },

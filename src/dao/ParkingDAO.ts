@@ -7,7 +7,7 @@ export interface IParkingDAO {
   existsById(id: string): Promise<boolean>;
   findAllParking(): Promise<Parking[]>;
   getCapacity(id: string): Promise<{ car: number; motorcycle: number; truck: number } | null>;
-  updateCapacity(id: string, payload: Partial<Pick<Parking, "carCapacity" | "motorcycleCapacity" | "truckCapacity">>): Promise<Parking | null>;
+  updateCapacity(id: string, payload: Partial<Pick<Parking, "carCapacityRemain" | "motorcycleCapacityRemain" | "truckCapacityRemain">>): Promise<Parking | null>;
 }
 
 export class ParkingDAO extends DAO<Parking> implements IParkingDAO {
@@ -37,15 +37,15 @@ export class ParkingDAO extends DAO<Parking> implements IParkingDAO {
     const parking = await this.findById(id);
     if (!parking) return null;
     return {
-      car: parking.carCapacity,
-      motorcycle: parking.motorcycleCapacity,
-      truck: parking.truckCapacity,
+      car: parking.carCapacityRemain,
+      motorcycle: parking.motorcycleCapacityRemain,
+      truck: parking.truckCapacityRemain,
     };
   }
 
   async updateCapacity(
     id: string,
-    payload: Partial<Pick<Parking, "carCapacity" | "motorcycleCapacity" | "truckCapacity">>
+    payload: Partial<Pick<Parking, "carCapacityRemain" | "motorcycleCapacityRemain" | "truckCapacityRemain">>
   ): Promise<Parking | null> {
     return this.update(id, payload);
   }

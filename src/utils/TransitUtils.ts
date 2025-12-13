@@ -118,7 +118,7 @@ export function ensureCapacityForIn(
 
   switch (vehicle.type as VehicleType) {
     case VehicleType.CAR:
-      if (parking.carCapacity <= 0) {
+      if (parking.carCapacityRemain <= 0) {
         throw new OperationNotAllowedError(
           "createRandomTransitForGate",
           "Capacità auto esaurita per questo parcheggio"
@@ -127,7 +127,7 @@ export function ensureCapacityForIn(
       break;
 
     case VehicleType.MOTORCYCLE:
-      if (parking.motorcycleCapacity <= 0) {
+      if (parking.motorcycleCapacityRemain <= 0) {
         throw new OperationNotAllowedError(
           "createRandomTransitForGate",
           "Capacità moto esaurita per questo parcheggio"
@@ -136,7 +136,7 @@ export function ensureCapacityForIn(
       break;
 
     case VehicleType.TRUCK:
-      if (parking.truckCapacity <= 0) {
+      if (parking.truckCapacityRemain <= 0) {
         throw new OperationNotAllowedError(
           "createRandomTransitForGate",
           "Capacità camion esaurita per questo parcheggio"
@@ -166,15 +166,15 @@ export async function updateParkingCapacityAfterTransit(
 
   switch (vehicle.type as VehicleType) {
     case VehicleType.CAR:
-      payload.carCapacity = parking.carCapacity + delta;
+      payload.carCapacityRemain = parking.carCapacityRemain + delta;
       break;
 
     case VehicleType.MOTORCYCLE:
-      payload.motorcycleCapacity = parking.motorcycleCapacity + delta;
+      payload.motorcycleCapacityRemain = parking.motorcycleCapacityRemain + delta;
       break;
 
     case VehicleType.TRUCK:
-      payload.truckCapacity = parking.truckCapacity + delta;
+      payload.truckCapacityRemain = parking.truckCapacityRemain + delta;
       break;
 
     default:

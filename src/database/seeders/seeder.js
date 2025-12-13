@@ -53,8 +53,8 @@ module.exports = {
 
     console.log('🌱 Seeding Parkings...');
     await queryInterface.bulkInsert('Parkings', [
-      { id: parkingDowntownId, name: 'Downtown Parking', address: 'Via Roma 15, Milan', carCapacity: 5, motorcycleCapacity: 5, truckCapacity: 2, createdAt: now, updatedAt: now },
-      { id: parkingStationId, name: 'Station Parking', address: 'Piazza Garibaldi 3, Milan', carCapacity: 10, motorcycleCapacity: 2, truckCapacity: 0, createdAt: now, updatedAt: now }
+      { id: parkingDowntownId, name: 'Downtown Parking', address: 'Via Roma 15, Milan', carCapacity: 10, motorcycleCapacity:5 , truckCapacity: 2,carCapacityRemain:10,motorcycleCapacityRemain:5, truckCapacityRemain:2,createdAt: now, updatedAt: now },
+      { id: parkingStationId, name: 'Station Parking', address: 'Piazza Garibaldi 3, Milan', carCapacity: 10, motorcycleCapacity: 2, truckCapacity: 0,carCapacityRemain:10, motorcycleCapacityRemain:2, truckCapacityRemain:0, createdAt: now, updatedAt: now }
     ]);
 
     console.log('🌱 Seeding Gates...');
@@ -101,7 +101,7 @@ module.exports = {
 
     // --- capacity note: prese dai tuoi bulkInsert Parkings (senza query DB)
     const parkingCaps = {
-      [parkingDowntownId]: { car: 5, motorcycle: 5, truck: 2 },
+      [parkingDowntownId]: { car: 10, motorcycle: 5, truck: 2 },
       [parkingStationId]: { car: 10, motorcycle: 2, truck: 0 },
     };
 
@@ -135,7 +135,7 @@ module.exports = {
 
       return used < cap;
     }
-    for (let i = 0; i < 5000; i++) {
+    for (let i = 0; i < 5500; i++) {
       let sc, entryTime, exitTime, durationHours;
 
       // riprova finché trovi una sessione valida rispetto alla capienza
