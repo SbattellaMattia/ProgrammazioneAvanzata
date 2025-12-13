@@ -47,12 +47,9 @@ class TransitService {
     file: Express.Multer.File | null,
     body: any
   ): Promise<Transit> {
-    // carico il gate e il parcheggio
-    const gate = await this.gateDAO.findById(gateId as any);
-    if (!gate) {
-      throw new NotFoundError("Gate", gateId);
-    }
 
+    const gate = (await this.gateDAO.findById(gateId))!;
+    // carico il gate e il parcheggio
     const parking = await getParkingOrThrow(this.parkingDAO, gate.parkingId);
 
     // in base al tipo di gate ricavo la targa dal body

@@ -70,6 +70,7 @@ class InvoiceController {
     const user = (req as any).user;
     const { id } = req.params;
     await InvoiceService.pay(id, user.id);
+    return res.status(200).json({ success: true, message: "Fattura pagata" });
   });
 }
 
