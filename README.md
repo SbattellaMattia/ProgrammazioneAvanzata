@@ -419,8 +419,8 @@ flowchart TB
 | GET        | /stats/{parkingId}?format=pdf\|json                  | Statistiche per singolo parcheggio in formato JSON/PDF        | ✅                 |
 | GET        | /invoice                                             | Elenco delle fatture dell’utente                              | ✅                 |
 | GET        | /invoice/{invoiceId}                                 | Dettaglio di una fattura                                      | ✅                 |
-| GET        | /invoice/{invoiceId}/pdf                             | Download PDF/bollettino fattura (InvoiceGetPdf)               | ✅                 |
-| GET        | /invoice/{invoiceId}/pay                             | Simulazione pagamento fattura (InvoicePay)                    | ✅                 |
+| GET        | /invoice/{invoiceId}/pdf                             | Download PDF/bollettino fattura                               | ✅                 |
+| PUT        | /invoice/{invoiceId}                                 | Simulazione pagamento fattura                                 | ✅                 |
 
 
 
@@ -436,7 +436,7 @@ flowchart TB
 
 **Esempio di richiesta**
 
-``` json
+```
 
 POST /login HTTP/1.1
 Content-Type: application/json
@@ -483,7 +483,7 @@ Authorization: Bearer <JWT opzionale>
 
 | Posizione   | Nome | Tipo | Descrizione                          | Obbligatorio |
 |:-----------:|:----:|:----:|:------------------------------------:|:------------:|
-| Header      | `Authorization` | `string` | Token JWT operatore | ✅ |
+| Header      | `Authorization` | `string` | Token JWT operatore   | ✅ |
 
 **Esempio di richiesta**
 
@@ -541,7 +541,7 @@ Authorization: Bearer <JWT>
 
 **Esempio di richiesta**
 
-``` html
+``` 
 
 GET /parking/aee42b3c-6d9e-49d8-ac18-0c9c627a2cc8 HTTP/1.1
 Authorization: Bearer <JWT>
@@ -1217,7 +1217,7 @@ L'unica eccezione dalle precedenti è che si può cancellare unicamente un trans
 
 | Posizione   | Nome     | Tipo     | Descrizione                                          | Obbligatorio |
 |:-----------:|:--------:|:--------:|:----------------------------------------------------:|:------------:|
-| Header      | `Authorization` | `string` | Token JWT operatore o driver              | ✅           |
+| Header      | `Authorization` | `string` | Token JWT operatore o driver                  | ✅           |
 | Query       | `plates` | `string` | Una o più targhe (ripetibile)                        | ❌           |
 | Query       | `format` | `string` | Formato output (`json` \| `pdf`)                     | ✅           |
 | Query       | `from`   | `string` | Data inizio intervallo (ISO o yyyy-mm-dd)            | ✅           |
@@ -1228,40 +1228,6 @@ L'unica eccezione dalle precedenti è che si può cancellare unicamente un trans
 ```
 
 GET /transit/history?format=pdf\&from=2025-12-01\&to=2025-12-09 HTTP/1.1
-Authorization: Bearer <JWT>
-
-```
-
-```
-
-// nessun body richiesto
-
-```
-
-**Esempio di risposta**
-
-```
-
-// TODO
-
-```
-
----
-
-# GET /rate/{rateId}
-
-**Parametri**
-
-| Posizione   | Nome    | Tipo     | Descrizione        | Obbligatorio |
-|:-----------:|:-------:|:--------:|:------------------:|:------------:|
-| Header      | `Authorization` | `string` | Token JWT operatore | ✅       |
-| Path        | `rateId`| `string` | UUID della tariffa | ✅           |
-
-**Esempio di richiesta**
-
-```
-
-GET /rate/a7c3eac9-64ba-4b8e-b5a4-611f306f7c59 HTTP/1.1
 Authorization: Bearer <JWT>
 
 ```
@@ -1299,7 +1265,7 @@ Authorization: Bearer <JWT>
 
 ```
 
-```
+``` typescript
 
 // nessun body richiesto
 
@@ -1307,14 +1273,52 @@ Authorization: Bearer <JWT>
 
 **Esempio di risposta**
 
-```
-
-// TODO
-
+```json
+[
+    {
+        "id": "bb962a68-8630-4931-ae30-82d84fa93435",
+        "parkingId": "aee42b3c-6d9e-49d8-ac18-0c9c627a2cc8",
+        "vehicleType": "car",
+        "dayType": "weekday",
+        "price": 6,
+        "hourStart": "08:00:00",
+        "hourEnd": "20:00:00",
+        "createdAt": "2025-12-13T21:21:24.787Z",
+        "updatedAt": "2025-12-13T21:21:24.787Z"
+    },
+    {
+        "id": "61becb87-2019-448c-a270-24a35ff71bed",
+        "parkingId": "aee42b3c-6d9e-49d8-ac18-0c9c627a2cc8",
+        "vehicleType": "truck",
+        "dayType": "weekday",
+        "price": 20,
+        "hourStart": "08:00:00",
+        "hourEnd": "20:00:00",
+        "createdAt": "2025-12-13T21:22:19.006Z",
+        "updatedAt": "2025-12-13T21:22:19.006Z"
+    }
+]
 ```
 
 ---
 
+# GET /rate/{rateId}
+
+**Parametri**
+
+| Posizione   | Nome    | Tipo     | Descrizione        | Obbligatorio |
+|:-----------:|:-------:|:--------:|:------------------:|:------------:|
+| Header      | `Authorization` | `string` | Token JWT operatore | ✅       |
+| Path        | `rateId`| `string` | UUID della tariffa | ✅           |
+
+**Esempio di richiesta**
+
+```
+
+GET /rate/a7c3eac9-64ba-4b8e-b5a4-611f306f7c59 HTTP/1.1
+Authorization: Bearer <JWT>
+
+```
 # POST /rate
 
 **Parametri**
@@ -1322,9 +1326,9 @@ Authorization: Bearer <JWT>
 | Posizione   | Nome          | Tipo      | Descrizione                          | Obbligatorio |
 |:-----------:|:-------------:|:---------:|:------------------------------------:|:------------:|
 | Header      | `Authorization` | `string` | Token JWT operatore                | ✅           |
-| Body (JSON) | `vehicleType` | `string`  | Tipo veicolo (es. `car`, `moto`)     | ✅           |
+| Body (JSON) | `vehicleType` | `string`  | Tipo veicolo (`car`, `motorcycle`, `truck`)     | ✅           |
 | Body (JSON) | `parkingId`   | `string`  | UUID parcheggio                      | ✅           |
-| Body (JSON) | `dayType`     | `string`  | Tipologia giorno (`weekday`, `weekend`, ...) | ✅ |
+| Body (JSON) | `dayType`     | `string`  | Tipologia giorno (`weekday` o `weekend`) | ✅ |
 | Body (JSON) | `price`       | `number`  | Prezzo orario/unitario               | ✅           |
 | Body (JSON) | `hourStart`   | `string`  | Ora inizio fascia (HH:mm)           | ✅           |
 | Body (JSON) | `hourEnd`     | `string`  | Ora fine fascia (HH:mm)             | ✅           |
@@ -1339,25 +1343,31 @@ Authorization: Bearer <JWT>
 
 ```
 
-```
-
+```json
 {
-"vehicleType": "car",
-"parkingId": "aee42b3c-6d9e-49d8-ac18-0c9c627a2cc8",
-"dayType": "weekend",
-"price": 5,
-"hourStart": "04:03",
-"hourEnd": "20:00"
+    "vehicleType":"truck",
+    "parkingId":"aee42b3c-6d9e-49d8-ac18-0c9c627a2cc8",
+    "dayType":"weekday",
+    "price": 20,
+    "hourStart": "08:00",
+    "hourEnd": "20:00"
 }
-
 ```
 
 **Esempio di risposta**
 
-```
-
-// TODO
-
+```json
+{
+    "id": "61becb87-2019-448c-a270-24a35ff71bed",
+    "parkingId": "aee42b3c-6d9e-49d8-ac18-0c9c627a2cc8",
+    "vehicleType": "truck",
+    "dayType": "weekday",
+    "price": 20,
+    "hourStart": "08:00:00",
+    "hourEnd": "20:00:00",
+    "updatedAt": "2025-12-13T21:22:19.006Z",
+    "createdAt": "2025-12-13T21:22:19.006Z"
+}
 ```
 
 ---
@@ -1407,29 +1417,6 @@ Authorization: Bearer <JWT>
 | Header      | `Authorization` | `string` | Token JWT operatore | ✅       |
 | Path        | `rateId`| `string` | UUID della tariffa | ✅           |
 
-**Esempio di richiesta**
-
-```
-
-DELETE /rate/a7c3eac9-64ba-4b8e-b5a4-611f306f7c59 HTTP/1.1
-Authorization: Bearer <JWT>
-
-```
-
-```
-
-// nessun body richiesto
-
-```
-
-**Esempio di risposta**
-
-```
-
-// TODO
-
-```
-
 ---
 
 # GET /stats/
@@ -1449,7 +1436,7 @@ Authorization: Bearer <JWT>
 
 ```
 
-```
+``` typescript
 
 // nessun body richiesto
 
@@ -1479,12 +1466,12 @@ Authorization: Bearer <JWT>
 
 ```
 
-GET /stats/6bbec4cf-d723-4bc1-9712-2b4eab3ea88b?format=pdf HTTP/1.1
+GET stats/aee42b3c-6d9e-49d8-ac18-0c9c627a2cc8?format=pdf&from=2025-12-12 HTTP/1.1
 Authorization: Bearer <JWT>
 
 ```
 
-```
+``` typescript
 
 // nessun body richiesto
 
@@ -1492,11 +1479,69 @@ Authorization: Bearer <JWT>
 
 **Esempio di risposta**
 
+``` json
+
+{
+    "parkingId": "aee42b3c-6d9e-49d8-ac18-0c9c627a2cc8",
+    "parkingName": "Parcheggio Fighissimo",
+    "from": "2025-12-12T00:00:00.000Z",
+    "to": "2025-12-13T21:40:55.360Z",
+    "totalRevenue": 140.94,
+    "paidRevenue": 0,
+    "invoiceCount": 2,
+    "invoiceCountByStatus": {
+        "paid": 0,
+        "unpaid": 2,
+        "expired": 0
+    },
+    "transits": {
+        "total": 5,
+        "byType": {
+            "in": 3,
+            "out": 2
+        },
+        "byVehicleType": {
+            "car": 5
+        },
+        "bySlot": [
+            {
+                "slot": "16-18",
+                "total": 3,
+                "in": 2,
+                "out": 1
+            },
+            {
+                "slot": "18-20",
+                "total": 1,
+                "in": 0,
+                "out": 1
+            },
+            {
+                "slot": "22-24",
+                "total": 1,
+                "in": 1,
+                "out": 0
+            }
+        ],
+        "list": [
+            {
+                "id": "705e67ed-b5d6-4299-a3cb-1313c7c70922",
+                "parkingId": "aee42b3c-6d9e-49d8-ac18-0c9c627a2cc8",
+                "gateId": "c8ebf662-ec73-4a9b-8889-49f738034825",
+                "vehicleId": "FV181EX",
+                "type": "in",
+                "date": "2025-12-12T17:14:41.957Z",
+                "detectedPlate": "FV181EX",
+                "createdAt": "2025-12-12T17:14:41.957Z",
+                "updatedAt": "2025-12-12T17:14:41.957Z"
+            },
+
+            ...
+
 ```
 
-// TODO
-
-```
+Oppure in formato pdf:
+INSERIRE IMMAGINE PDF
 
 ---
 
@@ -1507,31 +1552,78 @@ Authorization: Bearer <JWT>
 | Posizione   | Nome           | Tipo     | Descrizione                      | Obbligatorio |
 |:-----------:|:--------------:|:--------:|:--------------------------------:|:------------:|
 | Header      | `Authorization`| `string` | Token JWT utente (driver/op)     | ✅           |
-| Query (es.) | `status`       | `string` | Filtro per stato pagamento       | ❌           |
+| Query  | `status`       | `string` | Filtro per stato pagamento (`paid`, `unpaid`, `expired`)       | ❌           |
 
 **Esempio di richiesta**
 
 ```
 
-GET /invoice HTTP/1.1
+GET /invoice/?status=paid HTTP/1.1
 Authorization: Bearer <JWT>
 
 ```
-
-```
-
-// nessun body richiesto
-
-```
-
 **Esempio di risposta**
-
+L'operatore può vedere tutte le fatture. Altrimenti, il guidatore, solo le proprie.
+``` json
+[
+    {
+        "id": "34025bf8-65de-46a3-9b31-660cdd92f692",
+        "userId": "1d82cfb5-4b08-4904-ba90-87f4e0fa96b2",
+        "parkingId": "457e1a07-cdeb-43ea-b30d-7672fb73d06e",
+        "entryTransitId": "811af189-4ffd-4f99-bcf9-c1a3d98fc91f",
+        "exitTransitId": "517117da-41db-47b6-ac5a-4eb73ec1470f",
+        "amount": 4.66,
+        "status": "paid",
+        "createdAt": "2025-12-12T14:09:57.396Z",
+        "dueDate": "2025-12-13T14:09:57.396Z",
+        "updatedAt": "2025-12-12T14:09:57.396Z"
+    },
+    {
+        "id": "9774866b-bc4a-4353-adf2-b25674035121",
+        "userId": "d89a76e4-d3e0-42e3-b920-d63153838906",
+        "parkingId": "457e1a07-cdeb-43ea-b30d-7672fb73d06e",
+        "entryTransitId": "7b79c4cc-ccfb-4e79-88ef-83665f1417bf",
+        "exitTransitId": "e99ed70d-f97b-4d78-9dd5-f998cc721090",
+        "amount": 10.42,
+        "status": "paid",
+        "createdAt": "2025-12-11T19:21:57.396Z",
+        "dueDate": "2025-12-12T19:21:57.396Z",
+        "updatedAt": "2025-12-11T19:21:57.396Z"
+    },
+    ...
 ```
+> Nota: gli id utente sono diversi. (Login Operator)
 
-// TODO
 
+``` json
+[
+    {
+        "id": "34025bf8-65de-46a3-9b31-660cdd92f692",
+        "userId": "1d82cfb5-4b08-4904-ba90-87f4e0fa96b2",
+        "parkingId": "457e1a07-cdeb-43ea-b30d-7672fb73d06e",
+        "entryTransitId": "811af189-4ffd-4f99-bcf9-c1a3d98fc91f",
+        "exitTransitId": "517117da-41db-47b6-ac5a-4eb73ec1470f",
+        "amount": 4.66,
+        "status": "paid",
+        "createdAt": "2025-12-12T14:09:57.396Z",
+        "dueDate": "2025-12-13T14:09:57.396Z",
+        "updatedAt": "2025-12-12T14:09:57.396Z"
+    },
+    {
+        "id": "21638d3e-ccd3-4018-8472-1db8d004aee8",
+        "userId": "1d82cfb5-4b08-4904-ba90-87f4e0fa96b2",
+        "parkingId": "457e1a07-cdeb-43ea-b30d-7672fb73d06e",
+        "entryTransitId": "601774df-c447-4325-b087-3e89d6ac98d5",
+        "exitTransitId": "83f1bdd0-10ad-4604-9fb3-425423db9de1",
+        "amount": 18.39,
+        "status": "paid",
+        "createdAt": "2025-12-09T20:44:57.396Z",
+        "dueDate": "2025-12-10T20:44:57.396Z",
+        "updatedAt": "2025-12-09T20:44:57.396Z"
+    },
+    ...
 ```
-
+> Nota: gli id utente sono uguali. (Login driver)
 ---
 
 # GET /invoice/{invoiceId}
@@ -1543,35 +1635,36 @@ Authorization: Bearer <JWT>
 | Header      | `Authorization` | `string` | Token JWT utente | ✅         |
 | Path        | `invoiceId`| `string` | UUID della fattura  | ✅           |
 
-**Esempio di richiesta**
-
+La richiesta è simile alle precedenti.
+```json
+{
+    "id": "34025bf8-65de-46a3-9b31-660cdd92f692",
+    "userId": "1d82cfb5-4b08-4904-ba90-87f4e0fa96b2",
+    "parkingId": "457e1a07-cdeb-43ea-b30d-7672fb73d06e",
+    "entryTransitId": "811af189-4ffd-4f99-bcf9-c1a3d98fc91f",
+    "exitTransitId": "517117da-41db-47b6-ac5a-4eb73ec1470f",
+    "amount": 4.66,
+    "status": "paid",
+    "createdAt": "2025-12-12T14:09:57.396Z",
+    "dueDate": "2025-12-13T14:09:57.396Z",
+    "updatedAt": "2025-12-12T14:09:57.396Z"
+}
 ```
 
-GET /invoice/{invoiceId} HTTP/1.1
-Authorization: Bearer <JWT>
+ Anche qui solo l'operatore può vedere tutte le fatture. Altrimenti verrà visualizzato il messaggio:
 
-```
-
-```
-
-// nessun body richiesto
-
-```
-
-**Esempio di risposta**
-
-```
-
-// TODO
-
+```json
+{
+    "success": false,
+    "statusCode": 403,
+    "message": "Non sei autorizzato a vedere o pagare questa fattura"
+}
 ```
 
 ---
 
 # GET /invoice/{invoiceId}/pdf
 
-*(InvoiceGetPdf – download bollettino/QR code)*
-
 **Parametri**
 
 | Posizione   | Nome       | Tipo     | Descrizione         | Obbligatorio |
@@ -1581,32 +1674,11 @@ Authorization: Bearer <JWT>
 
 **Esempio di richiesta**
 
-```
 
-GET /invoice/{invoiceId}/pdf HTTP/1.1
-Authorization: Bearer <JWT>
-
-```
-
-```
-
-// nessun body richiesto
-
-```
-
-**Esempio di risposta**
-
-```
-
-// TODO
-
-```
 
 ---
 
-# GET /invoice/{invoiceId}/pay
-
-*(InvoicePay – simulazione pagamento)*
+# PUT /invoice/{invoiceId}
 
 **Parametri**
 
@@ -1619,23 +1691,38 @@ Authorization: Bearer <JWT>
 
 ```
 
-GET /invoice/{invoiceId}/pay HTTP/1.1
+PUT /invoice/{invoiceId} HTTP/1.1
 Authorization: Bearer <JWT>
 
 ```
-
-```
-
-// nessun body richiesto
-
-```
-
 **Esempio di risposta**
 
+``` json
+{
+    "success": true,
+    "message": "Fattura pagata con successo"
+}
+```
+>Nota: la fattura può essere pagata sia dall'operatore che dal proprietario.
+
+``` json
+{
+    "success": false,
+    "statusCode": 403,
+    "message": "La fattura risulta già pagata"
+}
 ```
 
-// TODO
+Come per il caso precedente, se un Driver prova a pagare una fattura di cui non è proprietario verrà generato l'errore sopra riportato.
 
+## Token insufficienti
+Il seguente errore verrà visualizzato se l'operatore o il driver finisce i token. Non è stata implementata nessuna tecnica per il refresh o per l'aggiunta.
+``` json
+{
+    "success": false,
+    "statusCode": 402,
+    "message": "Token insufficienti. Disponibili: 0, richiesti: 1"
+}
 ```
 
 
@@ -1691,14 +1778,21 @@ email: mario.rossi@email.com
 password: password123
 ```
 Per testare le rotte dell'applicazione si utilizza Postman, attraverso i file che si trovano nella directory `postman`:
-- `PRIMO`: contine le variabili ambiente utilizzate nelle rotte
-- `SECONDO`: contiene la collecion di rotte relative all'applicazione.
+- `PA.postman_environment.json`: contine le variabili ambiente utilizzate nelle rotte
+- `PA.postman_collection.json`: contiene la collecion di rotte relative all'applicazione.
 
 Quando si vogliono stoppare i container è preferibile farlo con:
 ```
 docker compose down -v
 ```
 evitando problemi al successivo riavvio.
+
+# Jest Test
+Sono stati implementati 5 Jest test. Per lanciarli basta digitare:
+```
+npm test
+```
+
 
 # Strumenti utilizzati
 - **Node.js**: Runtime utilizzato per eseguire il codice JavaScript sul lato server.
@@ -1713,11 +1807,17 @@ evitando problemi al successivo riavvio.
 - **DBeaver**: Strumento per la gestione e l’interazione con il database PostgreSQL, utile per visualizzare e manipolare i dati.
 - **Tesseract**: OCR (Optical Character Recognition), utilizzato per leggere targhe da immagini.
 
+# Curiosità e sviluppi futuri
+
+Numerose parti di codice potevano sicuramente essere scritte meglio. Soprattutto la parte di gestione del database è stata affidata completamente a Sequelize. Sarebbe stata buona norma utilizzare `Redis` per il caching delle risposte. 
+
+A tal proposito, nel sistema di gestione dei transiti è stato identificato un limite prestazionale legato alla logica che verifica l’ultimo transito per un veicolo/parcheggio prima di crearne uno nuovo. Tale problema pensiamo sia dovuto (seppur con molti dubbi) ad una query non ottimizzata che recupera e analizza un numero di transiti maggiore del necessario, funzionando correttamente con pochi dati ma degradando progressivamente all’aumentare dei record di seed. Questo comportamento fa sì che il controllo “ultimo transito = out” possa restituire risultati incoerenti in presenza di dataset più grandi, non per errore di ordinamento ma per inefficienza della strategia di interrogazione. In prospettiva, la logica andrebbe rifattorizzata per lavorare solo su un sottoinsieme minimo di transiti (es. ultimi N record rilevanti) e su query più mirate, così da mantenere il comportamento corretto anche in scenari con un elevato volume di dati. Restiamo comunque molto scettici, ma sarebbe opportuno capire la fonte del problema. 
+
+Un ulteriore sviluppo futuro potrebbe essere aggiungere un vero sistema di pagamento, dopo un'attenta revisione e correzione dell'intero codice.
   
 # Autori
-[<img src="https://github.com/SbattellaMattia.png" width="48" height="48" style="border-radius:50/%;" alt="Mattia Sbattella" />](https://github.com/SbattellaMattia)
-[<img src="https://github.com/diba01.png" width="48" height="48" style="border-radius:50/%;" alt="Simone Di Battista" />](https://github.com/diba01)
 
-- [Mattia Sbattella](https://github.com/SbattellaMattia) 
-- [Simone Di Battista](https://github.com/diba01)
-
+| Immagine | Cognome e nome | E-mail istituzionale |
+|:----------:|:---------:|:-----------:|
+|[<img src="https://github.com/SbattellaMattia.png" width="48" height="48" style="border-radius:50/%;" alt="Mattia Sbattella" />](https://github.com/SbattellaMattia)       | [Mattia Sbattella](https://github.com/SbattellaMattia) | s1120571@studenti.univpm.it     |
+| [<img src="https://github.com/diba01.png" width="48" height="48" style="border-radius:50/%;" alt="Simone Di Battista" />](https://github.com/diba01)| [Simone Di Battista](https://github.com/diba01)  | altro     |

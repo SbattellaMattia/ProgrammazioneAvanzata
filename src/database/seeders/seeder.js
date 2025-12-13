@@ -135,7 +135,7 @@ module.exports = {
 
       return used < cap;
     }
-    for (let i = 0; i < 5500; i++) {
+    for (let i = 0; i < 500; i++) {
       let sc, entryTime, exitTime, durationHours;
 
       // riprova finché trovi una sessione valida rispetto alla capienza
@@ -169,8 +169,6 @@ module.exports = {
         sessions.push({ parkingId: sc.park, vehicleType, entryTime, exitTime });
         break;
       }
-
-      // === QUI SOTTO è uguale a prima ===
 
       const tInId = uuidv4();
       const tOutId = uuidv4();
