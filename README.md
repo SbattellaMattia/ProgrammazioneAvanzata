@@ -293,7 +293,92 @@ export type LoginInput = z.infer<typeof loginSchema>;
 
 # Diagrammi UML
 ## Diagramma dei casi d'uso
+## Operatore
 
+``` mermaid
+flowchart TB
+    %% Attori
+    Operatore["Operatore"]
+
+    %% Casi d'uso - Operatore
+    loginOperator
+    CRUDParkings
+    CRUDGates
+    CRUDRates
+    CRUDTransits
+    transitsHistory
+    statsAllParkings
+    statsSingleParking
+    manageInvoices
+    invoicePdf
+
+    %% Relazioni Operatore → casi d'uso
+    Operatore --> loginOperator
+    Operatore --> CRUDParkings
+    Operatore --> CRUDGates
+    Operatore --> CRUDRates
+    Operatore --> CRUDTransits
+    Operatore --> transitsHistory
+    Operatore --> statsAllParkings
+    Operatore --> statsSingleParking
+    Operatore --> manageInvoices
+    Operatore --> invoicePdf
+
+```
+
+---
+
+## Automobilista
+
+```  mermaid
+flowchart TB
+    %% Attori
+    Automobilista["Automobilista"]
+
+ %% Casi d'uso - Automobilista
+    loginDriver
+    ownTransits
+    ownTransitsHistory
+    ownInvoices
+    invoicePdf
+    invoicePay
+
+ %% Relazioni Automobilista → casi d'uso
+    Automobilista --> loginDriver
+    Automobilista --> ownTransits
+    Automobilista --> ownTransitsHistory
+    Automobilista --> ownInvoices
+    Automobilista --> invoicePdf
+    Automobilista --> invoicePay
+```
+
+---
+
+## Gate (varco standard / smart)
+
+```  mermaid
+flowchart TB
+    %% Attori
+    GateStd["Varco_standard"]
+    GateSmart["Varco_smart"]
+
+%% Casi d'uso - Gate (standard / smart)
+    createTransitStd
+    createTransitSmart
+    checkCapacity
+    manageParkingSession
+    generateInvoice
+
+ %% Relazioni Gate → casi d'uso
+    GateStd --> createTransitStd
+    GateSmart --> createTransitSmart
+
+    createTransitStd --> checkCapacity
+    createTransitSmart --> checkCapacity
+
+    checkCapacity --> manageParkingSession
+    manageParkingSession --> generateInvoice
+```
 
 ## Diagramma E-R
 
