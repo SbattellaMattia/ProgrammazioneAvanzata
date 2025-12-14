@@ -1513,7 +1513,8 @@ Authorization: Bearer <JWT>
 ```
 O in formato pdf:
 
-INSERIRE IMMAGINE
+<img width="903" height="872" alt="image" src="https://github.com/user-attachments/assets/e58f36ce-c82c-4e37-b370-4c8349c26f6b" />
+
 
 ---
 
@@ -1652,7 +1653,6 @@ L'operatore può vedere tutte le fatture. Altrimenti, il guidatore, solo le prop
         "dueDate": "2025-12-12T19:21:57.396Z",
         "updatedAt": "2025-12-11T19:21:57.396Z"
     },
-    ...
 ```
 > Nota: gli id utente sono diversi. (Login Operator)
 
