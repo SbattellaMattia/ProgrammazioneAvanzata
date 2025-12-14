@@ -9,6 +9,7 @@ import { TransitDAO as TransitDAOClass } from "../../dao/TransitDAO";
 import { VehicleDAO as VehicleDAOClass } from "../../dao/VehicleDAO";
 
 import {
+  timeToMinutes,
   BillingContext,
   loadBillingContext,
   getDay,
@@ -89,42 +90,60 @@ export class RateCalculator {
    * usando le Rate che coprono la giornata.
    * Ogni Rate ha price = €/ora.
    */
-  private calcForInterval(intervalStart: Date,intervalEnd: Date,rates: Rate[]): number {
-    let partial = 0;
+  private calcForInterval(intervalStart: Date, intervalEnd: Date, rates: Rate[]): number {
+  const dayStart = new Date(intervalStart);
+  dayStart.setHours(0, 0, 0, 0);
 
-    for (const rate of rates) {
-      // Costruisco l’intervallo orario della Rate
-      const slotStart = new Date(intervalStart);
-      const [sh, sm] = String(rate.hourStart).split(":").map(Number);
-      slotStart.setHours(sh, sm || 0, 0, 0);
+  const dayEnd = new Date(dayStart);
+  dayEnd.setDate(dayEnd.getDate() + 1);
 
-      let slotEnd = new Date(slotStart);
-      const [eh, em] = String(rate.hourEnd).split(":").map(Number);
-      slotEnd.setHours(eh, em || 0, 0, 0);
+  const clamp = (d: Date) =>
+    new Date(Math.max(dayStart.getTime(), Math.min(dayEnd.getTime(), d.getTime())));
 
-      // fascia che passa la mezzanotte (es: 20:00 → 08:00)
-      if (slotEnd <= slotStart) {
-        slotEnd.setDate(slotEnd.getDate() + 1);
-      }
+  const isect = (a0: Date, a1: Date, b0: Date, b1: Date) => {
+    const s = new Date(Math.max(a0.getTime(), b0.getTime()));
+    const e = new Date(Math.min(a1.getTime(), b1.getTime()));
+    return e > s ? [s, e] as const : null;
+  };
 
-      // overlap tra [intervalStart, intervalEnd] e [slotStart, slotEnd]
-      const overlapStart = new Date(
-        Math.max(intervalStart.getTime(), slotStart.getTime())
-      );
-      const overlapEnd = new Date(
-        Math.min(intervalEnd.getTime(), slotEnd.getTime())
-      );
+  const minutesBetween = (a: Date, b: Date) => (b.getTime() - a.getTime()) / 60000;
 
-      if (overlapEnd > overlapStart) {
-        const minutes =
-          (overlapEnd.getTime() - overlapStart.getTime()) / 60000;
-        const hours = minutes / 60;
-        partial += hours * rate.price;
-      }
+  let partial = 0;
+  const a0 = clamp(intervalStart);
+  const a1 = clamp(intervalEnd);
+
+  for (const rate of rates) {
+    const startMin = timeToMinutes(rate.hourStart as any); // "20:00:00" -> 1200
+    const endMin   = timeToMinutes(rate.hourEnd as any);   // "08:00:00" -> 480
+
+    const makeTime = (min: number) => {
+      const d = new Date(dayStart);
+      d.setMinutes(min, 0, 0);
+      return d;
+    };
+
+    if (startMin < endMin) {
+      // es 08-20
+      const b0 = makeTime(startMin);
+      const b1 = makeTime(endMin);
+      const ov = isect(a0, a1, b0, b1);
+      if (ov) partial += (minutesBetween(ov[0], ov[1]) / 60) * rate.price;
+    } else {
+      // es 20-08 -> due pezzi: 00-08 e 20-24
+      const b0a = makeTime(0);
+      const b1a = makeTime(endMin);
+      const ovA = isect(a0, a1, b0a, b1a);
+      if (ovA) partial += (minutesBetween(ovA[0], ovA[1]) / 60) * rate.price;
+
+      const b0b = makeTime(startMin);
+      const b1b = new Date(dayEnd);
+      const ovB = isect(a0, a1, b0b, b1b);
+      if (ovB) partial += (minutesBetween(ovB[0], ovB[1]) / 60) * rate.price;
     }
-
-    return partial;
   }
+
+  return partial;
+}
 }
 
 const rateDAO = new RateDAOClass();

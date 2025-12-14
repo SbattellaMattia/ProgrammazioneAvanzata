@@ -44,17 +44,91 @@ module.exports = {
 
     console.log('🌱 Seeding Users...');
     await queryInterface.bulkInsert('Users', [
-      { id: userOperatorId, name: 'Operatore', surname: 'Operatore', email: 'op@op.com', password: hashedPassword, role: 'operator', tokens: 100, createdAt: now, updatedAt: now },
-      { id: userDriver1Id, name: 'Mario', surname: 'Rossi', email: 'mario.rossi@email.com', password: hashedPassword, role: 'driver', tokens: 100, createdAt: now, updatedAt: now },
-      { id: userDriver2Id, name: 'Giulia', surname: 'Bianchi', email: 'giulia.bianchi@email.com', password: hashedPassword, role: 'driver', tokens: 100, createdAt: now, updatedAt: now },
-      { id: userDriver3Id, name: 'Luca', surname: 'Verdi', email: 'luca.verdi@email.com', password: hashedPassword, role: 'driver', tokens: 100, createdAt: now, updatedAt: now },
-      { id: userDriver4Id, name: 'Andrea', surname: 'Ferrari', email: 'andrea.ferrari@email.com', password: hashedPassword, role: 'driver', tokens: 500, createdAt: now, updatedAt: now }
+      {
+        id: userOperatorId,
+        name: 'Operatore',
+        surname: 'Operatore',
+        email: 'op@op.com',
+        password: hashedPassword,
+        role: 'operator',
+        tokens: 100,
+        createdAt: now,
+        updatedAt: now
+      },
+      {
+        id: userDriver1Id,
+        name: 'Mario',
+        surname: 'Rossi',
+        email: 'mario.rossi@email.com',
+        password: hashedPassword,
+        role: 'driver',
+        tokens: 100,
+        createdAt: now,
+        updatedAt: now
+      },
+      {
+        id: userDriver2Id,
+        name: 'Giulia',
+        surname: 'Bianchi',
+        email: 'giulia.bianchi@email.com',
+        password: hashedPassword,
+        role: 'driver',
+        tokens: 100,
+        createdAt: now,
+        updatedAt: now
+      },
+      {
+        id: userDriver3Id,
+        name: 'Luca',
+        surname: 'Verdi',
+        email: 'luca.verdi@email.com',
+        password: hashedPassword,
+        role: 'driver',
+        tokens: 100,
+        createdAt: now,
+        updatedAt: now
+      },
+      {
+        id: userDriver4Id,
+        name: 'Andrea',
+        surname: 'Ferrari',
+        email: 'andrea.ferrari@email.com',
+        password: hashedPassword,
+        role: 'driver',
+        tokens: 500,
+        createdAt: now,
+        updatedAt: now
+      }
     ]);
 
     console.log('🌱 Seeding Parkings...');
     await queryInterface.bulkInsert('Parkings', [
-      { id: parkingDowntownId, name: 'Downtown Parking', address: 'Via Roma 15, Milan', carCapacity: 10, motorcycleCapacity:5 , truckCapacity: 2,carCapacityRemain:10,motorcycleCapacityRemain:5, truckCapacityRemain:2,createdAt: now, updatedAt: now },
-      { id: parkingStationId, name: 'Station Parking', address: 'Piazza Garibaldi 3, Milan', carCapacity: 10, motorcycleCapacity: 2, truckCapacity: 0,carCapacityRemain:10, motorcycleCapacityRemain:2, truckCapacityRemain:0, createdAt: now, updatedAt: now }
+      {
+        id: parkingDowntownId,
+        name: 'Downtown Parking',
+        address: 'Via Roma 15, Milan',
+        carCapacity: 10,
+        motorcycleCapacity: 5,
+        truckCapacity: 2,
+        carCapacityRemain: 10,
+        motorcycleCapacityRemain: 5,
+        truckCapacityRemain: 2,
+        createdAt: now,
+        updatedAt: now
+      },
+      {
+        id: parkingStationId,
+        name: 'Station Parking',
+        address: 'Piazza Garibaldi 3, Milan',
+        carCapacity: 10,
+        motorcycleCapacity: 2,
+        truckCapacity: 0,
+        carCapacityRemain: 10,
+        motorcycleCapacityRemain: 2,
+        truckCapacityRemain: 0,
+        createdAt: now,
+        updatedAt: now
+      }
     ]);
 
     console.log('🌱 Seeding Gates...');
@@ -69,105 +143,149 @@ module.exports = {
 
     console.log('🌱 Seeding Vehicles...');
     await queryInterface.bulkInsert('Vehicles', [
-      { plate: plateCarA, type: 'car', ownerId: userDriver1Id,createdAt: now, updatedAt: now },
+      { plate: plateCarA, type: 'car', ownerId: userDriver1Id, createdAt: now, updatedAt: now },
       { plate: plateMotoB, type: 'motorcycle', ownerId: userDriver2Id, createdAt: now, updatedAt: now },
-      { plate: plateCarC, type: 'car', ownerId: userDriver3Id,createdAt: now, updatedAt: now },
+      { plate: plateCarC, type: 'car', ownerId: userDriver3Id, createdAt: now, updatedAt: now },
       { plate: plateTruckD, type: 'truck', ownerId: userDriver3Id, createdAt: now, updatedAt: now },
-      { plate: plateCarE, type: 'car', ownerId: userDriver1Id,createdAt: now, updatedAt: now },
-      { plate: plateCarF, type: 'car', ownerId: userDriver1Id,createdAt: now, updatedAt: now },
+      { plate: plateCarE, type: 'car', ownerId: userDriver1Id, createdAt: now, updatedAt: now },
+      { plate: plateCarF, type: 'car', ownerId: userDriver2Id, createdAt: now, updatedAt: now }
+    ]);
+
+    console.log('🌱 Seeding Rates...');
+    await queryInterface.bulkInsert('Rates', [
+      // =========================
+      // DOWNTOWN
+      // =========================
+      { id: uuidv4(), parkingId: parkingDowntownId, vehicleType: 'car',        dayType: 'weekday', price: 2.0, hourStart: '08:00:00', hourEnd: '20:00:00', createdAt: now, updatedAt: now },
+      { id: uuidv4(), parkingId: parkingDowntownId, vehicleType: 'car',        dayType: 'weekday', price: 1.5, hourStart: '20:00:00', hourEnd: '08:00:00', createdAt: now, updatedAt: now },
+      { id: uuidv4(), parkingId: parkingDowntownId, vehicleType: 'car',        dayType: 'weekend', price: 2.5, hourStart: '08:00:00', hourEnd: '20:00:00', createdAt: now, updatedAt: now },
+      { id: uuidv4(), parkingId: parkingDowntownId, vehicleType: 'car',        dayType: 'weekend', price: 2.0, hourStart: '20:00:00', hourEnd: '08:00:00', createdAt: now, updatedAt: now },
+
+      { id: uuidv4(), parkingId: parkingDowntownId, vehicleType: 'motorcycle', dayType: 'weekday', price: 1.0, hourStart: '08:00:00', hourEnd: '20:00:00', createdAt: now, updatedAt: now },
+      { id: uuidv4(), parkingId: parkingDowntownId, vehicleType: 'motorcycle', dayType: 'weekday', price: 0.8, hourStart: '20:00:00', hourEnd: '08:00:00', createdAt: now, updatedAt: now },
+      { id: uuidv4(), parkingId: parkingDowntownId, vehicleType: 'motorcycle', dayType: 'weekend', price: 1.2, hourStart: '08:00:00', hourEnd: '20:00:00', createdAt: now, updatedAt: now },
+      { id: uuidv4(), parkingId: parkingDowntownId, vehicleType: 'motorcycle', dayType: 'weekend', price: 1.0, hourStart: '20:00:00', hourEnd: '08:00:00', createdAt: now, updatedAt: now },
+
+      { id: uuidv4(), parkingId: parkingDowntownId, vehicleType: 'truck',      dayType: 'weekday', price: 4.0, hourStart: '08:00:00', hourEnd: '20:00:00', createdAt: now, updatedAt: now },
+      { id: uuidv4(), parkingId: parkingDowntownId, vehicleType: 'truck',      dayType: 'weekday', price: 3.0, hourStart: '20:00:00', hourEnd: '08:00:00', createdAt: now, updatedAt: now },
+      { id: uuidv4(), parkingId: parkingDowntownId, vehicleType: 'truck',      dayType: 'weekend', price: 5.0, hourStart: '08:00:00', hourEnd: '20:00:00', createdAt: now, updatedAt: now },
+      { id: uuidv4(), parkingId: parkingDowntownId, vehicleType: 'truck',      dayType: 'weekend', price: 4.0, hourStart: '20:00:00', hourEnd: '08:00:00', createdAt: now, updatedAt: now },
+
+      // =========================
+      // STATION
+      // =========================
+      { id: uuidv4(), parkingId: parkingStationId, vehicleType: 'car',        dayType: 'weekday', price: 1.8, hourStart: '08:00:00', hourEnd: '20:00:00', createdAt: now, updatedAt: now },
+      { id: uuidv4(), parkingId: parkingStationId, vehicleType: 'car',        dayType: 'weekday', price: 1.2, hourStart: '20:00:00', hourEnd: '08:00:00', createdAt: now, updatedAt: now },
+      { id: uuidv4(), parkingId: parkingStationId, vehicleType: 'car',        dayType: 'weekend', price: 2.2, hourStart: '08:00:00', hourEnd: '20:00:00', createdAt: now, updatedAt: now },
+      { id: uuidv4(), parkingId: parkingStationId, vehicleType: 'car',        dayType: 'weekend', price: 1.6, hourStart: '20:00:00', hourEnd: '08:00:00', createdAt: now, updatedAt: now },
+
+      { id: uuidv4(), parkingId: parkingStationId, vehicleType: 'motorcycle', dayType: 'weekday', price: 0.9, hourStart: '08:00:00', hourEnd: '20:00:00', createdAt: now, updatedAt: now },
+      { id: uuidv4(), parkingId: parkingStationId, vehicleType: 'motorcycle', dayType: 'weekday', price: 0.6, hourStart: '20:00:00', hourEnd: '08:00:00', createdAt: now, updatedAt: now },
+      { id: uuidv4(), parkingId: parkingStationId, vehicleType: 'motorcycle', dayType: 'weekend', price: 1.1, hourStart: '08:00:00', hourEnd: '20:00:00', createdAt: now, updatedAt: now },
+      { id: uuidv4(), parkingId: parkingStationId, vehicleType: 'motorcycle', dayType: 'weekend', price: 0.8, hourStart: '20:00:00', hourEnd: '08:00:00', createdAt: now, updatedAt: now }
     ]);
 
     // ==========================================================
-    // 3. GENERAZIONE MASSIVA DI TRANSITI E FATTURE
+    // 3. GENERAZIONE MASSIVA DI TRANSITI E FATTURE (coerenti)
     // ==========================================================
-    console.log('🚀 Generating mass data (50+ records)...');
+    console.log('🚀 Generating mass data (transits + invoices)...');
 
     const transits = [];
     const invoices = [];
 
-    // Helper: Definiamo le possibili combinazioni veicolo/utente/parcheggio
     const scenarios = [
-      { plate: plateCarA, user: userDriver1Id, park: parkingDowntownId, gIn: gateDownIn, gOut: gateDownOut, basePrice: 5 },
-      { plate: plateMotoB, user: userDriver2Id, park: parkingDowntownId, gIn: gateDownBi, gOut: gateDownBi, basePrice: 2 },
-      { plate: plateCarC, user: userDriver3Id, park: parkingStationId, gIn: gateStatIn, gOut: gateStatOut, basePrice: 4 },
-      { plate: plateTruckD, user: userDriver3Id, park: parkingStationId, gIn: gateStatIn, gOut: gateStatBi, basePrice: 10 },
-      { plate: plateCarA, user: userDriver1Id, park: parkingStationId, gIn: gateStatBi, gOut: gateStatOut, basePrice: 4.5 },
-      { plate: plateMotoB, user: userDriver2Id, park: parkingStationId, gIn: gateStatIn, gOut: gateStatOut, basePrice: 2.5 },
-      { plate: plateCarE, user: userDriver1Id, park: parkingDowntownId, gIn: gateDownIn, gOut: gateDownOut, basePrice: 5 },
-      { plate: plateCarF, user: userDriver1Id, park: parkingDowntownId, gIn: gateDownIn, gOut: gateDownOut, basePrice: 5 }
+      { plate: plateCarA,  user: userDriver1Id, park: parkingDowntownId, gIn: gateDownIn,  gOut: gateDownOut, basePrice: 5 },
+      { plate: plateMotoB, user: userDriver2Id, park: parkingDowntownId, gIn: gateDownBi,  gOut: gateDownBi,  basePrice: 2 },
+      { plate: plateCarC,  user: userDriver3Id, park: parkingStationId,  gIn: gateStatIn,  gOut: gateStatOut, basePrice: 4 },
+      { plate: plateCarA,  user: userDriver1Id, park: parkingStationId,  gIn: gateStatBi,  gOut: gateStatOut, basePrice: 4.5 },
+      { plate: plateMotoB, user: userDriver2Id, park: parkingStationId,  gIn: gateStatIn,  gOut: gateStatOut, basePrice: 2.5 },
+      { plate: plateCarE,  user: userDriver1Id, park: parkingDowntownId, gIn: gateDownIn,  gOut: gateDownOut, basePrice: 5 },
+      { plate: plateCarF,  user: userDriver2Id, park: parkingDowntownId, gIn: gateDownIn,  gOut: gateDownOut, basePrice: 5 },
+      { plate: plateTruckD,user: userDriver3Id, park: parkingDowntownId, gIn: gateDownBi,  gOut: gateDownBi,  basePrice: 10 }
     ];
 
-    const statuses = ['paid', 'paid', 'paid', 'unpaid', 'expired']; // Più probabilità di PAID
+    const statuses = ['paid', 'paid', 'paid', 'unpaid', 'expired'];
 
-    // --- capacity note: prese dai tuoi bulkInsert Parkings (senza query DB)
     const parkingCaps = {
       [parkingDowntownId]: { car: 10, motorcycle: 5, truck: 2 },
-      [parkingStationId]: { car: 10, motorcycle: 2, truck: 0 },
+      [parkingStationId]:  { car: 10, motorcycle: 2, truck: 0 }
     };
 
-    // mappa targa -> tipo (presa dai Vehicles che hai inserito sopra)
     const plateType = {
-      [plateCarA]: "car",
-      [plateMotoB]: "motorcycle",
-      [plateCarC]: "car",
-      [plateTruckD]: "truck",
-      [plateCarE]: "car",
-      [plateCarF]: "car",
+      [plateCarA]:  'car',
+      [plateMotoB]: 'motorcycle',
+      [plateCarC]:  'car',
+      [plateTruckD]:'truck',
+      [plateCarE]:  'car',
+      [plateCarF]:  'car'
     };
 
-    // sessioni accettate per verificare sovrapposizioni (occupazione nel tempo)
-    const sessions = []; 
-    // { parkingId, vehicleType, entryTime, exitTime }
+    const sessions = []; // { parkingId, vehicleType, entryTime, exitTime }
 
     function overlaps(aStart, aEnd, bStart, bEnd) {
-      return aStart < bEnd && bStart < aEnd; // [start, end)
+      return aStart < bEnd && bStart < aEnd;
     }
 
     function canSchedule(parkingId, vehicleType, entryTime, exitTime) {
       const cap = (parkingCaps[parkingId] && parkingCaps[parkingId][vehicleType]) ?? 0;
       if (cap <= 0) return false;
 
-      const used = sessions.filter(s =>
-        s.parkingId === parkingId &&
-        s.vehicleType === vehicleType &&
-        overlaps(entryTime, exitTime, s.entryTime, s.exitTime)
-      ).length;
+      const used = sessions.filter((s) => {
+        return (
+          s.parkingId === parkingId &&
+          s.vehicleType === vehicleType &&
+          overlaps(entryTime, exitTime, s.entryTime, s.exitTime)
+        );
+      }).length;
 
       return used < cap;
     }
-    for (let i = 0; i < 500; i++) {
-      let sc, entryTime, exitTime, durationHours;
 
-      // riprova finché trovi una sessione valida rispetto alla capienza
-      for (let attempt = 0; attempt < 300; attempt++) {
+    const addMinutes = (d, minutes) => new Date(d.getTime() + minutes * 60 * 1000);
+    const min30Days = () => new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+
+    // ultimo OUT per targa -> garantisce IN/OUT alternati e niente "due parcheggi"
+    const lastExitByPlate = new Map();
+    Object.keys(plateType).forEach((plate) => {
+      lastExitByPlate.set(plate, min30Days());
+    });
+
+    const TARGET = 100;
+
+    for (let idx = 0; idx < TARGET; idx++) {
+      let sc = null;
+      let entryTime = null;
+      let exitTime = null;
+      let durationHours = null;
+
+      for (let attempt = 0; attempt < 800; attempt++) {
         sc = scenarios[Math.floor(Math.random() * scenarios.length)];
-
         const vehicleType = plateType[sc.plate];
         if (!vehicleType) continue;
 
-        // data random ultimi 30 giorni
-        const daysBack = Math.floor(Math.random() * 30);
-        entryTime = new Date(now);
-        entryTime.setDate(entryTime.getDate() - daysBack);
-        entryTime.setHours(Math.floor(Math.random() * 24), Math.floor(Math.random() * 60), 0, 0);
-        // durata 1–4 ore
+        const lastExit = lastExitByPlate.get(sc.plate) || min30Days();
+
+        // ingresso dopo l'ultimo OUT della targa
+        const minutesForward = 10 + Math.floor(Math.random() * 3 * 24 * 60);
+        entryTime = addMinutes(lastExit, minutesForward);
+
+        const minDate = min30Days();
+        if (entryTime < minDate) entryTime = minDate;
+        if (entryTime > now) continue;
+
         durationHours = 1 + Math.floor(Math.random() * 4);
         exitTime = new Date(entryTime);
         exitTime.setHours(exitTime.getHours() + durationHours);
+        if (exitTime > now) continue;
 
-        // se non c'è capienza (es. truckCapacity=0 a Station), scarta e riprova
-        if (!canSchedule(sc.park, vehicleType, entryTime, exitTime)) {
-          if (attempt === 299) {
-            throw new Error(
-              `Impossibile schedulare transito coerente (parking=${sc.park}, type=${vehicleType}). Aumenta capacity o riduci volume.`
-            );
-          }
-          continue;
-        }
+        if (!canSchedule(sc.park, vehicleType, entryTime, exitTime)) continue;
 
-        // accetta sessione (occupa uno slot in quell'intervallo)
         sessions.push({ parkingId: sc.park, vehicleType, entryTime, exitTime });
         break;
+      }
+
+      if (!sc || !entryTime || !exitTime || !durationHours) {
+        throw new Error('Seeder: non sono riuscito a generare una sessione valida');
       }
 
       const tInId = uuidv4();
@@ -199,6 +317,8 @@ module.exports = {
         updatedAt: exitTime
       });
 
+      lastExitByPlate.set(sc.plate, exitTime);
+
       const dueDate = new Date(exitTime);
       dueDate.setDate(dueDate.getDate() + 1);
 
@@ -208,15 +328,17 @@ module.exports = {
         parkingId: sc.park,
         entryTransitId: tInId,
         exitTransitId: tOutId,
-        amount: amount,
+        amount,
         status: statuses[Math.floor(Math.random() * statuses.length)],
-        dueDate: dueDate,
+        dueDate,
         createdAt: exitTime,
         updatedAt: exitTime
       });
     }
 
-    // SCRITTURA NEL DB
+    // ==========================================================
+    // 4. SCRITTURA NEL DB
+    // ==========================================================
     await queryInterface.bulkInsert('Transits', transits);
     await queryInterface.bulkInsert('Invoices', invoices);
 
