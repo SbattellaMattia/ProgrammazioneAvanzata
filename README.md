@@ -390,7 +390,7 @@ flowchart TB
 # API Routes
 
 | Verbo HTTP | Endpoint                                             | Descrizione                                                   | Autenticazione JWT |
-|------------|------------------------------------------------------|---------------------------------------------------------------|--------------------|
+|------------|------------------------------------------------------|---------------------------------------------------------------|:--------------------:|
 | POST       | /login                                               | Login utente driver, restituisce JWT                          | ❌                 |
 | POST       | /login                                               | Login operatore, restituisce JWT                              | ❌                 |
 | GET        | /parking                                             | Elenco di tutti i parcheggi                                   | ✅                 |
@@ -403,10 +403,10 @@ flowchart TB
 | POST       | /gate                                                | Creazione di un nuovo varco                                   | ✅                 |
 | PUT        | /gate/{gateId}                                       | Aggiornamento dati di un varco                                | ✅                 |
 | DELETE     | /gate/{gateId}                                       | Eliminazione di un varco                                      | ✅                 |
-| GET        | /gate/{gateId}/transits                              | Elenco transiti associati a un varco (TransitByGate)          | ✅                 |
+| GET        | /gate/{gateId}/transits                              | Elenco transiti associati a un varco          | ✅                 |
 | GET        | /transit                                             | Elenco di tutti i transiti                                    | ✅                 |
 | GET        | /transit/{transitId}                                 | Dettaglio di un singolo transito                              | ✅                 |
-| POST       | /transit/gate/{gateId}                               | Creazione transito da varco standard (upload immagine targa)  | ✅                 |
+| POST       | /transit/gate/{gateId}                               | Creazione transito da varco standard (upload immagine targa) o varco smart (taga come json) | ✅                 |
 | PUT        | /transit/{transitId}                                 | Aggiornamento dati di un transito                             | ✅                 |
 | DELETE     | /transit                                             | Eliminazione di un transito                                   | ✅                 |
 | GET        | /transit/history                                     | Storico transiti (filtri per targa, periodo, formato JSON/PDF)| ✅                 |
@@ -415,12 +415,13 @@ flowchart TB
 | POST       | /rate                                                | Creazione di una nuova tariffa                                | ✅                 |
 | PUT        | /rate/{rateId}                                       | Aggiornamento di una tariffa                                  | ✅                 |
 | DELETE     | /rate/{rateId}                                       | Eliminazione di una tariffa                                   | ✅                 |
-| GET        | /stats/                                              | Statistiche globali per tutti i parcheggi                     | ✅                 |
-| GET        | /stats/{parkingId}?format=pdf\|json                  | Statistiche per singolo parcheggio in formato JSON/PDF        | ✅                 |
+| GET        | /stats/                                              | Statistiche globali per tutti i parcheggi in formato JSON/PDF                     | ✅                 |
+| GET        | /stats/{parkingId}                  | Statistiche per singolo parcheggio in formato JSON/PDF        | ✅                 |
 | GET        | /invoice                                             | Elenco delle fatture dell’utente                              | ✅                 |
 | GET        | /invoice/{invoiceId}                                 | Dettaglio di una fattura                                      | ✅                 |
 | GET        | /invoice/{invoiceId}/pdf                             | Download PDF/bollettino fattura                               | ✅                 |
 | PUT        | /invoice/{invoiceId}                                 | Simulazione pagamento fattura                                 | ✅                 |
+| GET        | /xmas                                | Easter (Christmas) egg                                 | 🎅🏻🎄☃️                 |
 
 
 
@@ -1041,7 +1042,8 @@ Analogo alle get precedenti.
 
 # POST /transit/gate/{gateId}
 
-*(TransitCreateStandard – varco standard con upload immagine targa)*
+Il varco standard manda l'immagine allegata. L'OCR si occuperà poi dalla gestione.
+il varco smart (smart poichè viene considerato già avente nella telecamera l'OCR) manda unicamente il json della targa.
 
 **Parametri**
 
@@ -1049,13 +1051,14 @@ Analogo alle get precedenti.
 |:-----------:|:-------:|:-------:|:-----------------------------------------:|:------------:|
 | Header      | `Authorization` | `string` | Token JWT operatore/varco           | ✅           |
 | Path        | `gateId`| `string`| UUID del varco                             | ✅           |
-| Body (form-data) | `file` | `file`  | Immagine contenente la targa del veicolo | ✅           |
+| Body (form-data) | `file` | `file`  | Immagine contenente la targa del veicolo SOLO PER STANDARD | ✅           |
+| Body (form-data) | `plate` | `string`  | Targa del veicolo SOLO PER SMART | ✅| 
 
 **Esempio di richiesta**
 
 ```
 
-POST /transit/gate/7a0ad62a-26d1-41e3-8936-f9a076605830/new HTTP/1.1
+POST /transit/gate/7a0ad62a-26d1-41e3-8936-f9a076605830 HTTP/1.1
 Authorization: Bearer <JWT>
 Content-Type: multipart/form-data; 
 
@@ -1064,6 +1067,12 @@ Content-Type: multipart/form-data;
 ``` typescript
 
 form-data con campo "file"
+
+//oppure
+
+{
+    "plate": "GA129KM"
+}
 
 ```
 <img width="795" height="252" alt="image" src="https://github.com/user-attachments/assets/ba966732-1882-4849-af54-7b5e6ca8a057" />
@@ -1144,7 +1153,7 @@ Nel caso ci sia un transito in in un altro parcheggio:
 |:-----------:|:----------:|:---------:|:------------------------------:|:------------:|
 | Header      | `Authorization` | `string` | Token JWT operatore        | ✅           |
 | Path        | `transitId`| `string`  | UUID del transito              | ✅           |
-| Body (JSON) | `date`     | `string`  | Nuova data/ora transito        | ✅/parziale  |
+| Body (JSON) | `date`     | `string`  | Data/ora transito YYYY-MM-DDHH-MM-SS        | ✅ |
 
 **Esempio di richiesta**
 
@@ -1158,7 +1167,7 @@ Authorization: Bearer <JWT>
 
 ``` json
 {
-"date": "2025-12-12T23:23:23"
+"date": "2025-12-12 23:23:23"
 }
 ```
 
@@ -1287,19 +1296,7 @@ Authorization: Bearer <JWT>
 | Header      | `Authorization` | `string` | Token JWT operatore | ✅       |
 | Path        | `rateId`| `string` | UUID della tariffa | ✅           |
 
-**Esempio di richiesta**
-
-```
-
-GET /rate/a7c3eac9-64ba-4b8e-b5a4-611f306f7c59 HTTP/1.1
-Authorization: Bearer <JWT>
-
-```
-
-```
-//TODO
-
-```
+Il funzionamento rimane molto simile alle get singole descritte sopra.
 
 # POST /rate
 
@@ -1427,14 +1424,14 @@ Funzionamento uguale alle precedenti delete.
 | Posizione   | Nome           | Tipo     | Descrizione             | Obbligatorio |
 |:-----------:|:--------------:|:--------:|:-----------------------:|:------------:|
 | Header      | `Authorization`| `string` | Token JWT operatore     | ✅           |
-| Query       | `from`    | `Date` | Formato YYYY/MM/DD        | ✅           |
-| Query       | `to`    | `Date` | Formato YYYY/MM/DD        | ✅           |
-| Query       | `format`    | `string` | Formato output (`json` \| `pdf`)        | ✅           |
+| Query       | `from`    | `Date` | Formato YYYY/MM/DD        |❌           |
+| Query       | `to`    | `Date` | Formato YYYY/MM/DD        | ❌          |
+| Query       | `format`    | `string` | Formato output (`json` \| `pdf`)        | ❌           |
 **Esempio di richiesta**
 
 ```
 
-GET /stats/ HTTP/1.1
+GET /stats/?from=2025/11/1&format=json HTTP/1.1
 Authorization: Bearer <JWT>
 
 ```
@@ -1514,6 +1511,9 @@ Authorization: Bearer <JWT>
         }
     },
 ```
+O in formato pdf:
+
+INSERIRE IMMAGINE
 
 ---
 
@@ -1525,7 +1525,7 @@ Authorization: Bearer <JWT>
 |:-----------:|:-----------:|:--------:|:---------------------------------------:|:------------:|
 | Header      | `Authorization` | `string` | Token JWT operatore                 | ✅           |
 | Path        | `parkingId` | `string` | UUID del parcheggio                     | ✅           |
-| Query       | `format`    | `string` | Formato output (`json` \| `pdf`)        | ✅           |
+| Query       | `format`    | `string` | Formato output (`json` \| `pdf`)        | ❌          |
 
 **Esempio di richiesta**
 
@@ -1683,7 +1683,6 @@ L'operatore può vedere tutte le fatture. Altrimenti, il guidatore, solo le prop
         "dueDate": "2025-12-10T20:44:57.396Z",
         "updatedAt": "2025-12-09T20:44:57.396Z"
     },
-    ...
 ```
 > Nota: gli id utente sono uguali. (Login driver)
 ---
@@ -1785,10 +1784,6 @@ Il seguente errore verrà visualizzato se l'operatore o il driver finisce i toke
 }
 ```
 
-
-
-
-
 # Configurazione e uso
 Per eseguire correttamente l'applicazione, è necessario seguire alcuni passaggi preliminari. Innanzitutto, bisogna aver installato **Docker** e **Postman**.
 ### Passo 1
@@ -1871,7 +1866,13 @@ npm test
 
 Numerose parti di codice potevano sicuramente essere scritte meglio. Soprattutto la parte di gestione del database è stata affidata completamente a Sequelize. Sarebbe stata buona norma utilizzare `Redis` per il caching delle risposte. 
 
-A tal proposito, nel sistema di gestione dei transiti è stato identificato un limite prestazionale legato alla logica che verifica l’ultimo transito per un veicolo/parcheggio prima di crearne uno nuovo. Tale problema pensiamo sia dovuto (seppur con molti dubbi) ad una query non ottimizzata che recupera e analizza un numero di transiti maggiore del necessario, funzionando correttamente con pochi dati ma degradando progressivamente all’aumentare dei record di seed. Questo comportamento fa sì che il controllo “ultimo transito = out” possa restituire risultati incoerenti in presenza di dataset più grandi, non per errore di ordinamento ma per inefficienza della strategia di interrogazione. In prospettiva, la logica andrebbe rifattorizzata per lavorare solo su un sottoinsieme minimo di transiti (es. ultimi N record rilevanti) e su query più mirate, così da mantenere il comportamento corretto anche in scenari con un elevato volume di dati. Restiamo comunque molto scettici, ma sarebbe opportuno capire la fonte del problema. 
+Nel progetto è stato scelto di utilizzare direttamente i model di Sequelize come rappresentazione delle entità persistite, senza introdurre uno strato separato di “domain model puro” distinto dalle entità ORM. Questa scelta è stata guidata dal desiderio di mantenere l’infrastruttura semplice e lineare, evitando una duplicazione sistematica delle classi (domain object + model Sequelize) che avrebbe richiesto mapper bidirezionali espliciti tra i due mondi.
+
+In un approccio più spinto verso la programmazione a oggetti/DDD, un’entità come `Parking` non conoscerebbe solo gli identificativi dei `Gate`, ma esporrebbe una vera collezione di oggetti `Gate` (es. `parking.gates: Gate[]`), indipendentemente dal modo in cui le chiavi esterne sono modellate nel database. Nel nostro caso, invece, la relazione è espressa nello stile ORM classico: i gate possiedono il `parkingId`, e sono i DAO/Service a restituire array di gate associati a un parcheggio, spostando l’aggregazione logica a livello di query e di metodi di accesso, piuttosto che nel modello di dominio stesso.
+
+Durante la progettazione sono state valutate soluzioni alternative, tra cui l’uso di decoratori `@Table`, `@Column` e simili offerti da librerie come `sequelize-typescript`, per mappare classi TypeScript maggiormente orientate al dominio su tabelle relazionali in modo più dichiarativo. Questa strada, pur interessante per una futura evoluzione del progetto, avrebbe introdotto un ulteriore livello di astrazione (domain entity ↔ model ORM) senza portare benefici proporzionati nel contesto dell’esame, aumentando la complessità di mapping e manutenzione del codice.
+
+Per tali motivi si è preferito mantenere un approccio “active record” pulito e coerente con Sequelize, delegando ai DAO e ai service la costruzione di strutture dati più ricche (ad esempio array di entità correlate) quando necessario, e rimandando a sviluppi futuri l’eventuale introduzione di un vero domain model separato e di mapper dedicati tra oggetti di dominio e model ORM.
 
 Un ulteriore sviluppo futuro potrebbe essere aggiungere un vero sistema di pagamento, dopo un'attenta revisione e correzione dell'intero codice.
   
