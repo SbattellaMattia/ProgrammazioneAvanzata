@@ -108,6 +108,8 @@ I dati sono memorizzati in un’istanza PostgreSQL, esposta come container separ
 
 Di seguito è riportato lo schema delle tabelle generato da DBeaver:
 
+<img width="615" height="815" alt="db" src="https://github.com/user-attachments/assets/496ac1ad-0fa1-47a5-810d-193067bbd93b" />
+
 # Pattern utilizzati
 
 Per assicurare un’architettura flessibile, manutenibile e facilmente estendibile, il progetto adotta diversi pattern architetturali e di design, adattati al contesto di un backend Node.js/Express con TypeScript, Sequelize e JWT.
