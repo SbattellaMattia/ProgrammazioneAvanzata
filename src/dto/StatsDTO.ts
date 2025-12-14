@@ -31,3 +31,24 @@ export interface ParkingStatsDTO {
   };
   transits: ParkingTransitsStats;
 }
+
+export interface AvgFreeSlotsDTO {
+  overall?: number;
+  bySlot: Array<{
+    slot: string;
+    avgFreeSlots: number;
+  }>;
+}
+
+export interface GlobalParkingStatsDTO {
+  parkingId: string;
+  parkingName: string;
+  from: Date;
+  to: Date;
+  totalRevenue: number;
+  paidRevenue: number;
+  capacity: {
+    total: number;
+  };
+  avgFreeSlots: AvgFreeSlotsDTO;
+}

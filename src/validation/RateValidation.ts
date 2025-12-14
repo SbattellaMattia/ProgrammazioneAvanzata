@@ -39,6 +39,7 @@ export const createRateSchema = z.object({
 export const updateRateSchema = z
   .object({
     price: z.number().nonnegative("Il prezzo deve essere >= 0").optional(),
+    vehicleType: z.nativeEnum(VehicleType).optional(),
     hourStart: timeStringSchema.optional(),
     hourEnd: timeStringSchema.optional(),
   }).strict(); 

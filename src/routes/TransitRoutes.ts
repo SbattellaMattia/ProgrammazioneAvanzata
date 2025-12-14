@@ -51,7 +51,7 @@ const requireGate = [
 /**
  * Rotte per la creazione dei transiti random per varco
  */
-router.post("/gate/:id/new", ...requireAuth, ...requireGate, upload.single("file"), TransitController.createFromGate );
+router.post("/gate/:id", ...requireAuth, ...requireGate, upload.single("file"), TransitController.createFromGate );
 
 
 /**

@@ -393,23 +393,23 @@ flowchart TB
 |------------|------------------------------------------------------|---------------------------------------------------------------|--------------------|
 | POST       | /login                                               | Login utente driver, restituisce JWT                          | ❌                 |
 | POST       | /login                                               | Login operatore, restituisce JWT                              | ❌                 |
-| GET        | /parking/                                            | Elenco di tutti i parcheggi                                   | ✅                 |
+| GET        | /parking                                             | Elenco di tutti i parcheggi                                   | ✅                 |
 | GET        | /parking/{parkingId}                                 | Dettaglio di un singolo parcheggio                            | ✅                 |
 | POST       | /parking                                             | Creazione di un nuovo parcheggio                              | ✅                 |
 | PUT        | /parking/{parkingId}                                 | Aggiornamento dati di un parcheggio                           | ✅                 |
 | DELETE     | /parking/{parkingId}                                 | Eliminazione di un parcheggio                                 | ✅                 |
-| GET        | /gate/                                               | Elenco di tutti i varchi                                      | ✅                 |
+| GET        | /gate                                                | Elenco di tutti i varchi                                      | ✅                 |
 | GET        | /gate/{gateId}                                       | Dettaglio di un singolo varco                                 | ✅                 |
-| POST       | /gate/                                               | Creazione di un nuovo varco                                   | ✅                 |
+| POST       | /gate                                                | Creazione di un nuovo varco                                   | ✅                 |
 | PUT        | /gate/{gateId}                                       | Aggiornamento dati di un varco                                | ✅                 |
 | DELETE     | /gate/{gateId}                                       | Eliminazione di un varco                                      | ✅                 |
 | GET        | /gate/{gateId}/transits                              | Elenco transiti associati a un varco (TransitByGate)          | ✅                 |
-| GET        | /transit/                                            | Elenco di tutti i transiti                                    | ✅                 |
+| GET        | /transit                                             | Elenco di tutti i transiti                                    | ✅                 |
 | GET        | /transit/{transitId}                                 | Dettaglio di un singolo transito                              | ✅                 |
-| POST       | /transit/gate/{gateId}/new                           | Creazione transito da varco standard (upload immagine targa)  | ✅                 |
+| POST       | /transit/gate/{gateId}                               | Creazione transito da varco standard (upload immagine targa)  | ✅                 |
 | PUT        | /transit/{transitId}                                 | Aggiornamento dati di un transito                             | ✅                 |
 | DELETE     | /transit                                             | Eliminazione di un transito                                   | ✅                 |
-| GET        | /transit/history?plates=&format=&from=&to=           | Storico transiti (filtri per targa, periodo, formato JSON/PDF)| ✅                 |
+| GET        | /transit/history                                     | Storico transiti (filtri per targa, periodo, formato JSON/PDF)| ✅                 |
 | GET        | /rate/{rateId}                                       | Dettaglio di una tariffa                                      | ✅                 |
 | GET        | /rate                                                | Elenco di tutte le tariffe                                    | ✅                 |
 | POST       | /rate                                                | Creazione di una nuova tariffa                                | ✅                 |
@@ -503,29 +503,34 @@ Authorization: Bearer <JWT>
 **Esempio di risposta**
 
 ``` json
-
 [
     {
-        "id": "aee42b3c-6d9e-49d8-ac18-0c9c627a2cc8",
+        "id": "8fad5960-4edd-4400-a705-921c70aba06e",
         "name": "Downtown Parking",
         "address": "Via Roma 15, Milan",
-        "carCapacity": 1,
-        "motorcycleCapacity": 2,
-        "truckCapacity": 1,
-        "createdAt": "2025-12-12T16:34:57.396Z",
-        "updatedAt": "2025-12-12T17:30:26.190Z"
+        "carCapacity": 10,
+        "motorcycleCapacity": 5,
+        "truckCapacity": 2,
+        "carCapacityRemain": 10,
+        "motorcycleCapacityRemain": 5,
+        "truckCapacityRemain": 2,
+        "createdAt": "2025-12-14T12:19:13.597Z",
+        "updatedAt": "2025-12-14T12:19:13.597Z"
     },
     {
-        "id": "457e1a07-cdeb-43ea-b30d-7672fb73d06e",
+        "id": "113e13c5-1eae-444c-b79b-754e6cdf221e",
         "name": "Station Parking",
         "address": "Piazza Garibaldi 3, Milan",
-        "carCapacity": 4,
+        "carCapacity": 10,
         "motorcycleCapacity": 2,
-        "truckCapacity": 6,
-        "createdAt": "2025-12-12T16:34:57.396Z",
-        "updatedAt": "2025-12-12T16:34:57.396Z"
+        "truckCapacity": 0,
+        "carCapacityRemain": 10,
+        "motorcycleCapacityRemain": 2,
+        "truckCapacityRemain": 0,
+        "createdAt": "2025-12-14T12:19:13.597Z",
+        "updatedAt": "2025-12-14T12:19:13.597Z"
     }
-
+]
 ```
 
 ---
@@ -543,7 +548,7 @@ Authorization: Bearer <JWT>
 
 ``` 
 
-GET /parking/aee42b3c-6d9e-49d8-ac18-0c9c627a2cc8 HTTP/1.1
+GET /parking/8fad5960-4edd-4400-a705-921c70aba06e HTTP/1.1
 Authorization: Bearer <JWT>
 
 ```
@@ -557,17 +562,19 @@ Authorization: Bearer <JWT>
 **Esempio di risposta**
 
 ``` json
-
 {
-    "id": "aee42b3c-6d9e-49d8-ac18-0c9c627a2cc8",
-    "name": "Downtown Parking",
-    "address": "Via Roma 15, Milan",
-    "carCapacity": 1,
-    "motorcycleCapacity": 2,
-    "truckCapacity": 1,
-    "createdAt": "2025-12-12T16:34:57.396Z",
-    "updatedAt": "2025-12-12T17:30:26.190Z"
-}
+        "id": "8fad5960-4edd-4400-a705-921c70aba06e",
+        "name": "Downtown Parking",
+        "address": "Via Roma 15, Milan",
+        "carCapacity": 10,
+        "motorcycleCapacity": 5,
+        "truckCapacity": 2,
+        "carCapacityRemain": 10,
+        "motorcycleCapacityRemain": 5,
+        "truckCapacityRemain": 2,
+        "createdAt": "2025-12-14T12:19:13.597Z",
+        "updatedAt": "2025-12-14T12:19:13.597Z"
+    },
 
 ```
 
@@ -611,7 +618,6 @@ Authorization: Bearer <JWT>
 **Esempio di risposta**
 
 ``` json
-
 {
     "id": "10b41556-9bf2-46fc-9a59-363412a7b53f",
     "name": "Big Mega Ultra Parcheggio Enorme",
@@ -619,10 +625,12 @@ Authorization: Bearer <JWT>
     "carCapacity": 999,
     "motorcycleCapacity": 999,
     "truckCapacity": 999,
+    "carCapacityRemain": 999,
+    "motorcycleCapacityRemain": 999,
+    "truckCapacityRemain": 999,
     "updatedAt": "2025-12-13T17:34:57.443Z",
     "createdAt": "2025-12-13T17:34:57.443Z"
 }
-
 ```
 
 ---
@@ -641,7 +649,7 @@ Authorization: Bearer <JWT>
 
 ```
 
-PUT /parking/aee42b3c-6d9e-49d8-ac18-0c9c627a2cc8 HTTP/1.1
+PUT /parking/8fad5960-4edd-4400-a705-921c70aba06e HTTP/1.1
 Content-Type: application/json
 Authorization: Bearer <JWT>
 
@@ -658,18 +666,19 @@ Authorization: Bearer <JWT>
 **Esempio di risposta**
 
 ``` json
-
 {
-    "id": "aee42b3c-6d9e-49d8-ac18-0c9c627a2cc8",
-    "name": "Parcheggio Fighissimo",
-    "address": "Via Roma 15, Milan",
-    "carCapacity": 1,
-    "motorcycleCapacity": 2,
-    "truckCapacity": 1,
-    "createdAt": "2025-12-12T16:34:57.396Z",
-    "updatedAt": "2025-12-13T17:36:18.177Z"
-}
-
+        "id": "8fad5960-4edd-4400-a705-921c70aba06e",
+        "name": "Parcheggio Fighissimo",
+        "address": "Via Roma 15, Milan",
+        "carCapacity": 10,
+        "motorcycleCapacity": 5,
+        "truckCapacity": 2,
+        "carCapacityRemain": 10,
+        "motorcycleCapacityRemain": 5,
+        "truckCapacityRemain": 2,
+        "createdAt": "2025-12-14T12:19:13.597Z",
+        "updatedAt": "2025-12-14T12:19:13.597Z"
+    }
 ```
 
 ---
@@ -1030,7 +1039,7 @@ Analogo alle get precedenti.
 
 ---
 
-# POST /transit/gate/{gateId}/new
+# POST /transit/gate/{gateId}
 
 *(TransitCreateStandard – varco standard con upload immagine targa)*
 
@@ -1353,30 +1362,47 @@ Authorization: Bearer <JWT>
 |:-----------:|:-------:|:---------:|:-----------------------------:|:------------:|
 | Header      | `Authorization` | `string` | Token JWT operatore      | ✅           |
 | Path        | `rateId`| `string`  | UUID della tariffa            | ✅           |
-| Body (JSON) | (vari campi aggiornabili) | `mixed` | Campi tariffa da aggiornare | ✅/parziale  |
+| Body       | `price` | `number` | Costo orario                       | ❌           |
+| Body       | `vehicleType` | `string` | `car`,`truck` o `motorcycle`                    | ❌           |
+| Body       | `hourStart`   | `string` | Ora inizio intervallo (hh:mm:ss)            | ❌           |
+| Body       | `hourEnd`     | `string` | Ora fine intervallo (hh:mm:ss)                               | ❌           |
+
+hourStart": "08:00:00",
+        "": "20:00:00",
 
 **Esempio di richiesta**
 
 ```
 
-PUT /rate/a7c3eac9-64ba-4b8e-b5a4-611f306f7c59 HTTP/1.1
+PUT /rate/a027d669-00d8-4115-9bab-05ccc44fe00a HTTP/1.1
 Content-Type: application/json
 Authorization: Bearer <JWT>
 
 ```
 
-```
-
-// esempio di payload aggiornamento
-
+``` json
+{
+    "price": 30
+}
 ```
 
 **Esempio di risposta**
 
-```
-
-// TODO
-
+``` json
+{
+    "message": "Tariffa aggiornata con successo",
+    "data": {
+        "id": "a027d669-00d8-4115-9bab-05ccc44fe00a",
+        "parkingId": "30131540-a5b2-459f-9056-1917b84afba7",
+        "vehicleType": "motorcycle",
+        "dayType": "weekday",
+        "price": 30,
+        "hourStart": "08:00:00",
+        "hourEnd": "20:00:00",
+        "createdAt": "2025-12-14T12:32:28.062Z",
+        "updatedAt": "2025-12-14T12:33:19.866Z"
+    }
+}
 ```
 
 ---
@@ -1401,7 +1427,9 @@ Funzionamento uguale alle precedenti delete.
 | Posizione   | Nome           | Tipo     | Descrizione             | Obbligatorio |
 |:-----------:|:--------------:|:--------:|:-----------------------:|:------------:|
 | Header      | `Authorization`| `string` | Token JWT operatore     | ✅           |
-
+| Query       | `from`    | `Date` | Formato YYYY/MM/DD        | ✅           |
+| Query       | `to`    | `Date` | Formato YYYY/MM/DD        | ✅           |
+| Query       | `format`    | `string` | Formato output (`json` \| `pdf`)        | ✅           |
 **Esempio di richiesta**
 
 ```
@@ -1419,10 +1447,72 @@ Authorization: Bearer <JWT>
 
 **Esempio di risposta**
 
-```
-
-// TODO
-
+``` json
+[
+    {
+        "parkingId": "30131540-a5b2-459f-9056-1917b84afba7",
+        "parkingName": "Downtown Parking",
+        "from": "2025-11-01T00:00:00.000Z",
+        "to": "2025-12-14T12:42:08.845Z",
+        "totalRevenue": 3178.69,
+        "paidRevenue": 1999.64,
+        "capacity": {
+            "total": 17
+        },
+        "avgFreeSlots": {
+            "bySlot": [
+                {
+                    "slot": "00-02",
+                    "avgFreeSlots": 16.17
+                },
+                {
+                    "slot": "02-04",
+                    "avgFreeSlots": 16.28
+                },
+                {
+                    "slot": "04-06",
+                    "avgFreeSlots": 16.42
+                },
+                {
+                    "slot": "06-08",
+                    "avgFreeSlots": 16.45
+                },
+                {
+                    "slot": "08-10",
+                    "avgFreeSlots": 16.38
+                },
+                {
+                    "slot": "10-12",
+                    "avgFreeSlots": 16.26
+                },
+                {
+                    "slot": "12-14",
+                    "avgFreeSlots": 16.28
+                },
+                {
+                    "slot": "14-16",
+                    "avgFreeSlots": 16.31
+                },
+                {
+                    "slot": "16-18",
+                    "avgFreeSlots": 16.19
+                },
+                {
+                    "slot": "18-20",
+                    "avgFreeSlots": 16.22
+                },
+                {
+                    "slot": "20-22",
+                    "avgFreeSlots": 16.46
+                },
+                {
+                    "slot": "22-24",
+                    "avgFreeSlots": 16.39
+                }
+            ],
+            "overall": 16.32
+        }
+    },
 ```
 
 ---

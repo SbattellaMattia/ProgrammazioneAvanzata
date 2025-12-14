@@ -13,9 +13,17 @@ class StatsController {
 
   const data = await StatsService.getGlobalParkingStats(filters.from, filters.to);
 
-  if (filters.format === "pdf") {
-    return res.status(StatusCodes.OK).json({ message: "PDF generato (mock)" });
-  }
+  if (filters.format === 'pdf') {
+      const pdfBuffer = await PdfGenerator.createAllParkingsStatsReport(data);
+
+      res.setHeader('Content-Type', 'application/pdf');
+      res.setHeader(
+        'Content-Disposition',
+        `attachment; filename= AllStats.pdf`
+      );
+
+      return res.status(StatusCodes.OK).send(pdfBuffer);
+    }
 
   return res.status(StatusCodes.OK).json(data);
 });

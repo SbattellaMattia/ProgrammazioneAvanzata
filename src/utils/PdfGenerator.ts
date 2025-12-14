@@ -1,9 +1,9 @@
 import PDFDocument from 'pdfkit';
-import { ParkingStatsDTO } from '../dto/ParkingStatsDTO';
+import { ParkingStatsDTO } from '../dto/StatsDTO';
+import { GlobalParkingStatsDTO } from '../dto/StatsDTO';
 import { QrCodeGenerator } from './QrCodeGenerator';
 import { InvoiceDTO } from '../dto/InvoiceDTO';
 import { TransitReportDTO } from '../dto/TransitDTO';
-import Transit from '../models/Transit';
 
 export class PdfGenerator {
 
@@ -29,7 +29,7 @@ export class PdfGenerator {
         const qrBuffer = await QrCodeGenerator.generateBuffer(qrString);
 
         // 3. Disegna il PDF
-        
+
         // --- HEADER ---
         doc.fontSize(20).font('Helvetica-Bold').text('BOLLETTINO DI PAGAMENTO', { align: 'center' });
         doc.moveDown();
@@ -42,7 +42,7 @@ export class PdfGenerator {
 
         doc.fontSize(12).font('Helvetica-Bold').text('Dettagli Pagamento:', startX, currentY);
         doc.moveDown(0.5);
-        
+
         doc.font('Helvetica').text(`Causale: Pagamento Sosta`);
         doc.text(`ID Fattura: ${data.invoiceId}`);
         doc.text(`ID Utente: ${data.userId}`);
@@ -52,14 +52,14 @@ export class PdfGenerator {
 
         // --- IMPORTO (Grande e Chiaro) ---
         doc.fontSize(16).font('Helvetica-Bold').text(`Totale da Pagare: € ${data.amount.toFixed(2)}`, { align: 'right' });
-        
+
         // --- QR CODE (Centrato in basso) ---
         doc.moveDown(2);
         const qrSize = 150;
         const pageCenter = (doc.page.width - qrSize) / 2;
-        
+
         doc.image(qrBuffer, pageCenter, doc.y, { fit: [qrSize, qrSize] });
-        
+
         doc.moveDown(12); // Spazio dopo l'immagine
         doc.fontSize(10).font('Helvetica-Oblique').text('Scansiona il QR Code per procedere al pagamento.', { align: 'center' });
         doc.text(`Codice stringa: ${qrString}`, { align: 'center' });
@@ -82,8 +82,8 @@ export class PdfGenerator {
       doc.on("end", () => resolve(Buffer.concat(buffers)));
 
       doc.fontSize(18).text("Report Storico Transiti", { align: "center" });
-      const fromLabel = from? from.toLocaleDateString("it-IT"): "Inizio";
-      const toLabel = to? to.toLocaleDateString("it-IT"): "Oggi";
+      const fromLabel = from ? from.toLocaleDateString("it-IT") : "Inizio";
+      const toLabel = to ? to.toLocaleDateString("it-IT") : "Oggi";
       doc
         .fontSize(10)
         .font("Helvetica")
@@ -123,8 +123,96 @@ export class PdfGenerator {
 
       doc.end();
     });
-}
+  }
 
+
+  static async createAllParkingsStatsReport(
+    statsList: GlobalParkingStatsDTO[]
+  ): Promise<Buffer> {
+    return new Promise((resolve) => {
+      const doc = new PDFDocument({ margin: 40 });
+      const buffers: Buffer[] = [];
+
+      doc.on("data", buffers.push.bind(buffers));
+      doc.on("end", () => resolve(Buffer.concat(buffers)));
+
+      // HEADER REPORT COMPLESSIVO
+      doc
+        .fontSize(18)
+        .font("Helvetica-Bold")
+        .text("Report Statistiche Parcheggi", { align: "center" });
+      doc.moveDown(1);
+
+      // PER OGNI PARCHEGGIO
+      statsList.forEach((stats, index) => {
+        const fromDate = new Date(stats.from);
+        const toDate = new Date(stats.to);
+
+        // Separatore tra parcheggi
+        if (index > 0) { doc.moveDown(1.5); }
+
+        // TITOLO SINGOLO PARCHEGGIO
+        doc
+          .fontSize(14)
+          .font("Helvetica-Bold")
+          .text(`Parcheggio: ${stats.parkingName}`, { align: "left" });
+        doc
+          .fontSize(10)
+          .font("Helvetica")
+          .text(`ID: ${stats.parkingId}`);
+        doc.text(
+          `Periodo: ${fromDate.toLocaleString("it-IT")}  ->  ${toDate.toLocaleString("it-IT")}`
+        );
+        doc.text(`Capacità totale posti: ${stats.capacity.total}`);
+        doc.moveDown(0.5);
+
+        // FATTURATO PARCHEGGIO
+        doc
+          .fontSize(12)
+          .font("Helvetica-Bold")
+          .text("Fatturato", { underline: true });
+        doc.moveDown(0.3);
+
+        doc
+          .fontSize(11)
+          .font("Helvetica")
+          .text(
+            `Totale fatturato:  € ${stats.totalRevenue.toFixed(2)}`
+          );
+        doc.text(
+          `Totale incassato:  € ${stats.paidRevenue.toFixed(2)}`
+        );
+        doc.moveDown(0.8);
+
+        // POSTI MEDI LIBERI PER FASCIA ORARIA
+        doc
+          .fontSize(12)
+          .font("Helvetica-Bold")
+          .text("Posti medi liberi per fascia oraria");
+        doc.moveDown(0.3);
+
+        doc.fontSize(11).font("Helvetica");
+
+        if (!stats.avgFreeSlots?.bySlot?.length) {
+          doc.text("Nessun dato disponibile.");
+        } else {
+          stats.avgFreeSlots.bySlot.forEach((slotStat) => {
+            doc.text(
+              `- Fascia ${slotStat.slot}: ${slotStat.avgFreeSlots.toFixed(2)} posti medi liberi`
+            );
+          });
+        }
+
+        // Gestione cambio pagina se si scende troppo in basso
+        if (doc.y > 750) {
+          doc.addPage();
+          doc.moveDown(0.5);
+        }
+      });
+
+      doc.end();
+    });
+  }
 
   static async createParkingStatsReport(stats: ParkingStatsDTO): Promise<Buffer> {
     return new Promise((resolve) => {
@@ -253,7 +341,7 @@ export class PdfGenerator {
         });
       }
 
-            doc.end();
+      doc.end();
     });
   }
 }
