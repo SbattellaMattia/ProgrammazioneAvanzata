@@ -5,6 +5,7 @@ import { AuthService } from '../services/AuthService';
 import { UserDAO } from '../dao/UserDAO';
 import { ensureExists } from '../middlewares/EnsureExist';
 import { validate } from '../middlewares/Validate';
+import { consumeTokenCredit } from "../middlewares/TokenMiddleware";
 import { invoiceIdSchema, invoiceQuerySchema } from '../validation/InvoiceValidation';
 import InvoiceService from '../services/InvoiceService';
 
@@ -18,6 +19,7 @@ const router = Router();
  * */
 const requireInvoice = [
     authMiddleware.authenticateToken,
+    consumeTokenCredit,
     validate(invoiceIdSchema, 'params'),
     ensureExists(InvoiceService, 'Invoice')
 ];

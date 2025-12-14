@@ -22,10 +22,10 @@ Il presente progetto è stato realizzato per l’esame di Programmazione Avanzat
 - [Obiettivi di progetto](#obiettivi-di-progetto)
 - [Struttura del progetto ](#struttura-del-progetto)
 - [Architettura dei servizi](#architettura-dei-servizi)
+  - [Diagramma E-R](#diagramma-er)
 - [Pattern utilizzati](#pattern-utilizzati)
 - [Diagrammi UML](#diagrammi-uml)
   - [Diagramma dei casi d'uso](#diagramma-dei-casi-duso)
-  - [Diagramma E-R](#diagramma-e-r)
   - [Diagrammi delle sequenze](#diagrammi-delle-sequenze)
 - [API Routes](#api-routes)
 - [Configurazione e uso](#configurazione-e-uso)
@@ -94,18 +94,19 @@ L’applicazione espone un backend RESTful sviluppato in Node.js con Express, or
 Database (PostgreSQL)
 I dati sono memorizzati in un’istanza PostgreSQL, esposta come container separato e accessibile dal backend tramite Sequelize. Le principali entità modellate sono:
 
-- Parking: dati identificativi del parcheggio, indirizzo e capacità per tipologia di veicolo.
+- Parkings: dati identificativi del parcheggio, indirizzo e capacità per tipologia di veicolo.
 
-- Gate: varchi di `in`/`out`/`bidirectional` (`standard` o `smart`) associati a un parcheggio.
+- Gates: varchi di `in`/`out`/`bidirectional` (`standard` o `smart`) associati a un parcheggio.
 
-- User: automobilisti e operatori, con ruolo e saldo token per le chiamate autenticate.
+- Users: automobilisti e operatori, con ruolo e saldo token per le chiamate autenticate.
 
-- Transit: passaggi (`in`/`out`) dei veicoli attraverso i varchi, con data/ora e targa.
+- Transits: passaggi (`in`/`out`) dei veicoli attraverso i varchi, con data/ora e targa.
 
-- Rate: tariffe per parcheggio, tipologia veicolo, fascia oraria e giorno (`weekday`/`weekend`).
+- Rates: tariffe per parcheggio, tipologia veicolo, fascia oraria e giorno (`weekday`/`weekend`).
 
-- Invoice: fatture generate sui transiti, con importo, stato (`paid`/`unpaid`/`expired`) e PDF associato.
+- Invoices: fatture generate sui transiti, con importo, stato (`paid`/`unpaid`/`expired`) e PDF associato.
 
+## Diagramma ER
 Di seguito è riportato lo schema delle tabelle generato da DBeaver:
 
 <img width="615" height="815" alt="db" src="https://github.com/user-attachments/assets/496ac1ad-0fa1-47a5-810d-193067bbd93b" />
@@ -435,10 +436,66 @@ flowchart TB
     manageParkingSession --> generateInvoice
 ```
 
-## Diagramma E-R
-
-
 ## Diagrammi delle sequenze
+
+
+``` mermaid
+sequenceDiagram
+actor Client
+participant App
+participant AuthMW as AuthMiddleware
+participant ValidateMW as Validate(invoiceId)
+participant ExistsMW as EnsureExists(Invoice)
+participant TokenMW as consumeTokenCredit
+participant Controller as InvoiceController
+participant Service as InvoiceService
+participant DAO_Inv as InvoiceDAO
+participant DAO_Park as ParkingDAO
+participant DAO_User as UserDAO
+participant PdfGen as PdfGenerator
+participant NFErr as NotFoundError
+participant ErrMW as errorHandler
+
+
+Client->>App: GET /invoice/{id}/pdf
+App->>+AuthMW: authenticateToken(req,res,next)
+AuthMW-->>App: req.user impostato
+
+App->>+TokenMW: consumeTokenCredit(req,res,next)
+TokenMW-->>App: token scalato
+
+App->>+ValidateMW: validate(invoiceIdSchema, 'params')
+ValidateMW-->>App: params validati
+
+App->>+ExistsMW: ensureExists(InvoiceService,'Invoice')
+ExistsMW-->>App: invoice esistente (o errore)
+
+App->>+Controller: downloadPayment(req,res,next)
+Controller->>+Service: generateInvoicePdf(invoiceId, user.id)
+
+alt fattura trovata
+    Service->>+DAO_Inv: getByUserId(invoiceId, userId)
+    DAO_Inv-->>-Service: Invoice
+    Service->>+DAO_Park: findById(invoice.parkingId)
+    DAO_Park-->>-Service: Parking
+    Service->>+DAO_User: findById(invoice.userId)
+    DAO_User-->>-Service: User
+    Service->>+PdfGen: createPayment(dto)
+    PdfGen-->>-Service: pdfBuffer
+    Service-->>-Controller: pdfBuffer
+    Controller-->>App: res.status(200).contentType(pdf).send(pdfBuffer)
+    App-->>Client: 200 OK + application/pdf
+else fattura non trovata / non appartenente all'utente
+    Service->>+NFErr: new NotFoundError("Fattura", invoiceId)
+    NFErr-->>-Service: NotFoundError
+    Service-->>Controller: throw NotFoundError
+    Controller-->>ErrMW: next(error)
+    ErrMW-->>App: HTTP error response (es. 404)
+    App-->>Client: 404 Not Found (o errore coerente)
+end
+```
+
+
 
 ### NE BASTANO 4 PRINCIPALI
 
