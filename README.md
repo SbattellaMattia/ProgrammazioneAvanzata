@@ -15,24 +15,22 @@
 [![Postman](https://img.shields.io/badge/Made%20with-Postman-FF6C37?style=plastic&logo=postman&logoColor=white)](https://www.postman.com/)
 [![Tesseract](https://img.shields.io/badge/Made%20with-Tesseract-230db7?style=plastic&logo=google&logoColor=white)](https://www.npmjs.com/package/node-tesseract-ocr/)
 
-
-Il presente progetto è stato realizzato per l’esame di Programmazione Avanzata (A.A. 2024/2025) presso il corso di Laurea Magistrale in Ingegneria Informatica e Automazione (LM-32) dell’Università Politecnica delle Marche. 
+Il presente progetto è stato realizzato per l’esame di Programmazione Avanzata (A.A. 2024/2025) presso il corso di Laurea Magistrale in Ingegneria Informatica e Automazione (LM-32) dell’Università Politecnica delle Marche.
   
-
-
-## Indice
+# Indice
 
 - [Obiettivi di progetto](#obiettivi-di-progetto)
 - [Struttura del progetto ](#struttura-del-progetto)
-  - [Architettura dei servizi](#architettura-dei-servizi)
-  - [Pattern utilizzati](#pattern-utilizzati)
-  - [Diagrammi UML](#diagrammi-uml)
-    - [Diagramma dei casi d'uso](#diagramma-dei-casi-duso)
-    - [Diagramma E-R](#diagramma-e-r)
-    - [Diagrammi delle sequenze](#diagrammi-delle-sequenze)
+- [Architettura dei servizi](#architettura-dei-servizi)
+- [Pattern utilizzati](#pattern-utilizzati)
+- [Diagrammi UML](#diagrammi-uml)
+  - [Diagramma dei casi d'uso](#diagramma-dei-casi-duso)
+  - [Diagramma E-R](#diagramma-e-r)
+  - [Diagrammi delle sequenze](#diagrammi-delle-sequenze)
 - [API Routes](#api-routes)
 - [Configurazione e uso](#configurazione-e-uso)
 - [Strumenti utilizzati](#strumenti-utilizzati)
+- [Sviluppi futuri](#curiosità-e-sviluppi-futuri)
 - [Autori](#autori)
 
 
@@ -44,18 +42,71 @@ Il backend deve consentire la gestione dei parcheggi, dei varchi (standard con u
 Sono inoltre richieste rotte per consultare lo stato dei transiti per una o più targhe in un intervallo temporale, con output in formato JSON o PDF, nel rispetto dei vincoli di visibilità tra operatore e automobilista. Devono essere fornite statistiche di utilizzo e fatturato per parcheggio, anche filtrate per intervallo temporale e fascia oraria, e funzionalità per verificare e scaricare le fatture (incluso un PDF con QR code). 
   
 # Struttura del progetto
-Di seguito è riportata la struttura delle directory del progetto:
+Di seguito è riportata la struttura delle directory principali del progetto:
 
 ```plaintext
-
+📦ProgrammazioneAvanzata
+┣📜.env
+┣📜.gitignore
+┣📜.sequelizerc
+┣📜docker-compose.yml
+┣📜Dockerfile
+┣📜entrypoint.sh
+┣📜jest.config.js
+┣📜package-lock.json
+┣📜package.json
+┣📜tsconfig.json
+┣📜README.md
+┣ 📂postman
+┗ 📂src
+   ┣ 📂@types
+   ┣ 📂config
+   ┣ 📂controllers
+   ┣ 📂dao
+   ┣ 📂database
+   ┣ 📂dto
+   ┣ 📂enum
+   ┣ 📂errors
+   ┣ 📂img
+   ┣ 📂json
+   ┣ 📂middlewares
+   ┣ 📂models
+   ┣ 📂routes
+   ┣ 📂secrets
+   ┣ 📂services
+   ┣ 📂utils
+   ┣ 📂validation
+   ┣ 📂__tests__
+   ┣ 📜app.ts
+   ┗ 📜server.ts     
 ```
 
 # Architettura dei servizi
-Il sistema di gestione delle dei parcheggi è basato su un'architettura client-server. Il back-end è stato sviluppato utilizzando Node.js con il framework Express e si occupa di gestire tutte le funzionalità principali necessarie a realizzare le specifiche di progetto.
+L’infrastruttura è composta da due container principali, back-end e database relazionale, orchestrati via Docker Compose.
+
+Il back-end è stato sviluppato utilizzando Node.js con il framework Express e si occupa di gestire tutte le funzionalità principali necessarie a realizzare le specifiche di progetto. Come database è stato scelto Postgres.
 
 **Componenti principali**
 
-//DA VEDERE
+**Server (Node.js + Express)**
+L’applicazione espone un backend RESTful sviluppato in Node.js con Express, organizzato in controller, service e DAO. Il server gestisce tutte le operazioni di business: autenticazione utenti (automobilisti e operatori), gestione di parcheggi e varchi, inserimento e consultazione dei transiti, generazione di fatture e statistiche. L’accesso alle rotte protette è regolato da JWT, con middleware dedicati per autenticazione, autorizzazione per ruolo e validazione dei payload.
+
+Database (PostgreSQL)
+I dati sono memorizzati in un’istanza PostgreSQL, esposta come container separato e accessibile dal backend tramite Sequelize. Le principali entità modellate sono:
+
+- Parking: dati identificativi del parcheggio, indirizzo e capacità per tipologia di veicolo.
+
+- Gate: varchi di `in`/`out`/`bidirectional` (`standard` o `smart`) associati a un parcheggio.
+
+- User: automobilisti e operatori, con ruolo e saldo token per le chiamate autenticate.
+
+- Transit: passaggi (`in`/`out`) dei veicoli attraverso i varchi, con data/ora e targa.
+
+- Rate: tariffe per parcheggio, tipologia veicolo, fascia oraria e giorno (`weekday`/`weekend`).
+
+- Invoice: fatture generate sui transiti, con importo, stato (`paid`/`unpaid`/`expired`) e PDF associato.
+
+Di seguito è riportato lo schema delle tabelle generato da DBeaver:
 
 # Pattern utilizzati
 
@@ -292,8 +343,10 @@ export type LoginInput = z.infer<typeof loginSchema>;
 
 
 # Diagrammi UML
+
 ## Diagramma dei casi d'uso
-## Operatore
+
+### Operatore
 
 ``` mermaid
 flowchart TB
@@ -328,7 +381,7 @@ flowchart TB
 
 ---
 
-## Automobilista
+### Automobilista
 
 ```  mermaid
 flowchart TB
@@ -354,7 +407,7 @@ flowchart TB
 
 ---
 
-## Gate (varco standard / smart)
+### Gate (varco standard / smart)
 
 ```  mermaid
 flowchart TB
@@ -384,7 +437,8 @@ flowchart TB
 
 
 ## Diagrammi delle sequenze
-## NE BASTANO 4 PRINCIPALI
+
+### NE BASTANO 4 PRINCIPALI
 
 
 # API Routes

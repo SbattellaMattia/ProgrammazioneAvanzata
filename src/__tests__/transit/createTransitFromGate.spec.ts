@@ -54,12 +54,12 @@ jest.mock("../../services/TransitService", () => ({
 import request from "supertest";
 import app from "../../app";
 
-describe("POST /transit/gate/:id/new", () => {
+describe("POST /transit/gate/:id", () => {
   it("crea un transito (mock)", async () => {
     const gateId = "40803563-cbff-4162-bcc2-ec175ed7b524";
 
     const res = await request(app)
-      .post(`/transit/gate/${gateId}/new`) // ✅ backticks!
+      .post(`/transit/gate/${gateId}`) // ✅ backticks!
       .attach("file", Buffer.from("fake"), "plate.png");
 
     // utile se fallisce:
