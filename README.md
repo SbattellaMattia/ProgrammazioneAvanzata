@@ -1408,14 +1408,14 @@ L'unica eccezione dalle precedenti è che si può cancellare unicamente un trans
 | Header      | `Authorization` | `string` | Token JWT operatore o driver                  | ✅           |
 | Query       | `plates` | `string` | Una o più targhe (ripetibile)                        | ❌           |
 | Query       | `format` | `string` | Formato output (`json` \| `pdf`)                     | ❌           |
-| Query       | `from`   | `string` | Data inizio intervallo (ISO o yyyy-mm-dd)            | ❌           |
-| Query       | `to`     | `string` | Data fine intervallo                                 | ❌           |
+| Query       | `from`   | `string` | Data inizio intervallo (YYYY-MM-DD)                  | ❌           |
+| Query       | `to`     | `string` | Data fine intervallo (YYYY-MM-DD)                    | ❌           |
 
 **Esempio di richiesta**
 
 ```
 
-GET /transit/history?format=pdf\&from=2025-12-01\&to=2025-12-09 HTTP/1.1
+GET /transit/history?plates=FV181EX&plates=AA000AA&format=json&from=2025-12-01&to=2025-12-9 HTTP/1.1
 Authorization: Bearer <JWT>
 
 ```
@@ -1428,11 +1428,27 @@ Authorization: Bearer <JWT>
 
 **Esempio di risposta**
 
+``` json
+[
+    {
+        "date": "2025-12-16T10:32:59.744Z",
+        "vehicleId": "FV181EX",
+        "transitType": "out",
+        "gateId": "2eb6cfbd-ffd2-4d92-b739-9822f82e0a64",
+        "vehicleType": "car"
+    },
+    {
+        "date": "2025-12-16T10:32:01.300Z",
+        "vehicleId": "FV181EX",
+        "transitType": "in",
+        "gateId": "91c81543-44e1-4571-9b3c-7c8825089b14",
+        "vehicleType": "car"
+    },
 ```
+<img width="1475" height="865" alt="image" src="https://github.com/user-attachments/assets/be2c113a-ddfd-444c-966a-ae1bca8b94a3" />
 
-// TODO
-
-```
+Nel caso avessimo fatto l'accesso con un utente specifico e proviamo a fare la stessa cosa aggiungendo una targa non di sua appartenenza avremo:
+<img width="1493" height="502" alt="image" src="https://github.com/user-attachments/assets/50460485-fb08-48ee-8383-ffda56d0fb04" />
 
 ---
 
