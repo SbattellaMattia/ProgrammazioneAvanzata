@@ -495,7 +495,97 @@ else fattura non trovata / non appartenente all'utente
 end
 ```
 
+### POST /transit/gate/{gateId}
 
+``` mermaid
+sequenceDiagram
+actor GateClient as Gate (STANDARD/SMART)
+participant App
+participant AuthMW as AuthMiddleware
+participant TokenMW as consumeTokenCredit
+participant GateMW as Validate+EnsureExists)
+participant Upload as Multer(upload)
+participant Controller as TransitController
+participant Service as TransitService
+participant DAO_Gate as GateDAO
+participant DAO_Park as ParkingDAO
+participant DAO_Veh as VehicleDAO
+participant DAO_Tran as TransitDAO
+participant Utils as TransitUtils
+participant OCR as OcrService
+participant InvSvc as InvoiceService
+participant ErrMW as errorHandler
+
+    GateClient->>App: POST /transit/gate/{gateId} (+ file o JSON)
+
+App->>+AuthMW: authenticateToken(req,res,next)
+AuthMW-->>App: req.user impostato
+
+App->>+TokenMW: consumeTokenCredit(req,res,next)
+TokenMW-->>App: token scalato
+
+App->>+GateMW: validate(gateIdSchema) + ensureExists(GateService,"Gate")
+GateMW-->>App: gate valido/esistente
+
+alt gate STANDARD
+    App->>+Upload: upload.single("file")
+    Upload-->>App: req.file popolato (buffer immagine)
+else gate SMART
+    App->>App: nessun upload, usa solo req.body JSON
+end
+
+App->>+Controller: createFromGate(req,res,next)
+Controller->>+Service: createFromGate(gateId, req.file, req.body)
+
+Service->>+DAO_Gate: findById(gateId)
+DAO_Gate-->>-Service: gate
+Service->>+DAO_Park: findById(gate.parkingId)
+DAO_Park-->>-Service: parking
+
+alt gate STANDARD
+    Service->>Service: verifica presenza file immagine
+    Service->>OCR: ocr(tmpImagePath)
+    OCR-->>Service: detectedPlate
+else gate SMART
+    Service->>Service: legge plate da body (plate / licensePlate / vehicle.plate)
+end
+
+Service->>Service: normalizza targa (trim, uppercase, rimuovi spazi)
+
+Service->>+DAO_Veh: findByPlate(normalizedPlate)
+DAO_Veh-->>-Service: vehicle o null
+
+alt vehicle non trovato
+    Service-->>ErrMW: throw NotFoundError("Vehicle")
+    ErrMW-->>App: HTTP errore (es. 404)
+    App-->>GateClient: errore
+else vehicle trovato
+    Service->>+Utils: determineTransitTypeForGate(transitDAO, parking.id, vehicle.plate, gate.direction)
+    Utils-->>-Service: newType (IN o OUT)
+
+    alt sequenza non valida (due IN, due OUT, parcheggio diverso)
+        Service-->>ErrMW: throw OperationNotAllowedError / DuplicateTransitError
+        ErrMW-->>App: HTTP errore (es. 409/400)
+        App-->>GateClient: errore
+    else sequenza valida
+        Service->>Utils: ensureCapacityForIn(parking, vehicle, newType)
+        Service->>+DAO_Tran: create({ parkingId, gateId, vehicleId, type:newType, date:now,... })
+        DAO_Tran-->>-Service: createdTransit
+
+        Service->>+Utils: updateParkingCapacityAfterTransit(parkingDAO, parking, vehicle, newType)
+        Utils-->>Service: capacità aggiornata
+
+        alt newType == OUT
+            Service->>+InvSvc: CreateInvoiceForExit(createdTransit, vehicle)
+            InvSvc-->>-Service: (fattura creata)
+        end
+
+        Service-->>-Controller: createdTransit
+        Controller-->>App: res.status(201).json(createdTransit)
+        App-->>GateClient: 201 Created + JSON transito
+    end
+end
+```
 
 ### NE BASTANO 4 PRINCIPALI
 
