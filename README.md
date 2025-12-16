@@ -487,25 +487,28 @@ else body non valido
 end
 ```
 
+### GET /invoice/{id}/paymentQr 
+
 ``` mermaid
 sequenceDiagram
 actor Client
 participant App
 participant AuthMW as AuthMiddleware
-participant ValidateMW as Validate(invoiceId)
-participant ExistsMW as EnsureExists(Invoice)
+participant ValidateMW as Validate
+participant ExistsMW as EnsureExists
 participant TokenMW as consumeTokenCredit
 participant Controller as InvoiceController
 participant Service as InvoiceService
 participant DAO_Inv as InvoiceDAO
 participant DAO_Park as ParkingDAO
 participant DAO_User as UserDAO
+participant QrGen as QrGenerator
 participant PdfGen as PdfGenerator
 participant NFErr as NotFoundError
 participant ErrMW as errorHandler
 
 
-Client->>App: GET /invoice/{id}/pdf
+Client->>App: GET /invoice/{id}/paymentQr 
 App->>+AuthMW: authenticateToken(req,res,next)
 AuthMW-->>App: req.user impostato
 
@@ -528,6 +531,8 @@ alt fattura trovata
     DAO_Park-->>-Service: Parking
     Service->>+DAO_User: findById(invoice.userId)
     DAO_User-->>-Service: User
+    Service->>+QrGen: qrCode
+    QrGen-->>-Service: qrCode
     Service->>+PdfGen: createPayment(dto)
     PdfGen-->>-Service: pdfBuffer
     Service-->>-Controller: pdfBuffer
@@ -542,6 +547,8 @@ else fattura non trovata / non appartenente all'utente
     App-->>Client: 404 Not Found (o errore coerente)
 end
 ```
+
+
 
 ### POST /transit/gate/{gateId}
 
@@ -634,9 +641,81 @@ else vehicle trovato
     end
 end
 ```
+### GET /stats
+``` mermaid
+sequenceDiagram
+actor Operator as Operatore
+participant App
+participant AuthMW as AuthMiddleware
+participant TokenMW as TokenMiddleware
+participant RoleMW as RoleMiddleware.isOperator
+participant ValidateQ as Validate
+participant Controller as StatsController
+participant Service as StatsService
+participant DAO_Park as ParkingDAO
+participant DAO_Inv as InvoiceDAO
+participant DAO_Tran as TransitDAO
+participant Utils as Utils
+participant PdfGen as PdfGenerator
+participant ErrMW as errorHandler
 
-### NE BASTANO 4 PRINCIPALI
 
+Operator->>App: GET /stats?from=&to=&format=
+App->>+AuthMW: authenticateToken(req,res,next)
+AuthMW-->>App: req.user (JWT valido)
+
+App->>+TokenMW: consumeTokenCredit(req,res,next)
+TokenMW-->>App: token operatore -1
+
+App->>+RoleMW: isOperator(req,res,next)
+alt ruolo = OPERATOR
+    RoleMW-->>App: next()
+    App->>+ValidateQ: validate(statsQuerySchema,'query')
+    alt query valida
+        ValidateQ-->>App: next()
+        App->>+Controller: getGlobalStats(req,res,next)
+        Controller->>+Service: getGlobalParkingStats(from,to)
+
+        Service->>Service: startDate = from || 1970\nendDate = to || now
+        Service->>+DAO_Park: findAllParking()
+        DAO_Park-->>Service: allParkings[]
+        Service->>+DAO_Inv: findInDateRange("createdAt", startDate, endDate)
+        DAO_Inv-->>Service: allInvoices[]
+
+        loop per ogni parcheggio
+            Service->>Service: filtra fatture per parkingId
+            Service->>Service: calcola totalRevenue, paidRevenue
+            Service->>+DAO_Tran: findByParking(parkingId)
+            DAO_Tran-->>Service: allTransitsForParking[]
+
+            Service->>Service: filtra transits [startDate,endDate]
+            Service->>+Utils: calculateAvgFreeSlotsTotal({transits,totalCapacity,startDate,endDate})
+            Utils-->>Service: avgFreeSlots
+            Service->>Service: push GlobalParkingStatsDTO in results[]
+        end
+
+        Service-->>-Controller: results[]
+
+        alt format == 'pdf'
+            Controller->>+PdfGen: createAllParkingsStatsReport(results[])
+            PdfGen-->>-Controller: pdfBuffer
+            Controller-->>App: res 200, headers(pdf), send(pdfBuffer)
+            App-->>Operator: 200 OK + application/pdf
+        else format JSON (default)
+            Controller-->>App: res 200, json(results[])
+            App-->>Operator: 200 OK + JSON
+        end
+    else query non valida
+        ValidateQ-->>ErrMW: next(ValidationError)
+        ErrMW-->>App: HTTP 400
+        App-->>Operator: 400 Bad Request
+    end
+else ruolo diverso
+    RoleMW-->>ErrMW: next(ForbiddenError)
+    ErrMW-->>App: HTTP 403
+    App-->>Operator: 403 Forbidden
+end
+```
 
 # API Routes
 
@@ -692,7 +771,6 @@ end
 
 POST /login HTTP/1.1
 Content-Type: application/json
-Authorization: Bearer <JWT opzionale>
 
 ```
 
