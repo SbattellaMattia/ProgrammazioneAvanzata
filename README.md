@@ -372,90 +372,96 @@ export interface ParkingStatsDTO {
 
 ### Operatore
 
-``` mermaid
+```mermaid
 flowchart TB
-    %% Attori
-    Operatore["Operatore"]
+    %% Attore
+    DO["Operatore"]
 
-    %% Casi d'uso - Operatore
-    loginOperator
-    CRUDParkings
-    CRUDGates
-    CRUDRates
-    CRUDTransits
-    transitsHistory
-    statsAllParkings
-    statsSingleParking
-    manageInvoices
-    invoicePdf
+    %% Casi d'uso
+    loginDO[Login JWT]
+    CRUDParkings[CRUD Parcheggi]
+    CRUDGates[CRUD Varchi]
+    CRUDRates[CRUD Tariffe]
+    CRUDTransits[CRUD Transits]
+    transitsHistory[Stato transiti JSON/PDF]
+    statsAll[Statistiche]
+    manageInvoices[Gestione fatture]
 
-    %% Relazioni Operatore → casi d'uso
-    Operatore --> loginOperator
-    Operatore --> CRUDParkings
-    Operatore --> CRUDGates
-    Operatore --> CRUDRates
-    Operatore --> CRUDTransits
-    Operatore --> transitsHistory
-    Operatore --> statsAllParkings
-    Operatore --> statsSingleParking
-    Operatore --> manageInvoices
-    Operatore --> invoicePdf
-
+    %% Relazioni
+    DO --> loginDO
+    DO --> CRUDParkings
+    DO --> CRUDGates
+    DO --> CRUDRates
+    DO --> CRUDTransits
+    DO --> transitsHistory
+    DO --> statsAll
+    DO --> manageInvoices
 ```
 
 ---
 
 ### Automobilista
 
-```  mermaid
+```mermaid
 flowchart TB
-    %% Attori
-    Automobilista["Automobilista"]
+    %% Attore
+    U["Automobilista"]
 
- %% Casi d'uso - Automobilista
-    loginDriver
-    ownTransits
-    ownTransitsHistory
-    ownInvoices
-    invoicePdf
-    invoicePay
+    %% Casi d'uso
+    loginU[Login JWT]
+    ownTransits[Stato propri transiti]
+    ownInvoices[Verifica Fatture/Pagamenti]
+    invoicePdf[Scarica bollettino PDF QR]
+    payInvoice[Pagamento fattura]
 
- %% Relazioni Automobilista → casi d'uso
-    Automobilista --> loginDriver
-    Automobilista --> ownTransits
-    Automobilista --> ownTransitsHistory
-    Automobilista --> ownInvoices
-    Automobilista --> invoicePdf
-    Automobilista --> invoicePay
+    %% Relazioni
+    U --> loginU
+    U --> ownTransits
+    U --> ownInvoices
+    U --> invoicePdf
+    U --> payInvoice
 ```
 
 ---
 
-### Gate (varco standard / smart)
+### Gate (Standard/Smart)
 
-```  mermaid
+```mermaid
 flowchart TB
-    %% Attori
-    GateStd["Varco_standard"]
-    GateSmart["Varco_smart"]
+    %% Attori Gate
+    GateStd["Gate Standard<br/>OCR Immagine"]
+    GateSmart["Gate Smart<br/>JSON Targa"]
 
-%% Casi d'uso - Gate (standard / smart)
-    createTransitStd
-    createTransitSmart
-    checkCapacity
-    manageParkingSession
-    generateInvoice
+    %% Casi d'uso condivisi
+    createTransit[Creare Transito]
 
- %% Relazioni Gate → casi d'uso
-    GateStd --> createTransitStd
-    GateSmart --> createTransitSmart
-
-    createTransitStd --> checkCapacity
-    createTransitSmart --> checkCapacity
-
-    checkCapacity --> manageParkingSession
-    manageParkingSession --> generateInvoice
+    %% Relazioni
+    GateStd --> createTransit
+    GateSmart --> createTransit
 ```
+
+---
+
+### System
+
+```mermaid
+flowchart TB
+    %% Attore
+    S["System"]
+
+    %% Casi d'uso automatici
+    autoInvoice[Creazione fatture]
+    pdf[Generazione Pdf]
+    qrPayment[Generazione QrCode]
+    statsCalc[Calcolo statistiche]
+
+    %% Relazioni (processi automatici)
+    S --> autoInvoice
+    S --> pdf
+    S --> qrPayment
+    S --> statsCalc
+```
+
 
 ## Diagrammi delle sequenze
 
