@@ -16,6 +16,14 @@ jest.mock("../../middlewares/AuthMiddleware", () => ({
 }));
 
 /**
+ * Mock TokenMiddleware, necessario poichè altrimenti il test cerca di contattare postgres
+ */
+jest.mock("../../middlewares/TokenMiddleware", () => ({
+  __esModule: true,
+  consumeTokenCredit: (_req: any, _res: any, next: any) => next(),
+}));
+
+/**
  * ensureExists lo “bypassiamo” per questi test (non ci interessa davvero il DB).
  */
 jest.mock("../../middlewares/EnsureExist", () => ({
@@ -40,14 +48,14 @@ import InvoiceService from "../../services/InvoiceService";
 import { Role } from "../../enum/Role";
 const invoiceId = "11111111-1111-1111-1111-111111111111";
 
-  describe("GET /invoice/:id/pdf", () => {
+  describe("GET /invoice/:id/paymentQr", () => {
     it("DRIVER può scaricare PDF (200, content-type pdf)", async () => {
       mockUser = { id: "driver-id", email: "d@test.com", role: Role.DRIVER };
       (InvoiceService.generateInvoicePdf as jest.Mock).mockResolvedValue(
         Buffer.from("FAKE_PDF")
       );
 
-      const res = await request(app).get(`/invoice/${invoiceId}/pdf`);
+      const res = await request(app).get(`/invoice/${invoiceId}/paymentQr`);
 
       expect(res.status).toBe(200);
       expect(res.headers["content-type"]).toContain("application/pdf");
@@ -63,7 +71,7 @@ const invoiceId = "11111111-1111-1111-1111-111111111111";
         Buffer.from("FAKE_PDF")
       );
 
-      const res = await request(app).get(`/invoice/${invoiceId}/pdf`);
+      const res = await request(app).get(`/invoice/${invoiceId}/paymentQr`);
 
       expect(res.status).toBe(200);
       expect(res.headers["content-type"]).toContain("application/pdf");
