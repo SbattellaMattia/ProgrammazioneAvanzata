@@ -438,6 +438,54 @@ flowchart TB
 
 ## Diagrammi delle sequenze
 
+### POST /login
+``` mermaid
+sequenceDiagram
+actor Client
+participant App
+participant Validate as Validate
+participant Controller as AuthController
+participant Service as AuthService
+participant DAO_User as UserDAO
+participant Bcrypt as bcrypt
+participant ErrMW as errorHandler
+
+    Client->>App: POST /login\n{ email, password }
+
+App->>+Validate: validate(loginSchema, 'body')
+alt body valido
+    Validate-->>App: next()
+    App->>+Controller: login(req,res,next)
+    Controller->>+Service: login(email, password)
+
+    Service->>+DAO_User: findByEmail(email)
+    DAO_User-->>Service: user o null
+
+    alt user non trovato
+        Service-->>ErrMW: throw InvalidCredentialsError
+        ErrMW-->>App: HTTP 401 (credenziali invalide)
+        App-->>Client: 401 Unauthorized
+    else user trovato
+        Service->>+Bcrypt: compare(password, user.password)
+        Bcrypt-->>Service: isPasswordValid (true/false)
+
+        alt password errata
+            Service-->>ErrMW: throw InvalidCredentialsError
+            ErrMW-->>App: HTTP 401 (credenziali invalide)
+            App-->>Client: 401 Unauthorized
+        else password corretta
+            Service->>Service: generateToken({ id, email, role })
+            Service-->>-Controller: { token, userInfo }
+            Controller-->>App: res.status(200).json({ success:true, message, data })
+            App-->>Client: 200 OK + JSON (token, user)
+        end
+    end
+else body non valido
+    Validate-->>ErrMW: next(ValidationError)
+    ErrMW-->>App: HTTP 400 (validation error)
+    App-->>Client: 400 Bad Request
+end
+```
 
 ``` mermaid
 sequenceDiagram
@@ -606,7 +654,7 @@ end
 | POST       | /gate                                                | Creazione di un nuovo varco                                   | ✅                 |
 | PUT        | /gate/{gateId}                                       | Aggiornamento dati di un varco                                | ✅                 |
 | DELETE     | /gate/{gateId}                                       | Eliminazione di un varco                                      | ✅                 |
-| GET        | /gate/{gateId}/transits                              | Elenco transiti associati a un varco          | ✅                 |
+| GET        | /gate/{gateId}/transits                              | Elenco transiti associati a un varco                          | ✅                 |
 | GET        | /transit                                             | Elenco di tutti i transiti                                    | ✅                 |
 | GET        | /transit/{transitId}                                 | Dettaglio di un singolo transito                              | ✅                 |
 | POST       | /transit/gate/{gateId}                               | Creazione transito da varco standard (upload immagine targa) o varco smart (taga come json) | ✅                 |
@@ -618,13 +666,13 @@ end
 | POST       | /rate                                                | Creazione di una nuova tariffa                                | ✅                 |
 | PUT        | /rate/{rateId}                                       | Aggiornamento di una tariffa                                  | ✅                 |
 | DELETE     | /rate/{rateId}                                       | Eliminazione di una tariffa                                   | ✅                 |
-| GET        | /stats/                                              | Statistiche globali per tutti i parcheggi in formato JSON/PDF                     | ✅                 |
-| GET        | /stats/{parkingId}                  | Statistiche per singolo parcheggio in formato JSON/PDF        | ✅                 |
+| GET        | /stats/                                              | Statistiche globali per tutti i parcheggi in formato JSON/PDF | ✅                 |
+| GET        | /stats/{parkingId}                                   | Statistiche per singolo parcheggio in formato JSON/PDF        | ✅                 |
 | GET        | /invoice                                             | Elenco delle fatture dell’utente                              | ✅                 |
 | GET        | /invoice/{invoiceId}                                 | Dettaglio di una fattura                                      | ✅                 |
-| GET        | /invoice/{invoiceId}/pdf                             | Download PDF/bollettino fattura                               | ✅                 |
+| GET        | /invoice/{invoiceId}/paymentQr                       | Download PDF/bollettino fattura                               | ✅                 |
 | PUT        | /invoice/{invoiceId}                                 | Simulazione pagamento fattura                                 | ✅                 |
-| GET        | /xmas                                | Easter (Christmas) egg                                 | 🎅🏻🎄☃️                 |
+| GET        | /xmas                                                | Easter (Christmas) egg                                        | 🎅🏻🎄☃️            |
 
 
 
