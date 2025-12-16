@@ -5,7 +5,7 @@
 		"description": "# 🚀 Get started here\n\nThis template guides you through CRUD operations (GET, POST, PUT, DELETE), variables, and tests.\n\n## 🔖 **How to use this template**\n\n#### **Step 1: Send requests**\n\nRESTful APIs allow you to perform CRUD operations using the POST, GET, PUT, and DELETE HTTP methods.\n\nThis collection contains each of these [request](https://learning.postman.com/docs/sending-requests/requests/) types. Open each request and click \"Send\" to see what happens.\n\n#### **Step 2: View responses**\n\nObserve the response tab for status code (200 OK), response time, and size.\n\n#### **Step 3: Send new Body data**\n\nUpdate or add new data in \"Body\" in the POST request. Typically, Body data is also used in PUT request.\n\n```\n{\n    \"name\": \"Add your name in the body\"\n}\n\n ```\n\n#### **Step 4: Update the variable**\n\nVariables enable you to store and reuse values in Postman. We have created a [variable](https://learning.postman.com/docs/sending-requests/variables/) called `base_url` with the sample request [https://postman-api-learner.glitch.me](https://postman-api-learner.glitch.me). Replace it with your API endpoint to customize this collection.\n\n#### **Step 5: Add tests in the \"Scripts\" tab**\n\nAdding tests to your requests can help you confirm that your API is working as expected. You can write test scripts in JavaScript and view the output in the \"Test Results\" tab.\n\n<img src=\"https://content.pstmn.io/fa30ea0a-373d-4545-a668-e7b283cca343/aW1hZ2UucG5n\" width=\"2162\" height=\"1530\">\n\n## 💪 Pro tips\n\n- Use folders to group related requests and organize the collection.\n    \n- Add more [scripts](https://learning.postman.com/docs/writing-scripts/intro-to-scripts/) to verify if the API works as expected and execute workflows.\n    \n\n## 💡Related templates\n\n[API testing basics](https://go.postman.co/redirect/workspace?type=personal&collectionTemplateId=e9a37a28-055b-49cd-8c7e-97494a21eb54&sourceTemplateId=ddb19591-3097-41cf-82af-c84273e56719)  \n[API documentation](https://go.postman.co/redirect/workspace?type=personal&collectionTemplateId=e9c28f47-1253-44af-a2f3-20dce4da1f18&sourceTemplateId=ddb19591-3097-41cf-82af-c84273e56719)  \n[Authorization methods](https://go.postman.co/redirect/workspace?type=personal&collectionTemplateId=31a9a6ed-4cdf-4ced-984c-d12c9aec1c27&sourceTemplateId=ddb19591-3097-41cf-82af-c84273e56719)",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
 		"_exporter_id": "50511252",
-		"_collection_link": "https://sbattellamattia-626168.postman.co/workspace/c045d908-e625-4708-8412-f3b323d02e69/collection/50511252-911e5775-d883-4d0a-81b5-ca0f3a3e926f?action=share&source=collection_link&creator=50511252"
+		"_collection_link": "https://sbattellamattia-626168.postman.co/workspace/Sbattella-Mattia's-Workspace~c045d908-e625-4708-8412-f3b323d02e69/collection/50511252-911e5775-d883-4d0a-81b5-ca0f3a3e926f?action=share&source=collection_link&creator=50511252"
 	},
 	"item": [
 		{
@@ -41,12 +41,12 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{url}}parking/e004af3b-6e94-415c-bfec-1ecabcb504a2",
+							"raw": "{{url}}parking/aee42b3c-6d9e-49d8-ac18-0c9c627a2cc8",
 							"host": [
 								"{{url}}parking"
 							],
 							"path": [
-								"e004af3b-6e94-415c-bfec-1ecabcb504a2"
+								"aee42b3c-6d9e-49d8-ac18-0c9c627a2cc8"
 							]
 						}
 					},
@@ -82,7 +82,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\r\n    \"name\": \"200\"\r\n}",
+							"raw": "{\r\n    \"name\": \"Parcheggio Fighissimo\"\r\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -90,12 +90,12 @@
 							}
 						},
 						"url": {
-							"raw": "{{url}}parking/6fd5f327-82d3-4d48-8bc4-e68cb09ddb75",
+							"raw": "{{url}}parking/8fad5960-4edd-4400-a705-921c70aba06e",
 							"host": [
 								"{{url}}parking"
 							],
 							"path": [
-								"6fd5f327-82d3-4d48-8bc4-e68cb09ddb75"
+								"8fad5960-4edd-4400-a705-921c70aba06e"
 							]
 						}
 					},
@@ -107,12 +107,12 @@
 						"method": "DELETE",
 						"header": [],
 						"url": {
-							"raw": "{{url}}parking/e004af3b-6e94-415c-bfec-1ecabcb504a2",
+							"raw": "{{url}}parking/653ef04e-78b0-46ec-8109-2207e64013ad",
 							"host": [
 								"{{url}}parking"
 							],
 							"path": [
-								"e004af3b-6e94-415c-bfec-1ecabcb504a2"
+								"653ef04e-78b0-46ec-8109-2207e64013ad"
 							]
 						}
 					},
@@ -164,7 +164,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\r\n    \"parkingId\":\"6fd5f327-82d3-4d48-8bc4-e68cb09ddb75\",\r\n    \"type\":\"smart\",\r\n    \"direction\": \"in\"\r\n}",
+							"raw": "{\r\n    \"parkingId\":\"aee42b3c-6d9e-49d8-ac18-0c9c627a2cc8\",\r\n    \"type\":\"smart\",\r\n    \"direction\": \"in\"\r\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -190,7 +190,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\r\n    \"type\": \"smart\"\r\n}",
+							"raw": "{\r\n    \"type\": \"standard\",\r\n    \"direction\": \"in\"\r\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -198,12 +198,12 @@
 							}
 						},
 						"url": {
-							"raw": "{{url}}gate/1c29a69d-bba9-46f1-b922-e000fbbd8fea",
+							"raw": "{{url}}gate/e77cbc6c-2f85-4d44-a4c8-fe59d01a9b57",
 							"host": [
 								"{{url}}gate"
 							],
 							"path": [
-								"1c29a69d-bba9-46f1-b922-e000fbbd8fea"
+								"e77cbc6c-2f85-4d44-a4c8-fe59d01a9b57"
 							]
 						}
 					},
@@ -239,7 +239,17 @@
 					"name": "TransitByGate",
 					"request": {
 						"method": "GET",
-						"header": []
+						"header": [],
+						"url": {
+							"raw": "{{url}}gate/7a0ad62a-26d1-41e3-8936-f9a076605830/transits",
+							"host": [
+								"{{url}}gate"
+							],
+							"path": [
+								"7a0ad62a-26d1-41e3-8936-f9a076605830",
+								"transits"
+							]
+						}
 					},
 					"response": []
 				}
@@ -298,14 +308,40 @@
 							]
 						},
 						"url": {
-							"raw": "{{url}}transit/gate/c8ebf662-ec73-4a9b-8889-49f738034825/new",
+							"raw": "{{url}}transit/gate/94a15b12-393d-42c2-9c6a-f0b16cc274d4",
 							"host": [
 								"{{url}}transit"
 							],
 							"path": [
 								"gate",
-								"c8ebf662-ec73-4a9b-8889-49f738034825",
-								"new"
+								"94a15b12-393d-42c2-9c6a-f0b16cc274d4"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "TransitCreateSmart",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"plate\": \"GA129KM\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{url}}transit/gate/e77cbc6c-2f85-4d44-a4c8-fe59d01a9b57",
+							"host": [
+								"{{url}}transit"
+							],
+							"path": [
+								"gate",
+								"e77cbc6c-2f85-4d44-a4c8-fe59d01a9b57"
 							]
 						}
 					},
@@ -318,7 +354,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\r\n    \"date\": \"12/12/2025 23:23:23\"\r\n}",
+							"raw": "{\r\n    \"date\": \"12/11/2025 23:23:23\"\r\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -326,12 +362,12 @@
 							}
 						},
 						"url": {
-							"raw": "{{url}}transit/eb4e2ca3-e069-4dfc-96d0-f8c62623fa08",
+							"raw": "{{url}}transit/42f95dd9-781b-45cc-8780-bce500333d1c",
 							"host": [
 								"{{url}}transit"
 							],
 							"path": [
-								"eb4e2ca3-e069-4dfc-96d0-f8c62623fa08"
+								"42f95dd9-781b-45cc-8780-bce500333d1c"
 							]
 						}
 					},
@@ -352,9 +388,12 @@
 							}
 						},
 						"url": {
-							"raw": "{{url}}transit",
+							"raw": "{{url}}transit/f2939cbb-15ea-4b7f-be08-1f6a7c4d624d",
 							"host": [
 								"{{url}}transit"
+							],
+							"path": [
+								"f2939cbb-15ea-4b7f-be08-1f6a7c4d624d"
 							]
 						}
 					},
@@ -366,7 +405,7 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{url}}transit/history?format=pdf&from=2025-12-01&to=2025-12-9",
+							"raw": "{{url}}transit/history?plates=FV181EX&plates=AA000AA&format=json&from=2025-12-01&to=2025-12-9&plates=BB111BB",
 							"host": [
 								"{{url}}transit"
 							],
@@ -376,22 +415,15 @@
 							"query": [
 								{
 									"key": "plates",
-									"value": "FV181EX",
-									"disabled": true
+									"value": "FV181EX"
 								},
 								{
 									"key": "plates",
-									"value": "AA000AA",
-									"disabled": true
+									"value": "AA000AA"
 								},
 								{
 									"key": "format",
-									"value": "pdf"
-								},
-								{
-									"key": "format",
-									"value": "json",
-									"disabled": true
+									"value": "json"
 								},
 								{
 									"key": "from",
@@ -400,6 +432,10 @@
 								{
 									"key": "to",
 									"value": "2025-12-9"
+								},
+								{
+									"key": "plates",
+									"value": "BB111BB"
 								}
 							]
 						}
@@ -411,6 +447,20 @@
 		{
 			"name": "Rate",
 			"item": [
+				{
+					"name": "RateGetAll",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{url}}rate",
+							"host": [
+								"{{url}}rate"
+							]
+						}
+					},
+					"response": []
+				},
 				{
 					"name": "RateGet",
 					"request": {
@@ -429,27 +479,13 @@
 					"response": []
 				},
 				{
-					"name": "RateGetAll",
-					"request": {
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "{{url}}rate",
-							"host": [
-								"{{url}}rate"
-							]
-						}
-					},
-					"response": []
-				},
-				{
 					"name": "RateCreate",
 					"request": {
 						"method": "POST",
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\r\n    \"vehicleType\":\"car\",\r\n    \"parkingId\":\"aee42b3c-6d9e-49d8-ac18-0c9c627a2cc8\",\r\n    \"dayType\":\"weekend\",\r\n    \"price\": 5,\r\n    \"hourStart\": \"04:03\",\r\n    \"hourEnd\": \"20:00\"\r\n}",
+							"raw": "{\r\n    \"vehicleType\":\"motorcycle\",\r\n    \"parkingId\":\"71789f1c-b2d4-4310-a65a-fa99ec7f2273\",\r\n    \"dayType\":\"weekday\",\r\n    \"price\": 20,\r\n    \"hourStart\": \"08:00\",\r\n    \"hourEnd\": \"20:00\"\r\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -469,7 +505,25 @@
 					"name": "RateUpdate",
 					"request": {
 						"method": "PUT",
-						"header": []
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"price\": 30\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{url}}rate/a027d669-00d8-4115-9bab-05ccc44fe00a",
+							"host": [
+								"{{url}}rate"
+							],
+							"path": [
+								"a027d669-00d8-4115-9bab-05ccc44fe00a"
+							]
+						}
 					},
 					"response": []
 				},
@@ -501,12 +555,27 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{url}}stats/",
+							"raw": "{{url}}stats/?from=2025/11/1&format=pdf",
 							"host": [
 								"{{url}}stats"
 							],
 							"path": [
 								""
+							],
+							"query": [
+								{
+									"key": "from",
+									"value": "2025/11/1"
+								},
+								{
+									"key": "to",
+									"value": null,
+									"disabled": true
+								},
+								{
+									"key": "format",
+									"value": "pdf"
+								}
 							]
 						}
 					},
@@ -518,17 +587,26 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{url}}stats/6bbec4cf-d723-4bc1-9712-2b4eab3ea88b?format=pdf",
+							"raw": "{{url}}stats/aee42b3c-6d9e-49d8-ac18-0c9c627a2cc8?from=2025-12-12&format=json",
 							"host": [
 								"{{url}}stats"
 							],
 							"path": [
-								"6bbec4cf-d723-4bc1-9712-2b4eab3ea88b"
+								"aee42b3c-6d9e-49d8-ac18-0c9c627a2cc8"
 							],
 							"query": [
 								{
+									"key": "from",
+									"value": "2025-12-12"
+								},
+								{
+									"key": "to",
+									"value": null,
+									"disabled": true
+								},
+								{
 									"key": "format",
-									"value": "pdf"
+									"value": "json"
 								}
 							]
 						}
@@ -544,7 +622,22 @@
 					"name": "InvoiceGetAll",
 					"request": {
 						"method": "GET",
-						"header": []
+						"header": [],
+						"url": {
+							"raw": "{{url}}invoice/?status=expired",
+							"host": [
+								"{{url}}invoice"
+							],
+							"path": [
+								""
+							],
+							"query": [
+								{
+									"key": "status",
+									"value": "expired"
+								}
+							]
+						}
 					},
 					"response": []
 				},
@@ -552,22 +645,32 @@
 					"name": "InvoiceGet",
 					"request": {
 						"method": "GET",
-						"header": []
+						"header": [],
+						"url": {
+							"raw": "{{url}}invoice/34025bf8-65de-46a3-9b31-660cdd92f692",
+							"host": [
+								"{{url}}invoice"
+							],
+							"path": [
+								"34025bf8-65de-46a3-9b31-660cdd92f692"
+							]
+						}
 					},
 					"response": []
 				},
 				{
-					"name": "InvoiceGetPdf",
+					"name": "InvoiceGetQr",
 					"request": {
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{url}}transit/b0f8d365-e38f-4675-8211-0ded3118ba79",
+							"raw": "{{url}}invoice/a32d8a46-4311-4fdd-87e1-c0748e565b10/paymentQr",
 							"host": [
-								"{{url}}transit"
+								"{{url}}invoice"
 							],
 							"path": [
-								"b0f8d365-e38f-4675-8211-0ded3118ba79"
+								"a32d8a46-4311-4fdd-87e1-c0748e565b10",
+								"paymentQr"
 							]
 						}
 					},
@@ -576,8 +679,17 @@
 				{
 					"name": "InvoicePay",
 					"request": {
-						"method": "GET",
-						"header": []
+						"method": "PUT",
+						"header": [],
+						"url": {
+							"raw": "{{url}}invoice/26dd98b9-4a9a-4a7c-bebc-60ce31ecca8f",
+							"host": [
+								"{{url}}invoice"
+							],
+							"path": [
+								"26dd98b9-4a9a-4a7c-bebc-60ce31ecca8f"
+							]
+						}
 					},
 					"response": []
 				}
@@ -664,6 +776,20 @@
 					"raw": "{{url}}login",
 					"host": [
 						"{{url}}login"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "xmas",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{url}}xmas",
+					"host": [
+						"{{url}}xmas"
 					]
 				}
 			},
