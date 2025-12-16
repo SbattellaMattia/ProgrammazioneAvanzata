@@ -343,7 +343,28 @@ export type LoginInput = z.infer<typeof loginSchema>;
 
 - **ErrorsMiddleware**: cattura qualsiasi eccezione e la trasforma in risposta HTTP, usando le `AppError` generate dalla factory.
 
+## Data Transfer Object (DTO)
+Nel progetto vengono utilizzati oggetti DTO (Data Transfer Object) per definire in modo esplicito la forma dei dati che viaggiano tra i vari layer (ove opportuno) e verso l’esterno tramite le API REST. I DTO sono oggetti “piatti”, senza logica di business, che contengono solo proprietà tipizzate (es. id, email, ruoli, importi, intervalli temporali), così da separare chiaramente il modello dei dati esposto dall’API dalla struttura interna dei model Sequelize e delle entità di dominio.​
 
+In termini architetturali, il DTO è un pattern di data shaping: evita di esporre direttamente gli entity/model del database, riduce l’accoppiamento e rende più semplice controllare quali campi entrano ed escono da una rotta. In questo senso ha una funzione analoga a un Adapter: il service mappa il dominio/ORM in un DTO che “adatta” il formato dei dati alle esigenze del consumer (ad esempio il generatore di PDF), ma la logica di adattamento sta nel service, mentre il DTO rimane un semplice contenitore di valori.​
+
+``` typescript  
+export interface ParkingStatsDTO {
+  parkingId: string;
+  parkingName: string;
+  from: Date;
+  to: Date;
+  totalRevenue: number;
+  paidRevenue: number;
+  invoiceCount: number;
+  invoiceCountByStatus: {
+    paid: number;
+    unpaid: number;
+    expired: number;
+  };
+  transits: ParkingTransitsStats;
+}
+```
 
 # Diagrammi UML
 
