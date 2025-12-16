@@ -1,3 +1,22 @@
+/**
+ * Questo modello definisce la struttura della tabella "Invoice" nel database.
+ * Attributi:
+ * - id: Identificatore univoco della fattura (UUID).
+ * - userId: Identificatore dell'utente associato (UUID).
+ * - parkingId: Identificatore del parcheggio associato (UUID).
+ * - entryTransitId: Identificatore del transito di entrata (UUID).
+ * - exitTransitId: Identificatore del transito di uscita (UUID).
+ * - amount: Importo della fattura (float).
+ * - status: Stato della fattura (enum InvoiceStatus).
+ * - createdAt: Data di creazione della fattura (Date).
+ * - dueDate: Data di scadenza della fattura (Date).
+ * 
+ * Il modello utilizza Sequelize per la definizione e l'interazione con il database.
+ *
+ * @param {Model} - Estende il modello di Sequelize per definire la tabella "Invoice".
+ *
+ * @exports InferAttributes
+ */
 import { DataTypes, Model, InferAttributes, InferCreationAttributes } from "sequelize";
 import DatabaseConnection from "../database/DatabaseConnection";
 import { InvoiceStatus } from "../enum/InvoiceStatus";

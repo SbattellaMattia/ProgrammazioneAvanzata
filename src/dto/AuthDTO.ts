@@ -1,8 +1,8 @@
 import { Role } from "../enum/Role";
 
-
 /**
- * DTO per il login
+ * DTO per la richiesta di login
+ * @interface LoginRequestDTO
  */
 export interface LoginResponseDTO {
   token: string;
@@ -16,9 +16,9 @@ export interface LoginResponseDTO {
   };
 }
 
-
 /**
- * DTO per il payload del token JWT
+ * DTO per il payload del JWT
+ * @interface JwtPayloadDTO
  */
 export interface JwtPayloadDTO {
   id: string;

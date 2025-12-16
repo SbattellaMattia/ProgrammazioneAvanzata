@@ -1,3 +1,21 @@
+/**
+ * Modello Transit
+ * 
+ * Rappresenta i transiti dei veicoli in un parcheggio, includendo informazioni sul tipo di transito, la data e la targa rilevata.
+ * Attributi:
+ * - id: Identificatore univoco del transito (UUID).
+ * - parkingId: Identificatore del parcheggio associato (UUID).
+ * - gateId: Identificatore del cancello di entrata/uscita (UUID).
+ * - vehicleId: Identificatore del veicolo (string).
+ * - type: Tipo di transito (enum TransitType).
+ * - date: Data e ora del transito (Date).
+ * - detectedPlate: Targa rilevata dal sistema di riconoscimento targhe (string | null).
+ * Il modello utilizza Sequelize per la definizione e l'interazione con il database.
+ *
+ * @param {Model} - Estende il modello di Sequelize per definire la tabella "Transit".
+ *
+ * @exports Transit - Il modello del transito.
+ */
 import { DataTypes, Model, InferAttributes, InferCreationAttributes } from "sequelize";
 import DatabaseConnection from "../database/DatabaseConnection";
 import { TransitType } from "../enum/TransitType";

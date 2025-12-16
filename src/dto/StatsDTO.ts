@@ -1,3 +1,7 @@
+/**
+ * DTO per le statistiche del parcheggio
+ * @interface ParkingStatsDTO
+ */
 export interface ParkingTransitsBySlot {
   slot: string;
   total: number;
@@ -5,6 +9,10 @@ export interface ParkingTransitsBySlot {
   out: number;
 }
 
+/**
+ * DTO per le statistiche dei transiti
+ * @interface ParkingTransitsStats
+ */
 export interface ParkingTransitsStats {
   total: number;
   byType: {
@@ -16,6 +24,9 @@ export interface ParkingTransitsStats {
   list: any[]; 
 }
 
+/** DTO per le statistiche di un parcheggio
+ * @interface ParkingStatsDTO
+ */
 export interface ParkingStatsDTO {
   parkingId: string;
   parkingName: string;
@@ -32,6 +43,9 @@ export interface ParkingStatsDTO {
   transits: ParkingTransitsStats;
 }
 
+/** DTO per le medie dei posti liberi
+ * @interface AvgFreeSlotsDTO
+ */
 export interface AvgFreeSlotsDTO {
   overall?: number;
   bySlot: Array<{
@@ -40,6 +54,9 @@ export interface AvgFreeSlotsDTO {
   }>;
 }
 
+/** DTO per le statistiche globali dei parcheggi
+ * @interface GlobalParkingStatsDTO
+ */
 export interface GlobalParkingStatsDTO {
   parkingId: string;
   parkingName: string;

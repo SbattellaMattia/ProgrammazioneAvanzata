@@ -1,3 +1,17 @@
+/**
+ * Questo modello definisce la struttura della tabella "Gate" nel database.
+ * Attributi:
+ * - id: Identificatore univoco del gate (UUID).
+ * - parkingId: Identificatore del parcheggio associato (UUID).
+ * - type: Tipo di gate (enum GateType).
+ * - direction: Direzione del gate (enum GateDirection).
+ * 
+ * Il modello utilizza Sequelize per la definizione del modello e la gestione del database.
+ *
+ * @param {Model} - Classe che estende il modello Sequelize.
+ *
+ * @exports Gate - Il modello Gate per l'interazione con la tabella "Gate" nel database.
+ */
 import { DataTypes, Model, InferAttributes, InferCreationAttributes } from "sequelize";
 import DatabaseConnection from "../database/DatabaseConnection";
 import { GateType } from "../enum/GateType";

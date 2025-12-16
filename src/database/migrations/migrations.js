@@ -153,12 +153,12 @@ module.exports = {
 
     // ===== 4. VEHICLES =====
     await queryInterface.createTable('Vehicles', {
-      plate: { // Mantengo snake_case qui se è la chiave primaria stringa legacy/standard
+      plate: { 
         type: Sequelize.STRING(20),
         primaryKey: true,
         allowNull: false
       },
-      type: { // Mantengo snake_case se preferito, altrimenti vehicleType
+      type: { 
         type: Sequelize.STRING(20),
         allowNull: false,
         comment: 'car, motorcycle, truck'
@@ -188,12 +188,12 @@ module.exports = {
     // ===== 5. TRANSITS =====
     await queryInterface.createTable('Transits', {
       id: {
-        type: Sequelize.UUID, // CAMBIATO IN UUID
+        type: Sequelize.UUID, 
         defaultValue: Sequelize.UUIDV4,
         primaryKey: true,
         allowNull: false
       },
-      vehicleId: { // CAMBIATO IN CAMELCASE
+      vehicleId: { 
         type: Sequelize.STRING(20),
         allowNull: false,
         references: {
@@ -203,7 +203,7 @@ module.exports = {
         onUpdate: 'CASCADE',
         onDelete: 'CASCADE'
       },
-      gateId: { // CAMBIATO IN CAMELCASE
+      gateId: { 
         type: Sequelize.UUID,
         allowNull: false,
         references: {
@@ -213,7 +213,7 @@ module.exports = {
         onUpdate: 'CASCADE',
         onDelete: 'CASCADE'
       },
-      parkingId: { // CAMBIATO IN CAMELCASE
+      parkingId: { 
         type: Sequelize.UUID,
         allowNull: false,
         references: {
@@ -223,16 +223,16 @@ module.exports = {
         onUpdate: 'CASCADE',
         onDelete: 'CASCADE'
       },
-      type: { // CAMBIATO IN CAMELCASE
+      type: { 
         type: Sequelize.STRING(10),
         allowNull: false,
         comment: 'in, out'
       },
-      date: { // CAMBIATO IN CAMELCASE
+      date: { 
         type: Sequelize.DATE,
         allowNull: false
       },
-      detectedPlate: { // CAMBIATO IN CAMELCASE
+      detectedPlate: { 
         type: Sequelize.STRING(255),
         allowNull: true,
       },
@@ -248,7 +248,7 @@ module.exports = {
       }
     });
 
-    // Index aggiornati con nomi camelCase
+    // Indici per Transits
     await queryInterface.addIndex('Transits', ['vehicleId'], { name: 'transits_vehicle_id_idx' });
     await queryInterface.addIndex('Transits', ['gateId'], { name: 'transits_gate_id_idx' });
     await queryInterface.addIndex('Transits', ['parkingId'], { name: 'transits_parking_id_idx' });
@@ -309,7 +309,7 @@ module.exports = {
     // ===== 7. INVOICES =====
     await queryInterface.createTable('Invoices', {
       id: {
-        type: Sequelize.UUID, // CAMBIATO IN UUID
+        type: Sequelize.UUID, 
         defaultValue: Sequelize.UUIDV4,
         primaryKey: true,
         allowNull: false
@@ -335,7 +335,7 @@ module.exports = {
         onDelete: 'CASCADE'
       },
       entryTransitId: {
-        type: Sequelize.UUID, // CAMBIATO IN UUID
+        type: Sequelize.UUID, 
         allowNull: false,
         references: {
           model: 'Transits',
@@ -345,7 +345,7 @@ module.exports = {
         onDelete: 'CASCADE'
       },
       exitTransitId: {
-        type: Sequelize.UUID, // CAMBIATO IN UUID
+        type: Sequelize.UUID, 
         allowNull: false,
         references: {
           model: 'Transits',
@@ -355,10 +355,10 @@ module.exports = {
         onDelete: 'CASCADE'
       },
       amount: {
-        type: Sequelize.FLOAT, // ALLINEATO A FLOAT
+        type: Sequelize.FLOAT, 
         allowNull: false
       },
-      status: { // CAMBIATO IN STATUS (Model)
+      status: { 
         type: Sequelize.ENUM('paid', 'unpaid', 'expired'),
         allowNull: false,
         defaultValue: 'unpaid'
@@ -386,7 +386,7 @@ module.exports = {
       }
     });
 
-    // Indici per Invoices aggiornati
+    // Indici per Invoices 
     await queryInterface.addIndex('Invoices', ['userId'], { name: 'invoices_user_id_idx' });
     await queryInterface.addIndex('Invoices', ['parkingId'], { name: 'invoices_parking_id_idx' });
     await queryInterface.addIndex('Invoices', ['status'], { name: 'invoices_status_idx' });
@@ -396,7 +396,6 @@ module.exports = {
   },
 
   down: async (queryInterface, Sequelize) => {
-    // Ordine corretto di drop (Foreign Keys prima)
     await queryInterface.dropTable('Invoices');
     await queryInterface.dropTable('Rates');
     await queryInterface.dropTable('Transits');
@@ -405,7 +404,6 @@ module.exports = {
     await queryInterface.dropTable('Parkings');
     await queryInterface.dropTable('Users');
 
-    // Pulizia ENUM
     await queryInterface.sequelize.query('DROP TYPE IF EXISTS "enum_Users_role";');
     await queryInterface.sequelize.query('DROP TYPE IF EXISTS "enum_Invoices_status";');
 

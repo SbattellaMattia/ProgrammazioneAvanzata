@@ -85,8 +85,6 @@ export class ServiceUnavailableError extends AppError {
   }
 }
 
-
-
 /**
  * Errore per token insufficienti
  */

@@ -15,7 +15,9 @@ export abstract class DAO<T extends Model> {
   }
 
   /**
-   * Wrapper per gestire errori database
+   * Esegue una query con gestione centralizzata degli errori
+   * @param operation La funzione che esegue l'operazione
+   * @param context Descrizione del contesto per il logging
    */
   protected async executeQuery<R>(
     operation: () => Promise<R>,
@@ -42,6 +44,8 @@ export abstract class DAO<T extends Model> {
 
   /**
    * Trova per ID
+   * @param id L'ID della risorsa
+   * @return L'istanza trovata o null
    */
   async findById(id: string): Promise<T | null> {
     return this.executeQuery(
@@ -52,6 +56,8 @@ export abstract class DAO<T extends Model> {
 
   /**
    * Trova tutti
+   * @param options Opzioni di ricerca opzionali
+   * @return Array di istanze trovate
    */
   async findAll(options?: any): Promise<T[]> {
     return this.executeQuery(
@@ -62,6 +68,8 @@ export abstract class DAO<T extends Model> {
 
   /**
    * Trova uno
+   * @param where Condizioni di ricerca
+   * @return L'istanza trovata o null
    */
   async findOne(where: WhereOptions<T>): Promise<T | null> {
     return this.executeQuery(
@@ -72,6 +80,8 @@ export abstract class DAO<T extends Model> {
 
   /**
    * Crea
+   * @param data I dati per la nuova istanza
+   * @return L'istanza creata
    */
   async create(data: Partial<T['_attributes']>): Promise<T> {
     return this.executeQuery(
@@ -82,6 +92,9 @@ export abstract class DAO<T extends Model> {
 
   /**
    * Aggiorna
+   * @param id L'ID della risorsa da aggiornare
+   * @param data I dati da aggiornare
+   * @return L'istanza aggiornata o null se non trovata
    */
   async update(id: string, data: Partial<T['_attributes']>): Promise<T | null> {
     return this.executeQuery(async () => {
@@ -98,6 +111,8 @@ export abstract class DAO<T extends Model> {
 
   /**
    * Elimina
+   * @param id L'ID della risorsa da eliminare
+   * @return true se eliminato, false se non trovato
    */
   async delete(id: string): Promise<boolean> {
     return this.executeQuery(async () => {
@@ -107,7 +122,9 @@ export abstract class DAO<T extends Model> {
   }
 
   /**
-   * Conta
+   * Conta i record
+   * @param where Condizioni opzionali per il conteggio
+   * @return Numero di record che soddisfano le condizioni
    */
   async count(where?: WhereOptions<T>): Promise<number> {
     return this.executeQuery(
@@ -116,8 +133,10 @@ export abstract class DAO<T extends Model> {
     );
   }
 
-  /**
-   * Esiste
+  /**   
+   * Verifica l'esistenza di record che soddisfano le condizioni
+   * @param where Condizioni di ricerca
+   * @return true se esiste almeno un record, false altrimenti
    */
   async exists(where: WhereOptions<T>): Promise<boolean> {
     const count = await this.count(where);
@@ -136,7 +155,6 @@ export abstract class DAO<T extends Model> {
   * Trova transiti tra due date
   * const transits = await transitDAO.findInDateRange('date', new Date('2024-01-01'), new Date('2024-01-31'));
    */ 
-
   async findInDateRange(
     dateField: keyof T['_attributes'], // TypeScript safety: deve essere una chiave del modello
     from?: Date,

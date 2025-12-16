@@ -1,3 +1,21 @@
+/**
+ * Modello Rate
+ * 
+ * Rappresenta le tariffe applicate in un parcheggio in base al tipo di veicolo, al tipo di giorno e all'orario.
+ * Attributi:
+ * - id: Identificatore univoco della tariffa (UUID).
+ * - parkingId: Identificatore del parcheggio associato (UUID).
+ * - vehicleType: Tipo di veicolo (enum VehicleType).
+ * - dayType: Tipo di giorno (enum DayType).
+ * - price: Prezzo della tariffa (float).
+ * - hourStart: Orario di inizio validità della tariffa (Date).
+ * - hourEnd: Orario di fine validità della tariffa (Date).
+ * Il modello utilizza Sequelize per la definizione e l'interazione con il database.
+ *
+ * @param {Model} - Estende il modello di Sequelize per definire la tabella "Rate".
+ *
+ * @exports Rate - Il modello della tariffa.
+ */
 import { DataTypes, Model, InferAttributes, InferCreationAttributes } from "sequelize";
 import DatabaseConnection from "../database/DatabaseConnection";
 import { VehicleType } from "../enum/VehicleType";

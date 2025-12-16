@@ -13,6 +13,8 @@ interface ReadService<T> {
  * Middleware Factory per verificare l'esistenza di una risorsa.
  * Se esiste, la salva in res.locals.entity
  * Se non esiste, lancia NotFoundError
+ * @param service - il service usato per la ricerca
+ * @param resourceName - il nome della risorsa (es. "Utente", "Prodotto")
  */
 export const ensureExists = (service: ReadService<any>, resourceName: string) => {
   return asyncHandler(async (req: Request, res: Response, next: NextFunction) => {

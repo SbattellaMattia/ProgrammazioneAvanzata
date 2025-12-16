@@ -2,6 +2,13 @@ import { Request, Response, NextFunction } from 'express';
 import { AppError } from '../errors';
 import { StatusCodes } from 'http-status-codes';
 
+/**
+ * Middleware per la gestione degli errori.
+ * @param err - l'errore catturato        
+ * @param req - la richiesta HTTP
+ * @param res - la risposta HTTP 
+ * @param next - la funzione next
+ */
 export const errorHandler = (err: Error, req: Request, res: Response, next: NextFunction) => {
     if (err instanceof AppError) {
         const statusCode = err.statusCode; 

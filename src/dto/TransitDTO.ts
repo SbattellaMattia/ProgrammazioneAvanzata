@@ -1,13 +1,18 @@
+/** DTO per i filtri di ricerca dei transiti
+ * @interface TransitFilterDTO
+ */
 export interface TransitFilterDTO {
-  // 🔹 Campi usati come FILTRI in ingresso (controller → service)
   plates?: string[];
   from?: Date;
   to?: Date;
   userId?: string;
-  userRole?: string;       // "DRIVER" | "OPERATOR"
+  userRole?: string;       
   format?: "json" | "pdf";
 }
 
+/** DTO per il report dei transiti
+ * @interface TransitReportDTO
+ */
 export interface TransitReportDTO {
   date: Date;
   vehicleId: string;

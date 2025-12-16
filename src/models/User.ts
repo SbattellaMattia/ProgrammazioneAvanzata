@@ -1,3 +1,19 @@
+/**
+ * Modello User per la rappresentazione degli utenti nel sistema.
+ * Attributi:
+ * - id: Identificatore univoco dell'utente (UUID).
+ * - name: Nome dell'utente (string).
+ * - surname: Cognome dell'utente (string).
+ * - email: Indirizzo email dell'utente (string).
+ * - password: Password crittografata dell'utente (string).
+ * - role: Ruolo dell'utente nel sistema (enum Role).
+ * - tokens: Numero di token associati all'utente (number).
+ * Il modello utilizza Sequelize per la definizione e l'interazione con il database.
+ *
+ * @param {Model} - Estende il modello di Sequelize per definire la tabella "User".
+ *
+ * @exports User - Il modello dell'utente.
+ */
 import { DataTypes, Model, InferAttributes, InferCreationAttributes } from "sequelize";
 import DatabaseConnection from "../database/DatabaseConnection";
 import { Role } from "../enum/Role";

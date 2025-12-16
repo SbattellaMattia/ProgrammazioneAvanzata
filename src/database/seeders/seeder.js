@@ -186,7 +186,7 @@ module.exports = {
     ]);
 
     // ==========================================================
-    // 3. GENERAZIONE MASSIVA DI TRANSITI E FATTURE (coerenti)
+    // 3. GENERAZIONE MASSIVA DI TRANSITI E FATTURE 
     // ==========================================================
     console.log('🚀 Generating mass data (transits + invoices)...');
 
@@ -226,6 +226,7 @@ module.exports = {
       return aStart < bEnd && bStart < aEnd;
     }
 
+    // Verifica se è possibile schedulare una sessione di parcheggio
     function canSchedule(parkingId, vehicleType, entryTime, exitTime) {
       const cap = (parkingCaps[parkingId] && parkingCaps[parkingId][vehicleType]) ?? 0;
       if (cap <= 0) return false;
@@ -241,7 +242,9 @@ module.exports = {
       return used < cap;
     }
 
+    // Aggiunge minuti a una data
     const addMinutes = (d, minutes) => new Date(d.getTime() + minutes * 60 * 1000);
+    // Data minima per i transiti (30 giorni fa)
     const min30Days = () => new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
 
     // ultimo OUT per targa -> garantisce IN/OUT alternati e niente "due parcheggi"
@@ -250,14 +253,17 @@ module.exports = {
       lastExitByPlate.set(plate, min30Days());
     });
 
+    // Numero di transiti da generare
     const TARGET = 100;
 
+    // Generazione transiti e fatture
     for (let idx = 0; idx < TARGET; idx++) {
       let sc = null;
       let entryTime = null;
       let exitTime = null;
       let durationHours = null;
 
+      // Tenta di generare una sessione valida
       for (let attempt = 0; attempt < 800; attempt++) {
         sc = scenarios[Math.floor(Math.random() * scenarios.length)];
         const vehicleType = plateType[sc.plate];

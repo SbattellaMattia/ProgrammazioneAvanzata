@@ -4,18 +4,21 @@ import InvoiceService from '../services/InvoiceService';
 import { StatusCodes } from 'http-status-codes';
 import { InvoiceFilterDTO } from '../dto/InvoiceDTO';
 
+/**
+ * Controller per la gestione delle fatture.
+ * Gestisce le richieste correlate alle fatture, come il recupero,
+ * il download del bollettino PDF e il pagamento delle fatture.
+ * @class InvoiceController
+ * @description Questo controller gestisce le richieste HTTP relative alle fatture.
+ * Include metodi per ottenere le fatture, scaricare i bollettini PDF e pagare le fatture.
+ */
 class InvoiceController {
 
-  /**
-   * GET /api/invoices
-   * Recupera tutte le fatture
+  /** Ottiene una fattura per ID.
+   * @route GET /invoice/:id
+   * @param {Request} req - La richiesta HTTP contenente l'ID della fattura.
+   * @param {Response} res - La risposta HTTP con la fattura richiesta.
    */
-  /*getAll = asyncHandler(async (req: Request, res: Response) => {
-    const user = (req as any).user;
-    const parkings = await InvoiceService.getAll(user.id, user.role);
-    return res.status(StatusCodes.OK).json(parkings);
-  });*/
-
   getById = asyncHandler(async (req: Request, res: Response) => {
     const { id } = req.params;
     const user = (req as any).user;
@@ -23,7 +26,11 @@ class InvoiceController {
     return res.status(StatusCodes.OK).json(invoice);
   });
 
-
+  /** Ottiene tutte le fatture con filtri opzionali.
+   * @route GET /invoice
+   * @param {Request} req - La richiesta HTTP con i parametri di filtro opzionali.
+   * @param {Response} res - La risposta HTTP con l'elenco delle fatture.
+   */
   getAll = asyncHandler(async (req: Request, res: Response) => {
     const { from, to, status } = req.query;
     const user = (req as any).user;
@@ -40,21 +47,20 @@ class InvoiceController {
     return res.json(data);
   });
 
-
-  /**
-   * GET /invoice/:id/pdf
-   * Scarica il bollettino PDF con QR Code
+  /** Ottiene e scarica il bollettino PDF di una fattura.
+   * @route GET /invoice/:id/download
+   * @param {Request} req - La richiesta HTTP contenente l'ID della fattura.
+   * @param {Response} res - La risposta HTTP con il bollettino PDF.
    */
   downloadPayment = asyncHandler(async (req: Request, res: Response) => {
     const user = (req as any).user;
     const { id } = req.params;
 
-    // 1. Chiamata al Service (Tutta la logica è lì)
     const pdfBuffer = await InvoiceService.generateInvoicePdf(id, user.id);
 
     // 2. Imposta Headers per il download
     res.setHeader('Content-Type', 'application/pdf');
-    // 'attachment' forza il download. Usa 'inline' se vuoi vederlo nel browser.
+    // 'attachment' forza il download. 
     res.setHeader('Content-Disposition', `attachment; filename=bollettino_${id}.pdf`);
     res.setHeader('Content-Length', pdfBuffer.length);
 
@@ -62,9 +68,10 @@ class InvoiceController {
     return res.send(pdfBuffer);
   });
 
-  /**
-   * GET /invoice/:id/pay
-   * Paga il bollettino
+  /** Paga una fattura.
+   * @route POST /invoice/:id/pay
+   * @param {Request} req - La richiesta HTTP contenente l'ID della fattura.
+   * @param {Response} res - La risposta HTTP con il messaggio di conferma del pagamento.
    */
   pay = asyncHandler(async (req: Request, res: Response) => {
     const user = (req as any).user;

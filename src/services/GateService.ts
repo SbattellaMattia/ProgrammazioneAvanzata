@@ -9,6 +9,13 @@ import {
   OperationNotAllowedError,
 } from "../errors/CustomErrors";
 
+/** GateService gestisce le operazioni sui gate.
+ * @class GateService
+ * @description Fornisce metodi per creare, eliminare, aggiornare e recuperare gate,
+ * calcolare statistiche sui gate e gestire le prenotazioni.
+ * @param gateDAO - Istanza di GateDAO per interagire con il database dei gate 
+ * @param parkingDAO - Istanza di ParkingDAO per interagire con il database dei parcheggi 
+ */
 export class GateService {
   private readonly gateDAO: GateDAO;
   private readonly parkingDAO: ParkingDAO;
@@ -18,10 +25,6 @@ export class GateService {
     this.parkingDAO = new ParkingDAO();
   }
 
-  /**
-   * Crea un nuovo gate.
-   * I dati nel body sono già validati da Zod (createGateSchema).
-   */
   async create(data: CreateGateInput): Promise<Gate> {
     try {
       const { parkingId, type, direction } = data;

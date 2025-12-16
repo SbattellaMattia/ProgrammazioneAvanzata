@@ -5,6 +5,10 @@
  */
 import { StatusCodes } from 'http-status-codes';
 
+/**
+ * Classe AppError per la gestione degli errori applicativi.
+ * Estende la classe base Error per includere informazioni aggiuntive come il codice di stato HTTP.
+ */
 export class AppError extends Error {
   public readonly statusCode: number;
   public readonly isOperational: boolean;

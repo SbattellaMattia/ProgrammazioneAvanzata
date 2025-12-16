@@ -5,10 +5,19 @@ import TransitService from "../services/TransitService";
 import { TransitFilterDTO } from '../dto/TransitDTO';
 import Transit from "../models/Transit";
 
-
+/** Controller per la gestione dei Transiti.
+ * Gestisce le operazioni CRUD e le richieste correlate ai Transiti.
+ * @class TransitController
+ * @description Questo controller gestisce le operazioni CRUD per i Transiti.
+ * Include metodi per creare, leggere, aggiornare ed eliminare Transiti,
+ * nonché per ottenere la cronologia dei transiti con filtri specifici.
+ */
 class TransitController {
-  /**
-   * Crea un transito NEW per un gate
+  
+  /** Crea un nuovo transito da un Gate.
+   * @route POST /gates/:id/transits
+   * @param {Request} req - La richiesta HTTP contenente l'ID del Gate e i dati del transito.
+   * @param {Response} res - La risposta HTTP con il transito creato.
    */
   createFromGate = asyncHandler(async (req: Request, res: Response) => {
     const { id } = req.params;
@@ -22,24 +31,30 @@ class TransitController {
     return res.status(StatusCodes.CREATED).json(transit);
   });
 
-  /**
-   * Ottieni tutti i transiti
+  /** Ottieni tutti i transiti.
+   * @route GET /transits
+   * @param {Request} req - La richiesta HTTP.
+   * @param {Response} res - La risposta HTTP con l'elenco dei transiti.
    */
   getAll = asyncHandler(async (req: Request, res: Response) => {
     const transits = await TransitService.getAll();
     return res.status(StatusCodes.OK).json(transits);
   });
 
-  /**
-   * Ottieni transito per ID (da res.locals.entity)
+  /** Ottieni un transito per ID.
+   * @route GET /transits/:id
+   * @param {Request} req - La richiesta HTTP contenente l'ID del transito.
+   * @param {Response} res - La risposta HTTP con il transito richiesto.
    */
   getById = asyncHandler(async (req: Request, res: Response) => {
     const transit = res.locals.entity as Transit;
     return res.status(StatusCodes.OK).json(transit);
   });
 
-  /**
-   * Aggiorna un transito (con istanza in res.locals.entity)
+  /** Aggiorna un transito esistente.
+   * @route PUT /transits/:id
+   * @param {Request} req - La richiesta HTTP contenente l'ID del transito e i dati aggiornati.
+   * @param {Response} res - La risposta HTTP con il transito aggiornato.
    */
   update = asyncHandler(async (req: Request, res: Response) => {
     const transit = res.locals.entity as Transit;
@@ -47,8 +62,10 @@ class TransitController {
     return res.status(StatusCodes.OK).json(updatedTransit);
   });
 
-  /**
-   * Elimina un transito
+  /** Elimina un transito esistente.
+   * @route DELETE /transits/:id
+   * @param {Request} req - La richiesta HTTP contenente l'ID del transito.
+   * @param {Response} res - La risposta HTTP con il messaggio di conferma.
    */
   delete = asyncHandler(async (req: Request, res: Response) => {
     const transit = res.locals.entity as Transit;
@@ -56,12 +73,15 @@ class TransitController {
     return res.status(StatusCodes.OK).json({ message: "Transito eliminato con successo" });
   });
 
-
-
+  /** Ottieni la cronologia dei transiti con filtri.
+   * @route GET /transits/history
+   * @param {Request} req - La richiesta HTTP contenente i filtri per la cronologia.
+   * @param {Response} res - La risposta HTTP con la cronologia dei transiti.
+   */
   getHistory = asyncHandler(async (req: Request, res: Response) => {
-    // 1. Estrai dati dalla Query e dall'Utente (dal middleware auth)
+    // 1. Estrai i filtri dalla query e l'utente dal token JWT
     const { from, to, plates, format } = req.query;
-    const user = (req as any).user; // Popolato dal middleware JWT
+    const user = (req as any).user; 
 
     // 2. Prepara il DTO
     const filters: TransitFilterDTO = {
@@ -74,10 +94,8 @@ class TransitController {
       userRole: user.role
     };
 
-    // 3. Chiama Service
     const result = await TransitService.getTransitHistory(filters);
 
-    // 4. Gestione Risposta (PDF o JSON)
     if (filters.format === 'pdf') {
       res.setHeader('Content-Type', 'application/pdf');
       res.setHeader('Content-Disposition', 'attachment; filename=transiti.pdf');
@@ -86,8 +104,6 @@ class TransitController {
 
     return res.json(result);
   });
-
-
  
 }
 export default new TransitController();

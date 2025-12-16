@@ -3,6 +3,16 @@ import { Request, Response, NextFunction } from "express";
 import userDAO from "../dao/UserDAO";
 import { UnauthorizedError, NotFoundError, InsufficientTokensError } from "../errors";
 
+/**
+  * Middleware per la gestione del consumo dei token degli utenti.
+  * Scala un token ad ogni richiesta protetta.
+  * @param req - La richiesta HTTP.
+  * @param res - La risposta HTTP.
+  * @param next - La funzione per passare al middleware successivo.
+  * @throws UnauthorizedError Se l'utente non è autenticato.
+  * @throws NotFoundError Se l'utente non viene trovato nel database.
+  * @throws InsufficientTokensError Se l'utente non ha token sufficienti.
+  */
 export const consumeTokenCredit = async (req: Request, res: Response, next: NextFunction) => {
   try {
     // Verifica che l'utente sia autenticato
