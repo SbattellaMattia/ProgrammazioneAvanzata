@@ -20,7 +20,6 @@ const router = Router(); // nouva instanza di Express Router
 const userDAO = new UserDAO();
 const authService = new AuthService(userDAO);
 const authController = new AuthController(authService);
-const authMiddleware = new AuthMiddleware(authService);
 
 
 /** Definisce la rotta per il login degli utenti

@@ -1943,7 +1943,7 @@ La richiesta è simile alle precedenti.
 
 ---
 
-# GET /invoice/{invoiceId}/pdf
+# GET /invoice/{invoiceId}/paymentQr
 
 **Parametri**
 
@@ -1954,6 +1954,7 @@ La richiesta è simile alle precedenti.
 
 <img width="894" height="851" alt="image" src="https://github.com/user-attachments/assets/6de796e0-bc50-470b-ade5-3be891cd9bc3" />
 
+> Anche se la faattura risulta pagata o scaduta comunque questo pdf verrà visualizzato differentemente dalla rotta effettiva **pay** che restituirà il giusto errore.
 ---
 
 # PUT /invoice/{invoiceId}
@@ -1988,6 +1989,12 @@ Authorization: Bearer <JWT>
     "success": false,
     "statusCode": 403,
     "message": "La fattura risulta già pagata"
+}
+
+{
+    "success": false,
+    "statusCode": 403,
+    "message": "La fattura è scaduta e non può essere pagata"
 }
 ```
 

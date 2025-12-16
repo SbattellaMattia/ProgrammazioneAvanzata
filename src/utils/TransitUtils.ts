@@ -11,20 +11,6 @@ import { ParkingDAO } from "../dao/ParkingDAO";
 import { VehicleDAO } from "../dao/VehicleDAO";
 
 /**
- * Restituisce il parcheggio completo oppure lancia NotFoundError.
- */
-export async function getParkingOrThrow(
-  parkingDAO: ParkingDAO,
-  parkingId: string
-) {
-  const parking = await parkingDAO.findById(parkingId);
-  if (!parking) {
-    throw new NotFoundError("Parking", parkingId);
-  }
-  return parking;
-}
-
-/**
  * Restituisce un veicolo random tra TUTTI i veicoli.
  */
 export async function pickRandomVehicle(vehicleDAO: VehicleDAO) {

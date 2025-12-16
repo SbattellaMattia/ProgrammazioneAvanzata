@@ -46,13 +46,13 @@ router.get('/:id', ...requireInvoice , InvoiceController.getById);
 
 /**
  * Rotta per scaricare il bollettino PDF con QR Code
- * GET /invoices/:id/pdf - Scarica il bollettino PDF con QR Code per una fattura specifica
+ * GET /invoices/:id/paymentQr - Scarica il bollettino PDF con QR Code per una fattura specifica
  * 
  * Se l'utente è un DRIVER, può scaricare solo i bollettini delle fatture associate al suo userId.
  * Se l'utente è un OPERATOR, può scaricare i bollettini di tutte le fatture.
  */
 
-router.get('/:id/pdf', ...requireInvoice, InvoiceController.downloadPayment);
+router.get('/:id/paymentQr', ...requireInvoice, InvoiceController.downloadPayment);
 
 
 

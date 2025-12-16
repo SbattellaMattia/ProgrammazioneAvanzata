@@ -25,7 +25,6 @@ import {
   ForbiddenError,
 } from "../errors/CustomErrors";
 import {
-  getParkingOrThrow,
   determineTransitTypeForGate,
   ensureCapacityForIn,
   updateParkingCapacityAfterTransit,
@@ -50,7 +49,8 @@ class TransitService {
 
     const gate = (await this.gateDAO.findById(gateId))!;
     // carico il gate e il parcheggio
-    const parking = await getParkingOrThrow(this.parkingDAO, gate.parkingId);
+    const parking = await this.parkingDAO.findById(gate.parkingId);
+    if (!parking) throw new NotFoundError("Parking", gate.parkingId);
 
     // in base al tipo di gate ricavo la targa dal body
     let detectedPlate: string | null = null;
