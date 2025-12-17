@@ -33,12 +33,6 @@ const app = express();
  */
 app.use(express.json());
 
-/**
- * Questa route gestisce le richieste relative all'autenticazione degli utenti.
- * Utilizza il router definito in `authRoutes.js` per gestire le operazioni di login, registrazione e gestione degli utenti.
- * @see authRoutes.js
- * @module authRoutes
- */
 app.use('', AuthRoutes);
 
 app.use('/parking', ParkingRoutes);
@@ -52,7 +46,6 @@ app.use('/transit', TransitRoutes);
 app.use('/invoice', InvoiceRoutes);
 
 app.use('/stats', StatsRoutes);
-
 
 app.get('/xmas', (req, res, next) => {
     const filePath = path.join(process.cwd(), 'src', 'img', 'xmas.gif');

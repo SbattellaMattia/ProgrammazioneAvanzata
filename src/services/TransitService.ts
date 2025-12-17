@@ -75,8 +75,6 @@ class TransitService {
 
       console.log("OCR plate:", detectedPlate);
     } else if (gate.type === GateType.SMART) {
-      // ci aspettiamo il JSON nel body
-      // es: { "plate": "AA000AA" } o simile
       const plate =
         body.plate ||
         body.licensePlate ||

@@ -2,7 +2,6 @@ import { Request, Response } from 'express';
 import { asyncHandler } from '../utils/AsyncHandler';
 import InvoiceService from '../services/InvoiceService';
 import { StatusCodes } from 'http-status-codes';
-import { InvoiceFilterDTO } from '../dto/InvoiceDTO';
 
 /**
  * Controller per la gestione delle fatture.
@@ -77,7 +76,7 @@ class InvoiceController {
     const user = (req as any).user;
     const { id } = req.params;
     await InvoiceService.pay(id, user.id);
-    return res.status(200).json({ success: true, message: "Fattura pagata" });
+    return res.status(StatusCodes.OK).json({ success: true, message: "Fattura pagata" });
   });
 }
 
