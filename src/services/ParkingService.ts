@@ -3,13 +3,26 @@ import { ParkingDAO } from '../dao/ParkingDAO';
 import { OperationNotAllowedError } from '../errors/CustomErrors';
 import { CreateParkingDTO, UpdateParkingDTO } from '../validation/ParkingValidation';
 
-// Essendo stateless (o quasi), possiamo usarlo come singleton o istanziarlo qui.
+// Essendo stateless (o quasi), possiamo usarlo come singleton o istanziarlo.
 const parkingDAO = new ParkingDAO();
 
+/**
+ * @class ParkingService
+ * @description Servizio di business logic per gestione parcheggi.
+ * Gestisce creazione, aggiornamento ed eliminazione parcheggi con validazione
+ * della business rule: capacità totale >= veicoli occupati (capacity/remain consistency).
+ * Supporta capacità differenziate per tipo veicolo (car, motorcycle, truck).
+ * 
+ */
 class ParkingService {
   
   /**
-   * Crea un nuovo parcheggio tramite DAO.
+   * Crea un nuovo parcheggio.
+   * Inizializza capacityRemain = capacity totale per ogni tipo veicolo.
+   * Dati validati da Zod (createParkingSchema).
+   * 
+   * @param data - Dati parcheggio (CreateParkingDTO)
+   * @returns Promise<any> - Parcheggio creato
    */
   async create(data: CreateParkingDTO) {
     return await parkingDAO.create({
@@ -20,31 +33,50 @@ class ParkingService {
   });
 }
 
-  /**
-   * Restituisce tutti i parcheggi.
-   * Utilizza il metodo specifico del DAO che li ordina per nome.
+   /**
+   * Restituisce tutti i parcheggi ordinati per nome.
+   * Utilizza metodo ottimizzato del DAO.
+   * 
+   * @returns Promise<any[]> - Array parcheggi
    */
   async getAll() {
     return await parkingDAO.findAllParking();
   }
 
   /**
-   * Cerca un parcheggio per ID.
-   * Necessario per il middleware `ensureExists`.
+   * Cerca parcheggio per ID.
+   * Richiesto dal middleware `ensureExists`.
+   * 
+   * @param id - ID parcheggio (string | number)
+   * @returns Promise<any | null> - Parcheggio o null
    */
   async getById(id: string | number) {
     // Il DAO si aspetta string, facciamo il cast per sicurezza
     return await parkingDAO.findById(id.toString());
   }
 
+  
   /**
-   * Aggiorna un parcheggio.
+   * Aggiorna parcheggio con validazione capacità.
+   * Business Rule CRITICA: nuova capacità >= veicoli attualmente occupati.
+   * Aggiorna automaticamente capacityRemain per coerenza.
+   * 
+   * @param id - ID parcheggio
+   * @param data - Dati aggiornamento (UpdateParkingDTO)
+   * @returns Promise<any> - Parcheggio aggiornato
+   * @throws OperationNotAllowedError - Capacità insufficiente per occupati
    */
   async update(id: string, data: UpdateParkingDTO) {
     const parking = await parkingDAO.findById(id);
     const payload: any = { ...data };
 
-    // helper per applicare regola capacity/remain
+    /**
+     * @private
+     * @helper applyCapacityRule
+     * @description Applica regola capacità/occupati per tipo veicolo.
+     * Calcola: newRemain = newCapacity - occupied
+     * Garantisce: newRemain >= 0
+     */
     const apply = (key: "car" | "motorcycle" | "truck") => {
       const capKey = `${key}Capacity` as const;
       const remKey = `${key}CapacityRemain` as const;
@@ -78,15 +110,22 @@ class ParkingService {
   }
 
   /**
-   * Elimina un parcheggio.
+   * Elimina parcheggio.
+   * Nota: non verifica transiti attivi (responsabilità TransitService).
+   * 
+   * @param id - ID parcheggio (string | number)
+   * @returns Promise<boolean> - True se eliminato
    */
   async delete(id: string | number) {
     return await parkingDAO.delete(id.toString());
   }
 
   /**
-   * Metodo extra specifico di ParkingDAO
-   * Restituisce le capacità divise per veicolo
+   * Restituisce capacità disponibili per tipo veicolo.
+   * Metodo di utilità specifico ParkingDAO.
+   * 
+   * @param id - ID parcheggio
+   * @returns Promise<any> - Capacità { carRemain, motorcycleRemain, truckRemain }
    */
   async getCapacity(id: string | number) {
     return await parkingDAO.getCapacity(id.toString());

@@ -20,11 +20,26 @@ export class GateService {
   private readonly gateDAO: GateDAO;
   private readonly parkingDAO: ParkingDAO;
 
+  /**
+   * @constructor
+   * @description Inizializza il servizio con istanze DAO.
+   * Implementazione Singleton tramite export default new GateService().
+   */
   constructor() {
     this.gateDAO = new GateDAO();
     this.parkingDAO = new ParkingDAO();
   }
 
+  /**
+   * Crea un nuovo varco (Gate).
+   * I dati sono validati da Zod (createGateSchema).
+   * Supporta tipi: standard (OCR immagine), smart (JSON targa).
+   * 
+   * @param data - Dati del varco validati (CreateGateInput)
+   * @returns Promise<Gate> - Varco creato
+   * @throws NotFoundError - Se il parcheggio non esiste
+   * @throws DatabaseError - Errore persistenza
+   */
   async create(data: CreateGateInput): Promise<Gate> {
     try {
       const { parkingId, type, direction } = data;
@@ -49,15 +64,21 @@ export class GateService {
   }
 
   /**
-   * Cerca un gate per ID.
-   * Necessario per il middleware `ensureExists`.
+   * Cerca un varco per ID.
+   * Utilizzato dal middleware `ensureExists` per validazione pre-operazione.
+   * 
+   * @param id - ID del varco
+   * @returns Promise<Gate | null> - Varco trovato o null
    */
   async getById(id: string): Promise<Gate | null> {
     return await this.gateDAO.findById(id);
   }
 
   /**
-   * Restituisce tutti i gate.
+   * Restituisce tutti i varchi del sistema.
+   * 
+   * @returns Promise<Gate[]> - Array completo varchi
+   * @throws DatabaseError - Errore query database
    */
   async getAll(): Promise<Gate[]> {
     try {
@@ -71,7 +92,11 @@ export class GateService {
   }
 
   /**
-   * Restituisce tutti i gate di un parcheggio.
+   * Restituisce tutti i varchi di un parcheggio specifico.
+   * 
+   * @param parkingId - ID del parcheggio
+   * @returns Promise<Gate[]> - Varchi del parcheggio
+   * @throws NotFoundError - Se parcheggio inesistente
    */
   async getByParking(parkingId: string): Promise<Gate[]> {
     await this.checkParking(parkingId);
@@ -79,12 +104,18 @@ export class GateService {
   }
 
   /**
-   * Aggiorna un gate.
+   * Aggiorna un varco esistente.
    * I dati nel body sono validati da Zod (updateGateSchema).
    *
-   * In rotta userai:
+   * Controlli middleware in rotta:
    *  - validate(gateIdSchema, "params")
    *  - ensureExists(gateService, "Gate")
+   * 
+   * @param id - ID varco da aggiornare
+   * @param data - Dati aggiornati (UpdateGateInput)
+   * @returns Promise<Gate> - Varco aggiornato
+   * @throws OperationNotAllowedError - Cambio parkingId vietato
+   * @throws DatabaseError - Aggiornamento fallito
    */
   async update(id: string, data: UpdateGateInput): Promise<Gate> {
     // vietiamo il cambio di parkingId
@@ -105,11 +136,15 @@ export class GateService {
   }
 
   /**
-   * Elimina un gate.
+   * Elimina un varco.
    *
-   * In rotta userai:
+   * Controlli middleware in rotta:
    *  - validate(gateIdSchema, "params")
    *  - ensureExists(gateService, "Gate")
+   * 
+   * @param id - ID varco da eliminare
+   * @returns Promise<void>
+   * @throws DatabaseError - Eliminazione fallita
    */
   async delete(id: string): Promise<void> {
     const ok = await this.gateDAO.delete(id);
@@ -120,7 +155,12 @@ export class GateService {
   }
 
   /**
-   * Verifica che il parcheggio esista.
+   * Verifica esistenza parcheggio.
+   * Metodo privato di supporto per validazione referenziale.
+   * 
+   * @private
+   * @param parkingId - ID parcheggio da verificare
+   * @throws NotFoundError - Parcheggio non trovato
    */
   private async checkParking(parkingId: string) {
     const exists = await this.parkingDAO.existsById(parkingId);

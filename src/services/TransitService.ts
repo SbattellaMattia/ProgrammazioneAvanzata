@@ -31,7 +31,13 @@ import {
 } from "../utils/TransitUtils";
 import { Role } from "../enum/Role";
 
-
+/**
+ * @class TransitService
+ * @description Servizio core per gestione transiti veicoli ai varchi.
+ * Implementa flusso completo: OCR/smart gate → veicolo → tipo IN/OUT → capacità → fattura automatica.
+ * Supporta gate STANDARD (immagine OCR) e SMART (JSON targa). Genera report JSON/PDF.
+ * 
+ */
 class TransitService {
   private transitDAO = new TransitDAO();
   private parkingDAO = new ParkingDAO();
@@ -39,7 +45,16 @@ class TransitService {
   private vehicleDAO = new VehicleDAO();
 
   /**
-   * Crea un transito casuale per un gate specifico.
+   * Crea transito da varco (STANDARD/SMART).
+   * Flusso completo: OCR/JSON → veicolo → IN/OUT → capacità → fattura auto.
+   * 
+   * @param gateId - ID varco
+   * @param file - Immagine per STANDARD (Multer.File|null)
+   * @param body - JSON per SMART {plate, licensePlate}
+   * @returns Promise<Transit> - Transito creato
+   * @throws ValidationError - File mancante/tipo gate errato
+   * @throws NotFoundError - Gate/parking/veicolo non trovato
+   * @throws OperationNotAllowedError - Capacità esaurita
    */
   async createFromGate(
     gateId: string,
@@ -48,15 +63,14 @@ class TransitService {
   ): Promise<Transit> {
 
     const gate = (await this.gateDAO.findById(gateId))!;
-    // carico il gate e il parcheggio
+    // 1. RECUPERO GATE + PARCHEGGIO
     const parking = await this.parkingDAO.findById(gate.parkingId);
     if (!parking) throw new NotFoundError("Parking", gate.parkingId);
 
-    // in base al tipo di gate ricavo la targa dal body
+    // 2. ESTRAZIONE TARGHE E TIPO DI GATE
     let detectedPlate: string | null = null;
 
     if (gate.type === GateType.STANDARD) {
-      // ci aspettiamo un'immagine
       if (!file) {
         throw new ValidationError("File immagine mancante per gate STANDARD");
       }
@@ -100,13 +114,13 @@ class TransitService {
     const normalizedPlate = detectedPlate.trim().toUpperCase().replace(/\s+/g, "");
     console.log("Targa normalizzata:", normalizedPlate);
 
-    // 3) recupero il veicolo a partire dalla targa
+    // 4. RECUPERO VEICOLO
     const vehicle = await this.vehicleDAO.findByPlate(normalizedPlate);
     if (!vehicle) {
       throw new NotFoundError("Vehicle", normalizedPlate);
     }
 
-    // 4) decido IN/OUT in base allo storico
+    // 5. DETERMINAZIONE TIPO IN/OUT (storico + direzione varco)
     const newType = await determineTransitTypeForGate(
       this.transitDAO,
       parking.id,
@@ -114,10 +128,10 @@ class TransitService {
       gate.direction as "in" | "out" | "bidirectional"
     );
 
-    // capacità
+    // 6. VALIDAZIONE CAPACITÀ (solo IN)
     ensureCapacityForIn(parking, vehicle, newType);
 
-    // 5) creo il transito
+    // 7. CREAZIONE TRANSITO
     const created = await this.transitDAO.create({
       parkingId: parking.id,
       gateId: gate.id,
@@ -127,7 +141,7 @@ class TransitService {
       detectedPlate: normalizedPlate,
     } as any);
 
-    // aggiorno capacità parcheggio
+    // 8. AGGIORNAMENTO CAPACITÀ PARCHEGGIO
     await updateParkingCapacityAfterTransit(
       this.parkingDAO,
       parking,
@@ -135,21 +149,25 @@ class TransitService {
       newType
     );
 
-    // 6) se è un'uscita provo a creare fattura
+    // 9. FATTURA AUTOMATICA (solo USCITA)
     await this.tryCreateInvoiceForExit(created, vehicle);
     return created;
   }
 
   /**
-   * Recupera un transito per ID.
+   * Recupera transito per ID (middleware ensureExists).
    */
   async getById(id: string): Promise<Transit | null> {
     return this.transitDAO.findById(id);
   }
 
+  /**
+   * Tutti i transiti ordinati per data DESC.
+   */
   async getAll(): Promise<Transit[]> {
     return this.transitDAO.findAll({ order: [["date", "DESC"]] });
   }
+  
   /**
    * Recupera i transiti associati a un gate specifico.
    */
@@ -158,7 +176,11 @@ class TransitService {
   }
 
   /**
-   * Aggiorna un transito esistente.
+   * Aggiorna transito (SOLO data, SOLO IN).
+   * 
+   * @param transit - Transito esistente (post-ensureExists)
+   * @param data - {date: "dd/mm/yyyy hh:mm:ss"}
+   * @throws OperationNotAllowedError - Solo IN modificabili, conflitti OUT
    */
   async update(transit: Transit, data: UpdateTransitInput): Promise<Transit> {
     await this.assertTransitModifiable(transit);
@@ -180,7 +202,7 @@ class TransitService {
       );
     }
 
-    // 5. Aggiorniamo SOLO la data del transito
+    // Aggiorniamo SOLO la data del transito
     const updated = await transit.update({
       date: newDate,
     });
@@ -189,7 +211,7 @@ class TransitService {
   }
 
   /**
-   * Cancella un transito esistente.
+   * Elimina transito (SOLO IN non fatturati).
    */
   async delete(transit: Transit): Promise<void> {
     await this.assertTransitModifiable(transit);
@@ -199,6 +221,10 @@ class TransitService {
     }
   }
 
+  /**
+   * Report transiti con filtri (JSON/PDF).
+   * RBAC: DRIVER→solo proprie targhe, OPERATOR→tutte.
+   */
   async getTransitHistory(filters: TransitFilterDTO): Promise<TransitReportDTO[] | Buffer> {
     const { userId, userRole, from, to, plates, format } = filters;
 
@@ -326,6 +352,11 @@ class TransitService {
     return new Date(yyyy, mm - 1, dd, hh, mi, ss);
   }
 
+   /**
+   * @private
+   * Assert pre-condizioni modifica/eliminazione transito.
+   * Regole: SOLO IN, non associato a fattura.
+   */
   private async assertTransitModifiable(transit: Transit): Promise<void> {
 
     if (transit.type !== TransitType.IN) {

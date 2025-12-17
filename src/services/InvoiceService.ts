@@ -10,8 +10,30 @@ import { Role } from '../enum/Role';
 import rateCalculator from '../utils/Invoice/BillingCalculator';
 import { InvoiceStatus } from '../enum/InvoiceStatus';
 
+
+/**
+ * @class InvoiceService
+ * @description Servizio di business logic per gestione fatture parcheggio.
+ * Gestisce creazione automatica fatture da transiti ingresso/uscita, generazione PDF bollettini
+ * con QR code pagamento, controlli autorizzazioni RBAC (Role-Based Access Control) e stato pagamenti.
+ * Implementa requisiti: pagamento entro 24h da uscita, QR "userId:id:importo".
+ * 
+ */
 class InvoiceService {
-    
+
+    /**
+   * @private
+   * @method resolveAllowedPlates
+   * @description Risolve le targhe autorizzate per l'utente basandosi sul ruolo.
+   * OPERATOR: tutte le targhe richieste
+   * DRIVER: solo targhe dei propri veicoli
+   * 
+   * @param userId - ID utente richiedente
+   * @param userRole - Ruolo (DRIVER|OPERATOR)
+   * @param requestedPlates - Targhe opzionali richieste
+   * @returns Promise<string[]> - Targhe autorizzate
+   * @throws ForbiddenError - Driver richiede targhe non proprie
+   */
     private async resolveAllowedPlates(userId: string, userRole: Role.DRIVER | Role.OPERATOR, requestedPlates?: string[]) {
         console.log('Resolving allowed plates for user:', userId, 'role:', userRole, 'requestedPlates:', requestedPlates);
         if (userRole === Role.OPERATOR) {
@@ -30,18 +52,44 @@ class InvoiceService {
         return myPlates;
     }
 
-
+    /**
+   * Recupera fatture con filtri temporali e condizioni aggiuntive.
+   * DRIVER vede solo proprie fatture, OPERATOR vede tutto.
+   * 
+   * @param userId - ID utente autenticato
+   * @param userRole - Ruolo utente
+   * @param from - Data inizio (opzionale)
+   * @param to - Data fine (opzionale)
+   * @param additionalWhere - Clausole WHERE Sequelize aggiuntive
+   * @returns Promise<any[]> - Array fatture
+   */
     async getAll(userId: string, userRole: Role.DRIVER | Role.OPERATOR, from?: Date, to?: Date, additionalWhere: WhereOptions<any> = {}): Promise<any[]> {
         const where: any = { ...additionalWhere };
         userRole === Role.DRIVER ? where.userId = userId : null;
         return await invoiceDAO.findInDateRange('createdAt', from, to, where);
     }
 
+    /**
+  * Recupera singola fattura per ID.
+  * 
+  * @param id - ID fattura
+  * @returns Promise<any | null> - Fattura o null
+  */
     async getById(id: string) {
         return await invoiceDAO.findById(id);
     }
 
-    async getByUserId(invoiceId: string, userId:string) {
+    /**
+   * Recupera fattura verificando autorizzazioni utente.
+   * DRIVER accede solo alle proprie fatture.
+   * 
+   * @param invoiceId - ID fattura
+   * @param userId - ID utente richiedente
+   * @returns Promise<any> - Fattura autorizzata
+   * @throws NotFoundError - Fattura o utente non trovato
+   * @throws ForbiddenError - Driver non autorizzato
+   */
+    async getByUserId(invoiceId: string, userId: string) {
         const invoice = await invoiceDAO.findById(invoiceId);
         if (!invoice) {
             throw new NotFoundError("Fattura", invoiceId);
@@ -61,9 +109,15 @@ class InvoiceService {
 
 
     /**
-     * Genera il PDF del bollettino per una specifica fattura.
-     * Restituisce il Buffer del PDF.
-     */
+   * Genera PDF bollettino pagamento con QR code.
+   * QR contiene: "userId:id:importo" come specificato nelle specifiche.
+   * 
+   * @param invoiceId - ID fattura
+   * @param userId - ID utente autorizzato
+   * @returns Promise<Buffer> - Buffer PDF generato
+   * @throws NotFoundError - Fattura non trovata
+   * @throws ForbiddenError - Utente non autorizzato
+   */
     async generateInvoicePdf(invoiceId: string, userId: string): Promise<Buffer> {
 
         // 1. Recupera la fattura
@@ -96,8 +150,19 @@ class InvoiceService {
 
         return pdfBuffer;
     }
-    
 
+
+    /**
+   * Crea fattura automatica da transiti ingresso/uscita.
+   * Chiamata dal System all'uscita veicolo (generazione automatica).
+   * 
+   * @param userId - Proprietario veicolo
+   * @param parkingId - Parcheggio
+   * @param entryTransitId - Transito ingresso
+   * @param exitTransitId - Transito uscita
+   * @returns Promise<any> - Fattura creata
+   * @throws NotFoundError - Transito non trovato
+   */
     async createInvoiceFromTransits(userId: string, parkingId: string, entryTransitId: string, exitTransitId: string) {
         // calcolo amount tramite RateCalculator
         const { amount /*, context */ } = await rateCalculator.calcFromTransits(
@@ -131,11 +196,15 @@ class InvoiceService {
 
 
     /**
-     * Cambia solo lo stato, logica di pagamento non implementata
-     * @param id 
-     */
-    async pay(invoiceId: string, userId:string) {
-        const invoice = await this.getByUserId(invoiceId,userId);
+   * Segna fattura come pagata (logica pagamento non implementata).
+   * Controlli: non già pagata, non scaduta.
+   * 
+   * @param invoiceId - ID fattura
+   * @param userId - Utente pagante
+   * @throws ForbiddenError - Già pagata o scaduta
+   */
+    async pay(invoiceId: string, userId: string) {
+        const invoice = await this.getByUserId(invoiceId, userId);
         // Se è già pagata, niente da fare
         if (invoice.status === InvoiceStatus.PAID) {
             throw new ForbiddenError('La fattura risulta già pagata');
@@ -145,7 +214,7 @@ class InvoiceService {
         if (invoice.dueDate && invoice.dueDate < new Date()) {
             throw new ForbiddenError('La fattura è scaduta e non può essere pagata');
         }
-        invoice.status = InvoiceStatus.PAID ;
+        invoice.status = InvoiceStatus.PAID;
         await invoice.save();
     }
 }

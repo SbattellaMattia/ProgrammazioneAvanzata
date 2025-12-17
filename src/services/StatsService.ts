@@ -10,8 +10,26 @@ import { AvgFreeSlotsDTO } from '../dto/StatsDTO';
 import { InvoiceStatus } from '../enum/InvoiceStatus';
 import { calculateAvgFreeSlotsTotal } from '../utils/HelperAvgSlot';
 
+
+
+/**
+ * @class StatsService
+ * @description Servizio per statistiche parcheggio (requisiti documento).
+ * Implementa:
+ * 1. Statistiche GLOBALI tutti parcheggi: fatturato, posti liberi medi per fascia oraria
+ * 2. Statistiche SINGOLO parcheggio: transiti/veicolo/fascia, fatturato dettagliato
+ * 
+ */
 class StatsService {
 
+  /**
+   * Statistiche GLOBALI per tutti i parcheggi (rotta OPERATORE).
+   * Requisito: "Fatturato di ciascun parcheggio", "Numero medio di posti liberi per parcheggio distinguendo per fascia oraria"
+   * 
+   * @param from - Data inizio (opzionale, default epoch)
+   * @param to - Data fine (opzionale, default now)
+   * @returns Promise<GlobalParkingStatsDTO[]> - Array statistiche per parcheggio
+   */
   async getGlobalParkingStats(from: Date | undefined, to: Date | undefined): Promise<GlobalParkingStatsDTO[]> {
     const startDate = from || new Date(0);
     const endDate = to || new Date();
@@ -71,7 +89,16 @@ class StatsService {
     return results;
   }
 
-  // Ottieni statistiche di un singolo parcheggio
+  /**
+   * Statistiche DETTAGLIATE singolo parcheggio (rotta OPERATORE).
+   * Requisito: "Numero totale di transiti distinti anche per tipologia di veicolo e per fascia oraria", "Fatturato"
+   * Fascia oraria: 00-02, 02-04, ..., 22-24
+   * 
+   * @param parking - {id, name} parcheggio (post-validazione)
+   * @param from - Data inizio (opzionale)
+   * @param to - Data fine (opzionale)
+   * @returns Promise<ParkingStatsDTO> - Statistiche complete
+   */
   async getParkingRevenueStats(
     parking: { id: string; name: string },
     from: Date | undefined,
@@ -133,6 +160,11 @@ class StatsService {
     const slotMap = new Map<string, { total: number; in: number; out: number }>();
     const vehicleTypeCounts: Record<string, number> = {};
 
+    /**
+     * @private
+     * @helper getSlot
+     * @description Calcola fascia oraria 2h (00-02, 02-04, etc.)
+     */
     const getSlot = (d: Date): string => {
       const h = d.getHours();
       const startHour = Math.floor(h / 2) * 2;
