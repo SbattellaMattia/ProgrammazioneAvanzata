@@ -8,7 +8,8 @@ import { TransitReportDTO } from '../dto/TransitDTO';
 export class PdfGenerator {
 
   /**
-   * Genera un PDF Bollettino di Pagamento con QR Code.
+   * Crea un PDF per il pagamento.
+   * Dentro al PDF inserisce anche un QR Code che contiene i dati principali.
    */
   static async createPayment(data: InvoiceDTO): Promise<Buffer> {
     return new Promise(async (resolve, reject) => {
@@ -73,6 +74,10 @@ export class PdfGenerator {
     });
   }
 
+  /**
+   * Crea un PDF con lo storico dei transiti.
+   * Può includere anche un periodo (from/to) se viene passato.
+   */
   static async createTransitReport(rows: TransitReportDTO[], from?: Date, to?: Date): Promise<Buffer> {
     return new Promise(resolve => {
       const doc = new PDFDocument({ margin: 30 });
@@ -125,7 +130,10 @@ export class PdfGenerator {
     });
   }
 
-
+  /**
+   * Crea un PDF con le statistiche di più parcheggi.
+   * Ogni parcheggio viene stampato uno dopo l’altro.
+   */
   static async createAllParkingsStatsReport(
     statsList: GlobalParkingStatsDTO[]
   ): Promise<Buffer> {
@@ -214,6 +222,10 @@ export class PdfGenerator {
     });
   }
 
+  /**
+   * Crea un PDF con le statistiche di un singolo parcheggio.
+   * Include fatturato e riepiloghi sui transiti.
+   */
   static async createParkingStatsReport(stats: ParkingStatsDTO): Promise<Buffer> {
     return new Promise((resolve) => {
       const doc = new PDFDocument({ margin: 40 });

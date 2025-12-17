@@ -11,7 +11,7 @@ import { ParkingDAO } from "../dao/ParkingDAO";
 import { VehicleDAO } from "../dao/VehicleDAO";
 
 /**
- * Restituisce un veicolo random tra TUTTI i veicoli.
+ * Sceglie un veicolo a caso tra quelli presenti nel sistema.
  */
 export async function pickRandomVehicle(vehicleDAO: VehicleDAO) {
   const vehicles = await vehicleDAO.findAllVehicles();
@@ -24,7 +24,12 @@ export async function pickRandomVehicle(vehicleDAO: VehicleDAO) {
 }
 
 /**
- * Determina IN/OUT in base allo storico per (parkingId, vehicleId).
+ * Decide se il prossimo transito deve essere IN o OUT.
+ *
+ * L'idea è semplice:
+ * - guardiamo l’ultimo transito del veicolo
+ * - se l’ultima azione era un ingresso, il prossimo deve essere un’uscita (e viceversa)
+ * - teniamo anche conto del tipo di varco (solo ingresso / solo uscita / entrambi)
  */
 export async function determineTransitTypeForGate(
   transitDAO: TransitDAO,
@@ -93,7 +98,8 @@ export async function determineTransitTypeForGate(
 }
 
 /**
- * Verifica la capacità del parcheggio prima di un transito IN.
+ * Controlla se c'è posto nel parcheggio prima di registrare un IN.
+ * Se non c'è spazio per quel tipo di veicolo, blocca l'operazione.
  */
 export function ensureCapacityForIn(
   parking: any,
@@ -136,9 +142,11 @@ export function ensureCapacityForIn(
 }
 
 /**
- * Aggiorna la capacità del parcheggio dopo il transito:
- * - IN  => decrementa la capacity del tipo veicolo
- * - OUT => incrementa la capacity del tipo veicolo
+ * Aggiorna la disponibilità del parcheggio dopo un transito.
+ *
+ * Regola generale:
+ * - IN  => diminuisce di 1 i posti disponibili per quel tipo di veicolo
+ * - OUT => aumenta di 1 i posti disponibili per quel tipo di veicolo
  */
 export async function updateParkingCapacityAfterTransit(
   parkingDAO: ParkingDAO,

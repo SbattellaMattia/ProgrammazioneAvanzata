@@ -1,7 +1,9 @@
 jest.mock("../../secrets/keys");
 
 /**
- * Mock AuthMiddleware: per ogni test imposto req.user dinamicamente.
+ * Mock dell’AuthMiddleware.
+ * L’utente viene impostato dinamicamente nei test
+ * per simulare ruoli diversi (DRIVER / OPERATOR).
  */
 let mockUser: any = { id: "driver-id", email: "d@test.com", role: "DRIVER" };
 
@@ -16,7 +18,8 @@ jest.mock("../../middlewares/AuthMiddleware", () => ({
 }));
 
 /**
- * Mock TokenMiddleware, necessario poichè altrimenti il test cerca di contattare postgres
+ * Mock del TokenMiddleware.
+ * Serve a evitare accessi al database durante i test.
  */
 jest.mock("../../middlewares/TokenMiddleware", () => ({
   __esModule: true,
@@ -24,7 +27,9 @@ jest.mock("../../middlewares/TokenMiddleware", () => ({
 }));
 
 /**
- * ensureExists lo “bypassiamo” per questi test (non ci interessa davvero il DB).
+ * Mock di ensureExists.
+ * In questi test non ci interessa verificare l’esistenza reale
+ * delle risorse nel database.
  */
 jest.mock("../../middlewares/EnsureExist", () => ({
   __esModule: true,
@@ -32,7 +37,8 @@ jest.mock("../../middlewares/EnsureExist", () => ({
 }));
 
 /**
- * Mock InvoiceService: lo controlliamo nei test.
+ * Mock dell’InvoiceService.
+ * La logica reale non viene eseguita, controlliamo solo che venga chiamato.
  */
 jest.mock("../../services/InvoiceService", () => ({
   __esModule: true,
@@ -46,38 +52,55 @@ import request from "supertest";
 import app from "../../app";
 import InvoiceService from "../../services/InvoiceService";
 import { Role } from "../../enum/Role";
+
 const invoiceId = "11111111-1111-1111-1111-111111111111";
 
-  describe("GET /invoice/:id/paymentQr", () => {
-    it("DRIVER può scaricare PDF (200, content-type pdf)", async () => {
-      mockUser = { id: "driver-id", email: "d@test.com", role: Role.DRIVER };
-      (InvoiceService.generateInvoicePdf as jest.Mock).mockResolvedValue(
-        Buffer.from("FAKE_PDF")
-      );
+describe("GET /invoice/:id/paymentQr", () => {
+  /**
+   * Verifica che un DRIVER possa scaricare il PDF di pagamento.
+   */
+  it("DRIVER può scaricare PDF (200, content-type pdf)", async () => {
+    mockUser = { id: "driver-id", email: "d@test.com", role: Role.DRIVER };
 
-      const res = await request(app).get(`/invoice/${invoiceId}/paymentQr`);
+    (InvoiceService.generateInvoicePdf as jest.Mock).mockResolvedValue(
+      Buffer.from("FAKE_PDF")
+    );
 
-      expect(res.status).toBe(200);
-      expect(res.headers["content-type"]).toContain("application/pdf");
-      expect(InvoiceService.generateInvoicePdf).toHaveBeenCalledWith(
-        invoiceId,
-        "driver-id"
-      );
-    });
+    const res = await request(app).get(
+      `/invoice/${invoiceId}/paymentQr`
+    );
 
-    it("OPERATOR può scaricare PDF (200, content-type pdf)", async () => {
-      mockUser = { id: "operator-id", email: "o@test.com", role: Role.OPERATOR};
-      (InvoiceService.generateInvoicePdf as jest.Mock).mockResolvedValue(
-        Buffer.from("FAKE_PDF")
-      );
+    expect(res.status).toBe(200);
+    expect(res.headers["content-type"]).toContain("application/pdf");
+    expect(InvoiceService.generateInvoicePdf).toHaveBeenCalledWith(
+      invoiceId,
+      "driver-id"
+    );
+  });
 
-      const res = await request(app).get(`/invoice/${invoiceId}/paymentQr`);
+  /**
+   * Verifica che anche un OPERATOR possa scaricare il PDF di pagamento.
+   */
+  it("OPERATOR può scaricare PDF (200, content-type pdf)", async () => {
+    mockUser = {
+      id: "operator-id",
+      email: "o@test.com",
+      role: Role.OPERATOR,
+    };
 
-      expect(res.status).toBe(200);
-      expect(res.headers["content-type"]).toContain("application/pdf");
-      expect(InvoiceService.generateInvoicePdf).toHaveBeenCalledWith(
-        invoiceId,
-        "operator-id"
-      );
-    });
+    (InvoiceService.generateInvoicePdf as jest.Mock).mockResolvedValue(
+      Buffer.from("FAKE_PDF")
+    );
+
+    const res = await request(app).get(
+      `/invoice/${invoiceId}/paymentQr`
+    );
+
+    expect(res.status).toBe(200);
+    expect(res.headers["content-type"]).toContain("application/pdf");
+    expect(InvoiceService.generateInvoicePdf).toHaveBeenCalledWith(
+      invoiceId,
+      "operator-id"
+    );
+  });
 });

@@ -1,9 +1,9 @@
-// src/__tests__/stats/statsRoutes.spec.ts
-
-// 🔐 mock chiavi JWT (evita fs.readFileSync delle key)
+// Mock delle chiavi JWT.
+// Serve a evitare l’accesso al filesystem durante i test.
 jest.mock("../../secrets/keys");
 
-// 🔐 mock AuthMiddleware (mette req.user)
+// Mock dell’AuthMiddleware.
+// Simula un utente autenticato e inserisce req.user.
 jest.mock("../../middlewares/AuthMiddleware", () => ({
   __esModule: true,
   AuthMiddleware: jest.fn().mockImplementation(() => ({
@@ -18,7 +18,8 @@ jest.mock("../../middlewares/AuthMiddleware", () => ({
   })),
 }));
 
-// 🔐 mock RoleMiddleware (operatore sempre ok)
+// Mock del RoleMiddleware.
+// Nei test l’utente viene sempre considerato autorizzato.
 jest.mock("../../middlewares/RoleMiddleware", () => ({
   __esModule: true,
   RoleMiddleware: jest.fn().mockImplementation(() => ({
@@ -26,13 +27,15 @@ jest.mock("../../middlewares/RoleMiddleware", () => ({
   })),
 }));
 
-// 🔐 mock TokenMiddleware (non scala token nei test)
+// Mock del TokenMiddleware.
+// Evita il consumo di token durante l’esecuzione dei test.
 jest.mock("../../middlewares/TokenMiddleware", () => ({
   __esModule: true,
   consumeTokenCredit: (_req: any, _res: any, next: any) => next(),
 }));
 
-// 🅿️ mock ParkingService per ensureExists (route /stats/:id)
+// Mock del ParkingService.
+// Serve solo a verificare che il parcheggio esista nella rotta /stats/:id.
 jest.mock("../../services/ParkingService", () => ({
   __esModule: true,
   default: {
@@ -43,7 +46,7 @@ jest.mock("../../services/ParkingService", () => ({
   },
 }));
 
-// 📊 mock StatsController (non testiamo la logica del service qui, solo la rotta)
+// Mock dello StatsController.
 jest.mock("../../controllers/StatsController", () => ({
   __esModule: true,
   default: {
@@ -60,6 +63,10 @@ import request from "supertest";
 import app from "../../app";
 
 describe("STATS routes", () => {
+  /**
+   * Verifica che la rotta /stats risponda correttamente
+   * quando l’utente è autenticato e autorizzato.
+   */
   it("GET /stats → 200 + stats globali", async () => {
     const res = await request(app).get("/stats");
 
@@ -67,6 +74,10 @@ describe("STATS routes", () => {
     expect(res.body).toEqual({ total: 100 });
   });
 
+  /**
+   * Verifica che la rotta /stats/:id risponda correttamente
+   * per un parcheggio valido.
+   */
   it("GET /stats/:id → 200 + stats parcheggio", async () => {
     const parkingId = "40803563-cbff-4162-bcc2-ec175ed7b524";
 

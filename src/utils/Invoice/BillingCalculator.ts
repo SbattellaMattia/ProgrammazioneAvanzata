@@ -22,8 +22,11 @@ export class RateCalculator {
     private vehicleDAO: VehicleDAO
   ) {}
 
-  /**
-   *  dati due transitId (entry/exit) calcola l'importo totale.
+   /**
+   * Calcola l'importo totale partendo dai transiti di ingresso e uscita.
+   *
+   * Recupera tutte le informazioni necessarie (date, veicolo, parcheggio)
+   * e poi delega il calcolo vero e proprio.
    */
   async calcFromTransits(
     entryTransitId: string,
@@ -45,17 +48,28 @@ export class RateCalculator {
   }
 
   /**
-   * Calcola l'importo su un BillingContext generico.
-   * Supporta soste su più giorni e fasce orarie.
+   * Calcola l'importo usando un BillingContext.
+   *
+   * Se la sosta dura più giorni, il calcolo viene fatto
+   * un giorno alla volta.
    */
   private async calcForContext(ctx: BillingContext): Promise<number> {
     let total = 0;
 
+    // "cursor" avanza progressivamente dalla data di ingresso fino a quella di uscita.
+    // Spezzettiamo per giornata.
     let cursor = new Date(ctx.entryDate);
     const end = new Date(ctx.exitDate);
 
     while (cursor < end) {
-      // inizio/fine giorno corrente
+
+      /** Identificazione di
+       * - dayStart = mezzanotte del giorno di "cursor"
+       * - dayEnd   = mezzanotte del giorno successivo
+       *
+       * In questo modo possiamo calcolare l'intervallo effettivo della sosta dentro quel giorno:
+       * [intervalStart, intervalEnd]
+       */
       const dayStart = new Date(cursor);
       dayStart.setHours(0, 0, 0, 0);
 
@@ -86,9 +100,20 @@ export class RateCalculator {
   }
 
   /**
-   * Calcola l’importo in un sotto-intervallo [intervalStart, intervalEnd]
-   * usando le Rate che coprono la giornata.
-   * Ogni Rate ha price = €/ora.
+   * Calcola l’importo relativo a un sotto-intervallo all’interno di una singola giornata:
+   *
+   * Le Tariffe hanno:
+   * - hourStart / hourEnd (es. "08:00:00" -> "20:00:00")
+   * - price inteso come €/ora
+   *
+   * Caso semplice:
+   * - fasce "normali" con start < end (es. 08:00-20:00)
+   *
+   * Caso particolare:
+   * - fasce che attraversano la mezzanotte (es. 20:00-08:00)
+   *   In questo caso la fascia viene spezzata in due pezzi nella stessa giornata:
+   *   - 00:00 -> 08:00
+   *   - 20:00 -> 24:00
    */
   private calcForInterval(intervalStart: Date, intervalEnd: Date, rates: Rate[]): number {
   const dayStart = new Date(intervalStart);

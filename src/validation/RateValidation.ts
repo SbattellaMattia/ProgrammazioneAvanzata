@@ -1,10 +1,10 @@
-// src/validation/RateValidation.ts
 import { z } from "zod";
 import { VehicleType } from "../enum/VehicleType";
 import { DayType } from "../enum/DayType";
 
 /**
- * La stringa deve essere nel formato HH:MM
+ * Validazione di una stringa oraria.
+ * L'orario deve essere nel formato HH:MM.
  */
 const timeStringSchema = z
   .string()
@@ -14,7 +14,7 @@ const timeStringSchema = z
   );
 
 /**
- * Zod schema per creare tariffa
+ * Validazione dei dati per creare una nuova tariffa.
  */
 export const createRateSchema = z.object({
   parkingId: z.string().uuid("parkingId deve essere un UUID valido"),
@@ -32,9 +32,8 @@ export const createRateSchema = z.object({
 }).strict();
 
 /**
- * Zod schema per update tariffa
- * tutti i campi sono opzionali, ma almeno uno deve essere presente
- * (price, hourStart, hourEnd)
+ * Validazione dei dati per aggiornare una tariffa.
+ * Tutti i campi sono opzionali.
  */
 export const updateRateSchema = z
   .object({
@@ -44,15 +43,13 @@ export const updateRateSchema = z
     hourEnd: timeStringSchema.optional(),
   }).strict(); 
 
-
 /**
- * Schema per validare l'ID della tariffa (parametro di path)
+ * Validazione dell'ID della tariffa passato come parametro nella rotta.
  */
 export const rateIdSchema = z.object({
   id: z.string().uuid("L'ID deve essere un UUID valido"),
 });
 
-// Tipi TypeScript inferiti dagli schemi
 export type CreateRateInput = z.infer<typeof createRateSchema>;
 export type UpdateRateInput = z.infer<typeof updateRateSchema>;
 export type RateIdParams = z.infer<typeof rateIdSchema>;

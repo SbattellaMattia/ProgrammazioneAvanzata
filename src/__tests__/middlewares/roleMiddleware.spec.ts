@@ -8,7 +8,7 @@ describe("RoleMiddleware", () => {
   let next: NextFunction;
 
   beforeEach(() => {
-    middleware = new RoleMiddleware({} as any); // authService non usato qui
+    middleware = new RoleMiddleware({} as any);
     next = jest.fn();
   });
 

@@ -17,11 +17,19 @@ export interface BillingContext {
   dayType: DayType;
 }
 
+/**
+ * Stabilisce se un giorno è feriale o weekend.
+ * Serve per scegliere le tariffe giuste.
+ */
 export function getDay(date: Date): DayType {
   const day = date.getDay(); // 0 domenica, 6 sabato
   return day === 0 || day === 6 ? DayType.WEEKEND : DayType.WEEKDAY;
 }
 
+/**
+ * Converte un orario in “minuti dall’inizio della giornata”.
+ * È un formato comodo per confrontare orari e fasce.
+ */
 export function timeToMinutes(value: string | Date): number {
   if (value instanceof Date) {
     return value.getHours() * 60 + value.getMinutes();
@@ -33,7 +41,10 @@ export function timeToMinutes(value: string | Date): number {
 }
 
 /**
- * Fascia oraria [hourStart, hourEnd) su 24h, con supporto a 20–08
+ * Controlla se una certa data/ora cade dentro una fascia tariffaria (Rate).
+ *
+ * Gestisce anche fasce che attraversano la mezzanotte,
+ * per esempio 20:00 -> 08:00.
  */
 export function isInRange(date: Date, rate: Rate): boolean {
   const t = timeToMinutes(date);
@@ -48,7 +59,13 @@ export function isInRange(date: Date, rate: Rate): boolean {
   return t >= start || t < end;
 }
 
-
+/**
+ * Crea il BillingContext partendo da:
+ * - transito di ingresso
+ * - transito di uscita
+ * - veicolo
+ *
+ */
 export function buildBillingContext(
   entryTransit: Transit,
   exitTransit: Transit,
@@ -80,6 +97,12 @@ export function buildBillingContext(
   };
 }
 
+/**
+ * Carica i dati dal database (transiti + veicolo)
+ * e costruisce il BillingContext pronto per il calcolo.
+ *
+ * Se manca qualcosa (transito o veicolo), lancia un errore chiaro.
+ */
 export async function loadBillingContext(
   entryTransitId: string,
   exitTransitId: string,

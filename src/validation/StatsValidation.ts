@@ -1,5 +1,12 @@
 import { z } from 'zod';
 
+/**
+ * Validazione dei parametri di query per le statistiche.
+ *
+ * Permette di:
+ * - filtrare per periodo (from / to)
+ * - scegliere il formato di risposta (json o pdf)
+ */
 export const statsQuerySchema = z.object({
   from: z.coerce.date({
     invalid_type_error: "La data di inizio deve essere valida (ISO 8601)",

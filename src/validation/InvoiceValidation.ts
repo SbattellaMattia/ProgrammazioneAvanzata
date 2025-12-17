@@ -1,13 +1,20 @@
-// src/validation/GateValidation.ts
 import { z } from "zod";
 import { InvoiceStatus } from "../enum/InvoiceStatus";
+
 /**
- * Validazione parametro :id nella rotta
+ * Validazione dell'ID della fattura passato come parametro nella rotta.
  */
 export const invoiceIdSchema = z.object({
   id: z.string().uuid("L'ID deve essere un UUID valido"),
 });
 
+/**
+ * Validazione dei parametri di query per la ricerca delle fatture.
+ *
+ * Permette di filtrare per:
+ * - intervallo di date
+ * - stato della fattura
+ */
 export const invoiceQuerySchema = z.object({
   from: z.coerce.date({
     invalid_type_error: "La data di inizio deve essere valida (ISO 8601)",

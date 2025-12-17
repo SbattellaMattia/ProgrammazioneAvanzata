@@ -1,5 +1,9 @@
 import { z } from 'zod';
 
+/**
+ * Validazione dei dati per creare un nuovo parcheggio.
+ * Tutti i campi sono obbligatori.
+ */
 export const createParkingSchema = z.object({
     name: z.string({
         required_error: "Il nome del parcheggio è obbligatorio",
@@ -30,7 +34,10 @@ export const createParkingSchema = z.object({
         .positive("La capacità dei camion deve essere maggiore di 0"),
 }).strict();
 
-
+/**
+ * Validazione dei dati per aggiornare un parcheggio.
+ * Tutti i campi sono opzionali.
+ */
 export const updateParkingSchema = z.object({
     name: z.string({
         required_error: "Il nome del parcheggio è obbligatorio",
@@ -61,11 +68,13 @@ export const updateParkingSchema = z.object({
         .nonnegative("La capacità dei camion deve essere maggiore di 0").optional(),
 }).strict();
 
+/**
+ * Validazione dell'ID del parcheggio passato come parametro nella rotta.
+ */
 export const parkingIdSchema = z.object({
     id: z.string().uuid("L'ID deve essere un UUID valido"),
 });
 
-// Tipi inferiti (opzionale, per tipizzazione forte nel Service/Controller)
 export type CreateParkingDTO = z.infer<typeof createParkingSchema>;
 export type UpdateParkingDTO = z.infer<typeof updateParkingSchema>;
 export type ParkingIdParams = z.infer<typeof parkingIdSchema>;

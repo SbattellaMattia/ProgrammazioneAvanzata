@@ -1,10 +1,10 @@
-// src/validation/GateValidation.ts
 import { z } from "zod";
 import { GateType } from "../enum/GateType";
 import { GateDirection } from "../enum/GateDirection";
 
 /**
- * Schema Zod per la creazione di un Gate
+ * Validazione dei dati per creare un nuovo Gate.
+ * Controlla che i campi obbligatori siano presenti e corretti.
  */
 export const createGateSchema = z.object({
   parkingId: z.string().uuid("parkingId deve essere un UUID valido"),
@@ -19,9 +19,11 @@ export const createGateSchema = z.object({
 }).strict();
 
 /**
- * Schema Zod per l’update di un Gate
+ * Validazione dei dati per aggiornare un Gate.
+ *
+ * In questo caso:
+ * - nessun campo è obbligatorio
  * - si possono modificare solo type e direction
- * - almeno un campo deve essere presente
  */
 export const updateGateSchema = z
   .object({
@@ -30,7 +32,7 @@ export const updateGateSchema = z
   }).strict();
 
 /**
- * Validazione parametro :id nella rotta
+ * Validazione dell'ID del Gate passato come parametro nella rotta.
  */
 export const gateIdSchema = z.object({
   id: z.string().uuid("L'ID deve essere un UUID valido"),

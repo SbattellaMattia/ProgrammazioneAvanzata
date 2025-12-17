@@ -1,3 +1,7 @@
+/**
+ * Ritorna la “fascia” di 2 ore in cui cade la data.
+ * Esempio: 09:xx -> "08-10", 21:xx -> "20-22"
+ */
 const getSlot = (d: Date): string => {
   const h = d.getHours();
   const startHour = Math.floor(h / 2) * 2;
@@ -7,10 +11,19 @@ const getSlot = (d: Date): string => {
   return `${pad(startHour)}-${pad(endHour)}`;
 };
 
+
+/**
+ * Limita un numero dentro un intervallo (min..max).
+ * Utile per evitare valori negativi o oltre la capacità.
+ */
 function clamp(n: number, min: number, max: number) {
   return Math.max(min, Math.min(max, n));
 }
 
+/**
+ * Dato un momento qualsiasi, calcola inizio e fine dello slot di 2 ore
+ * in cui quel momento cade.
+ */
 function slotStartEnd(d: Date): { start: Date; end: Date } {
   const start = new Date(d);
   start.setMinutes(0, 0, 0);
@@ -26,8 +39,14 @@ function slotStartEnd(d: Date): { start: Date; end: Date } {
 type SlotAccum = { freeTime: number; dur: number };
 
 /**
- * Media posti liberi (TOT) per slot 2h, pesata sul tempo.
- * occupazione iniziale assunta = 0 all’inizio range.
+ * Calcola la media dei posti liberi (totali) per slot di 2 ore.
+ *
+ * Idea generale:
+ * - consideriamo gli eventi di ingresso/uscita ordinati nel tempo
+ * - tra un evento e l’altro l’occupazione rimane costante
+ * - per ogni pezzo di tempo, aggiorniamo lo slot corretto
+ * - alla fine facciamo una media “pesata sul tempo” (non una semplice media)
+ *
  */
 export function calculateAvgFreeSlotsTotal(params: {
   transits: Array<{ date: Date; type: "in" | "out" }>;

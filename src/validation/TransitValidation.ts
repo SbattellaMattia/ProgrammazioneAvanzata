@@ -1,11 +1,17 @@
-// src/validation/TransitValidation.ts
 import { z } from "zod";
 
+/**
+ * Espressione regolare per validare una data/ora
+ * nel formato DD/MM/YYYY HH:MM:SS
+ */
 const timeRegex =/^([0-2]\d|3[01])\/(0\d|1[0-2])\/\d{2,4} ([01]\d|2[0-3]):[0-5]\d:[0-5]\d$/;
 
 /**
- * Zod schema per update Transito
- * tutti i campi sono opzionali, ma almeno uno deve essere presente
+ * Validazione dei dati per aggiornare un transito.
+ *
+ * In questo caso:
+ * - è possibile modificare solo la data
+ * - non sono ammessi altri campi
  */
 export const updateTransitSchema = z
     .object({
@@ -18,8 +24,22 @@ export const transitIdSchema = z.object({
   id: z.string().uuid("L'ID deve essere un UUID valido"),
 });
 
+/**
+ * Espressione regolare per il formato della targa.
+ * Esempi validi:
+ * - LL12345
+ * - LL123LL
+ */
 const PLATE_REGEX = /^([A-Z]{2}\d{5}|[A-Z]{2}\d{3}[A-Z]{2})$/;
 
+/**
+ * Validazione dei parametri di query per lo storico dei transiti.
+ *
+ * Permette di filtrare per:
+ * - periodo (from / to)
+ * - una o più targhe
+ * - formato di output (json o pdf)
+ */
 export const transitHistorySchema = z.object({
   from: z.coerce.date({
     invalid_type_error: "La data di inizio deve essere valida (ISO 8601)",
